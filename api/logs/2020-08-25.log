@@ -1,0 +1,143 @@
+[2020-08-25 17:19:52] INFO [config.py:15] __init__ - Loading config from D:\Documents\PycharmProjects\anime-api\api\config.json
+[2020-08-25 17:19:52] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler VideoHandler: <class 'api.base.VideoHandler'>
+[2020-08-25 17:19:52] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler YHDMVideoHandler: <class 'api.engines.yhdm.YHDMVideoHandler'>
+[2020-08-25 17:19:52] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.yhdm.YingHuaDongMan: <class 'api.engines.yhdm.YingHuaDongMan'>
+[2020-08-25 17:19:52] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler VideoHandler: <class 'api.base.VideoHandler'>
+[2020-08-25 17:19:52] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.zzfun.ZZFun: <class 'api.engines.zzfun.ZZFun'>
+[2020-08-25 17:19:52] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler ZZFunVideoHandler: <class 'api.engines.zzfun.ZZFunVideoHandler'>
+[2020-08-25 17:19:52] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.eyunzhu.EYunZun: <class 'api.engines.eyunzhu.EYunZun'>
+[2020-08-25 17:19:53] INFO [config.py:15] __init__ - Loading config from D:\Documents\PycharmProjects\anime-api\api\config.json
+[2020-08-25 17:19:53] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler VideoHandler: <class 'api.base.VideoHandler'>
+[2020-08-25 17:19:53] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler YHDMVideoHandler: <class 'api.engines.yhdm.YHDMVideoHandler'>
+[2020-08-25 17:19:53] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.yhdm.YingHuaDongMan: <class 'api.engines.yhdm.YingHuaDongMan'>
+[2020-08-25 17:19:53] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler VideoHandler: <class 'api.base.VideoHandler'>
+[2020-08-25 17:19:53] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.zzfun.ZZFun: <class 'api.engines.zzfun.ZZFun'>
+[2020-08-25 17:19:53] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler ZZFunVideoHandler: <class 'api.engines.zzfun.ZZFunVideoHandler'>
+[2020-08-25 17:19:53] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.eyunzhu.EYunZun: <class 'api.engines.eyunzhu.EYunZun'>
+[2020-08-25 17:19:57] INFO [engine_mgr.py:46] search - Searching for 异世界...
+[2020-08-25 17:19:57] INFO [yhdm.py:27] parse_one_page - Searching for 异世界, page 1
+[2020-08-25 17:19:57] INFO [zzfun.py:17] search - Searching for: 异世界
+[2020-08-25 17:19:57] INFO [eyunzhu.py:13] search - Searching for: 异世界
+[2020-08-25 17:19:58] INFO [engine_mgr.py:50] search - Searching result in total: 82
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F52E0> -> 48d7de80b94eafa79fe44669d3e50a74
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5EE0> -> c3d50d4948609498dc72c19ace00722e
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5F40> -> b11f90e2e4965f288b745408bb53e088
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5FA0> -> a9e48b60bfec2b82607e7bff60e1fc8b
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5FD0> -> 9de7e45b3c133745ebb2f5dab1da3e84
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5EB0> -> c22a654179eff93e3e4ecee212375361
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5DF0> -> 3b3bba2b1491e6b583233148ab04aef4
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5E50> -> d4212c2d711f9638e1ff3a7239cab9db
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5E80> -> abcabf4e595aca3612495869dac1e7c1
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5E20> -> 06ea96f6ad15d20dff36bb59c1f7c9ba
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5D90> -> f8b0ba31f558c2a7900669583def12b5
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5DC0> -> 4774644a8ab9e44c774b95c3a9c332c3
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A640> -> 42a541024b2e6551c1947cd6d92af5c5
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F57F0> -> 96a552dadd48f4ae1f74e8fe7ea31b68
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5820> -> c5b4661183b2034fad856b860eeeac5b
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F56D0> -> feb2b947980f9b9105bd13bd7a6550b2
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5700> -> 54916828a7a7370ffa3866f3b352ffcb
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5850> -> 81178007b85f9367032f059aaecc0f4f
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5610> -> c735988bbe611f7d596140aa284b8b88
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5640> -> d2b0c277583bb4b13cf9cd6a4ad86d8e
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5880> -> 5a1459b3e38533230364f3c297653be9
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F52B0> -> 20507f19596e75caffc23f710656d07d
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5730> -> 7208880ff1b8518309fdebb0079f2090
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5670> -> d87e75a00aef9440c990db15f148438e
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F56A0> -> 89685862933cd9df7207d48dda190fec
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5910> -> 4a5ad85d920ebef1aed2fd01e3323fff
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0E0EE0> -> 4fdd4764eb850736da322a1ee23aecbc
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0E0F10> -> 3f999b2ba17ebf5e5e2f7755df011287
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0E0FD0> -> 2446a2b36f563def98114aea71deb9cb
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AA90> -> 241c88465af186922d8e30099bc9b763
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AB80> -> d7e3fcfc0bb2c28fdd77b68f9bf1a2ad
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AAC0> -> 2896add133e99f039aae377fef8dae06
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5D30> -> f0d97cc5006229e61ad7879bd9ea0a4e
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5D60> -> e7c1817d2f3acb87224611c10fe19ffd
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F59A0> -> 2bed512556f979d8d4687a19c1643209
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F57C0> -> 2c8b86f9ed1cb8c5acc30ed79a0aec5b
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5AF0> -> 63a7cb99c049e19bd1208fd20c321d31
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5A00> -> be7fb6f905afa27575581fc5bef3a470
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5C40> -> e272c9f748b919c051d00bf9a6d60a27
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5BB0> -> 33b81e69d209f5351b434f6ab48a973d
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5F70> -> da82ab93b27b054cfc128fcd649c87ec
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0F5790> -> 40214b63c7719e8731b434df6ab8440d
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AE80> -> 8d7b4fbb1e1134530f5ea704c2c3bb5f
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AFD0> -> da00048d74c9f69099f40ce864f4c20a
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AF10> -> 43030a852855d8c6a776f692f106c2d2
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AFA0> -> 0433cd07fa265ecc7beafb9287f612f3
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AF40> -> 61305e4431a7b65eada6d492d2a56fa6
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AE50> -> c6f3538cd3c4561760b920db1d5da138
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A3D0> -> bc408e429da7c62470e6809dbc80203f
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10ABE0> -> e9436663a9bc1005fb2bbb4f824e44e0
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AC10> -> e3c8557c310f8adf050e611fe9e39366
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AC40> -> 2381ee3cf4efd4a9a75254a1d03d15f5
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AC70> -> 80899acb3ec31dcb08c904b518a3d47e
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A730> -> 46ef1d030c637617908c596a581cb12f
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AA30> -> d820d27c8f61d18a93b73c64e745d161
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AA60> -> eb3e7741197a77894086b663623100b8
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A6D0> -> 1cc6a4d0000bf9a784193b2e04077385
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AD00> -> 9db633ebe2b1c7f21a894be42972c94b
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10ABB0> -> db5dd23168b988d225ef69b7ce154163
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10ACD0> -> f677087f199ca4baecf55c538195f5f9
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A670> -> 3a172c3fedffa5cedc8d650aa744a24a
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AB50> -> 602277281d03dac067e284c32983f358
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AAF0> -> a77828c7c50f1990238310c3249fa6e5
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10ACA0> -> 607f37bd652a04512c4f8681a9447618
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A7C0> -> b9d36cd0d53eb81cd10650d2b10181ef
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A5E0> -> db2547e9311e5d70a9158f2ca5d875dd
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10AA00> -> 900992b006324ff812343c3f6d5f4355
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10ADF0> -> 675b3f39e6d17a6484d290bcdd44c710
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A700> -> a849b5d23c19389b751684dc541527cd
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A5B0> -> 511a9637bd113f9205ac2ba19ee12ab0
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A370> -> 4f259ec93a87aa0861ca23893cec8373
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A580> -> 03325953b4be8b9e22b0b157a56ef310
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A550> -> 2279ae28449e7d7914dea4efce684e35
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A6A0> -> dde2c978057dd23b832b45331e70ca61
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E10A610> -> e8233542ec6d8ff60adbfafef6c22605
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF580> -> 09f4647f1b469bf5fdd8cabfa5b3e7ec
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF6A0> -> 991b0e0f8b0cb576388bd631b57ab167
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF700> -> 606def8a368de99315846cac1d466c6e
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF730> -> 770607008843d9534903a2efc53c3e12
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF760> -> 42d25226d69612773bb4b5c201ba35e4
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF790> -> 8acbd25845fa31c49a0f65399095aa17
+[2020-08-25 17:19:58] DEBUG [cachedb.py:24] store - Store <api.models.AnimeMetaInfo object at 0x000002310E0FF670> -> 4673bc0a6ca768522fbe949aef272076
+[2020-08-25 17:20:09] DEBUG [cachedb.py:30] fetch - Fetch c3d50d4948609498dc72c19ace00722e -> <api.models.AnimeMetaInfo object at 0x000002310E0F5EE0>
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F5370> -> 33252dbe61ce1f2d447733ed3579bfd7
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F5A30> -> 3f9199f6bad3ca261e4f92d924e2d318
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F5B50> -> 30efa014cd9d8c62ea702477541c4663
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F5160> -> affd99aab4121c329b88cf2209173d40
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F51C0> -> 9a658a5833c7b8c0852cc38952514059
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F5D00> -> e1be6849ec79a722a53008e7d34dd4f4
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0F5490> -> 27a3e6d12134a5d1bcb8973d9d7f5150
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E10AEE0> -> 38deec4c45df4fe2bc543a5c3f44f007
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0760> -> f7ac22325b0d9ff72a0e969b737e7ffa
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0D90> -> 35670ae057b0056ac752f16af1daec21
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0CD0> -> 21dc6a6d8ca618abdeeaa04ab43155da
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0C70> -> 0aed15359d628ef56c74a87378b5f0ff
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0DF0> -> ad212a5283bdc4d80bd39d47b99bb106
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E06A0> -> 857649c90094c4e2747a4e1f22b4c1d6
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0670> -> 662dd21cb20beeea03fadc778612c2c0
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0AC0> -> 827bf9433b8307603cd0827dae3a8b08
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0A90> -> 8c861235add3d6f0e55b0684dd3d0ab5
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0820> -> b437a1e4a5f7279a9f6e055022fc1ffe
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0910> -> fd157a23ce24737ad61e2e90b19c9db8
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0EB0> -> 989a23e9ba8466c48ea3a7d7b1f58124
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0100> -> d1be8ed05aaa45d2377fab2a11ccc36b
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E0160> -> b5f0bb89e1b3f6b07a504d435dd8af53
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0E01C0> -> 988e54a1a97827e49d130ddeea721f2c
+[2020-08-25 17:20:10] DEBUG [cachedb.py:24] store - Store <api.models.Video object at 0x000002310E0FFAF0> -> 39212b059ce88e0dccac6ec5d73308b8
+[2020-08-25 17:20:13] DEBUG [cachedb.py:30] fetch - Fetch 33252dbe61ce1f2d447733ed3579bfd7 -> <api.models.Video object at 0x000002310E0F5370>
+[2020-08-25 17:20:13] INFO [zzfun.py:63] get_real_url - Parsing real url for 52-1-a
+[2020-08-25 17:20:13] INFO [zzfun.py:71] get_real_url - Video real url: https://vwecam.tc.qq.com/1006_e36e6735498b42378d906534da90dbbb.f0.mp4?vkey=340FCE859EAA43B7CC8B6CCC2C98E917427B332F34C738D7832AD885617963DB333EC1ABF4D58368BBA71E9BB19BDB545A51A8F55BF7503E
+[2020-08-25 17:20:13] DEBUG [cachedb.py:35] update - Update 33252dbe61ce1f2d447733ed3579bfd7 -> <api.models.Video object at 0x000002310E0F5370>
+[2020-08-25 17:20:16] DEBUG [cachedb.py:30] fetch - Fetch 33252dbe61ce1f2d447733ed3579bfd7 -> <api.models.Video object at 0x000002310E0F5370>
+[2020-08-25 17:21:00] DEBUG [cachedb.py:30] fetch - Fetch b5f0bb89e1b3f6b07a504d435dd8af53 -> <api.models.Video object at 0x000002310E0E0160>
+[2020-08-25 17:21:00] INFO [zzfun.py:63] get_real_url - Parsing real url for 52-10-b
+[2020-08-25 17:21:01] INFO [zzfun.py:71] get_real_url - Video real url: https://wps-media-file.ks3-cn-beijing.ksyun.com/f5e14950631c1aaeb6b7b576f4c23c3163f504b5?response-content-disposition=attachment%3Bfilename%2A%3Dutf-8%27%2710.mp4&KSSAccessKeyId=AKLTyz9w352bT_GJVfB-QVoo7A&Expires=1598347861&Signature=GEs%2Fytr5wCSux4ycpjbPyAy3CQE%3D
+[2020-08-25 17:21:01] DEBUG [cachedb.py:35] update - Update b5f0bb89e1b3f6b07a504d435dd8af53 -> <api.models.Video object at 0x000002310E0E0160>
+[2020-08-25 17:21:01] INFO [base.py:169] _get_stream_with_range - Client header: Range=None
+[2020-08-25 17:21:01] INFO [zzfun.py:63] get_real_url - Parsing real url for 52-10-b
+[2020-08-25 17:21:02] INFO [zzfun.py:71] get_real_url - Video real url: https://wps-media-file.ks3-cn-beijing.ksyun.com/f5e14950631c1aaeb6b7b576f4c23c3163f504b5?response-content-disposition=attachment%3Bfilename%2A%3Dutf-8%27%2710.mp4&KSSAccessKeyId=AKLTyz9w352bT_GJVfB-QVoo7A&Expires=1598347862&Signature=VChjs%2BMHY1E9lggbEBV1X369ok4%3D
+[2020-08-25 17:21:03] INFO [zzfun.py:63] get_real_url - Parsing real url for 52-10-b
+[2020-08-25 17:21:03] INFO [zzfun.py:71] get_real_url - Video real url: https://wps-media-file.ks3-cn-beijing.ksyun.com/f5e14950631c1aaeb6b7b576f4c23c3163f504b5?response-content-disposition=attachment%3Bfilename%2A%3Dutf-8%27%2710.mp4&KSSAccessKeyId=AKLTyz9w352bT_GJVfB-QVoo7A&Expires=1598347863&Signature=m8zOQtD%2BgYIPeluwJVxfJmJbI84%3D
+[2020-08-25 17:21:04] DEBUG [base.py:201] detect_video_format - Detecting video format from binary stream

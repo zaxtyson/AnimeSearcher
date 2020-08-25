@@ -1,0 +1,44 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <title>{{ video_name }}</title>
+    <link class="dplayer-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/flv.js/dist/flv.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs/dist/dash.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/webtorrent/latest/webtorrent.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
+</head>
+<style type="text/css">
+    body {
+        margin: 0px;
+        padding: 0px;
+        background: #000;
+    }
+</style>
+<body>
+<div id="iframe"></div>
+<script type="text/javascript">
+		function initPlayer(){
+		    player = new DPlayer({
+	            container: document.getElementById('iframe'),
+	            video: {
+	                url: '{{ real_url }}',
+	                type: 'auto',
+	                autoplay: true,
+	                preload: 'auto'
+	            }
+	        });
+	        player.on('canplay', function () {
+                player.play();
+                player.fullScreen.request();
+            });
+		}
+		var player;
+		initPlayer();
+  </script>
+</body>
+</html>
