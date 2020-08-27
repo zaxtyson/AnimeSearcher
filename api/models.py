@@ -1,6 +1,8 @@
 from inspect import currentframe
+from typing import List
 
-__all__ = ["Video", "VideoCollection", "AnimeMetaInfo", "AnimeDetailInfo"]
+__all__ = ["Video", "VideoCollection", "AnimeMetaInfo", "AnimeDetailInfo", "DanmakuMetaInfo", "DanmakuCollection",
+           "Danmaku"]
 
 
 class Video(object):
@@ -19,11 +21,14 @@ class VideoCollection(object):
     def __init__(self):
         self.name = ""  # 集合名, 比如 "播放线路1"
         self.num = 0  # 视频集数
-        self.video_list = []
+        self.video_list: List[Video] = []
 
     def append(self, video: Video):
         self.video_list.append(video)
         self.num += 1
+
+    def __iter__(self):
+        return iter(self.video_list)
 
 
 class AnimeMetaInfo(object):
@@ -51,7 +56,62 @@ class AnimeDetailInfo(object):
         self.cover_url = ""  # 封面图片链接
         self.category = ""  # 番剧的分类
         self.desc = ""  # 番剧的简介信息
-        self.play_lists = []  # 播放列表, 一部番剧可能有多条播放路线, 一条线路对应一个 VideoCollection
+        self.play_lists: List[VideoCollection] = []  # 播放列表, 一部番剧可能有多条播放路线, 一条线路对应一个 VideoCollection
 
     def append(self, video_collection: VideoCollection):
         self.play_lists.append(video_collection)
+
+    def __iter__(self):
+        return iter(self.play_lists)
+
+
+class Danmaku(object):
+    """视频的弹幕库, 包含弹幕的 id 信息, 用于进一步解析出弹幕数据"""
+
+    def __init__(self):
+        self.name = ""  # 视频名
+        self.cid = ""  # 弹幕 id, 用于解析出弹幕
+
+        # 自动设置引擎的名字, 管理器进一步解析需要知道它
+        frame = currentframe().f_back
+        self.dm_engine = frame.f_globals["__name__"]
+        del frame
+
+    def __repr__(self):
+        return f"<Danmaku {self.name}>"
+
+
+class DanmakuMetaInfo(object):
+    """番剧弹幕的元信息, 包含指向播放页的链接, 用于进一步处理"""
+
+    def __init__(self):
+        self.title = ""  # 弹幕库名字(番剧名)
+        self.num = 0  # 视频数量
+        self.play_page_url = ""  # 番剧播放页的链接
+
+        # 自动设置引擎的名字, 管理器进一步解析需要知道它
+        frame = currentframe().f_back
+        self.dm_engine = frame.f_globals["__name__"]
+        del frame
+
+    def __repr__(self):
+        return f"<DanmakuMetaInfo {self.title}[{self.num}]>"
+
+
+class DanmakuCollection(object):
+    """一部番剧所有视频的 Danmaku 集合"""
+
+    def __init__(self):
+        self.title = ""  # 弹幕库名字(番剧名)
+        self.num = 0  # 视频数量
+        self.dm_list: List[Danmaku] = []  # 弹幕对象列表
+
+    def append(self, dmk: Danmaku):
+        self.dm_list.append(dmk)
+        self.num += 1
+
+    def __iter__(self):
+        return iter(self.dm_list)
+
+    def __repr__(self):
+        return f"<DanmakuDetailInfo {self.title}[{self.num}]>"

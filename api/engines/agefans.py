@@ -1,9 +1,14 @@
-from api.base import BaseEngine, VideoHandler, HtmlParseHelper
+from random import random
+from time import sleep
+
+import requests
+
+from api.base import AnimeEngine, VideoHandler, HtmlParseHelper
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
 
 
-class AgeFans(BaseEngine):
+class AgeFans(AnimeEngine):
     def __init__(self):
         self._base_url = "https://www.agefans.tv"
         self._search_api = self._base_url + "/search"
@@ -71,8 +76,43 @@ class AgeFans(BaseEngine):
 
 
 class AgeFansVideoHandler(VideoHandler, HtmlParseHelper):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4033.0 Safari/537.36 Edg/81.0.403.1",
-        "Referer": "https://www.agefans.tv"
-    }
-    play_api = "https://www.agefans.tv/_getplay"  # ?aid=20170172&playindex=1&epindex=66&r=0.28174977677245283"
+
+    def get_real_url(self):
+        host = "https://www.agefans.tv"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4033.0 Safari/537.36 Edg/81.0.403.1",
+            "Referer": host
+        }
+        play_page_url = host + self.get_raw_url()  # "https://www.agefans.tv/play/20170172?playid=1_1"
+        logger.info(f"Parse page: {play_page_url}")
+        play_api = host + "/_getplay"  # _getplay?aid=20170172&playindex=1&epindex=66&r=0.28174977677245283"
+        aid = play_page_url.split("?")[0].split("/")[-1]
+        playindex, epindex = play_page_url.split("=")[-1].split("_")
+        params = {"aid": aid, "playindex": playindex, "epindex": epindex, "r": random()}
+        logger.info(f"Args: {params}")
+        client = requests.Session()
+        client.get(play_page_url, headers=headers)  # 接受服务器设置的 cookie, 不需要 body, 加快速度
+        logger.debug(client.cookies)
+
+        while True:
+            resp = client.get(play_api, params=params, headers=headers, verify=False)
+            resp.encoding = "utf-8"
+            params = {"aid": aid, "playindex": playindex, "epindex": epindex, "r": random()}  # 更换随机数
+            logger.info(f"URL1: {resp.url}")
+            if resp.text != "err:timeout":
+                logger.debug(f"{resp.status_code}")
+                logger.info(f"URL1: {resp.url}")
+                try:
+                    data = resp.json()
+                    logger.debug(data)
+                except:
+                    sleep(0.5)
+                    continue
+                if "mp4" in data["playid"]:
+                    return "https:" + data["vurl"]
+                elif "tieba" in data["playid"]:
+                    return data["purlf"] + data["vurl"]
+                else:
+                    return data["purlf"] + data["vurl"]
+                break
+        return "no url"

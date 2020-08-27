@@ -9,9 +9,9 @@ from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 
 from api.logger import logger
-from api.models import AnimeDetailInfo, AnimeMetaInfo, Video
+from api.models import AnimeDetailInfo, AnimeMetaInfo, Video, DanmakuMetaInfo, DanmakuCollection
 
-__all__ = ["HtmlParseHelper", "VideoHandler", "BaseEngine"]
+__all__ = ["HtmlParseHelper", "VideoHandler", "AnimeEngine", "DanmakuEngine"]
 
 
 class HtmlParseHelper(object):
@@ -70,6 +70,11 @@ class HtmlParseHelper(object):
 
     @staticmethod
     def submit_tasks(task_list: List[Tuple[Callable[..., T], Tuple, Dict]]) -> List[T]:
+        """线程池, 解析多个网页时可以使用, 加快解析速度
+        @task_list 任务列表, 每一个 task 都是元组:  (待调用的函数, 参数列表, 关键字参数列表), 示例
+                    (function, (arg1, arg2), {"kwarg1":"value"})
+                    (function, (arg1, ), {})
+        """
         executor = ThreadPoolExecutor()
         all_task = []
         result = []
@@ -82,7 +87,7 @@ class HtmlParseHelper(object):
         return result
 
 
-class BaseEngine(HtmlParseHelper):
+class AnimeEngine(HtmlParseHelper):
     """基础引擎类, 用户自定义引擎应该继承此类"""
 
     def search(self, keyword: str) -> List[AnimeMetaInfo]:
@@ -108,6 +113,46 @@ class BaseEngine(HtmlParseHelper):
         except Exception as e:
             logger.error(f"{__name__} catch exception: {e}")
             return AnimeDetailInfo()
+
+
+class DanmakuEngine(HtmlParseHelper):
+    """弹幕库引擎基类, 用户自定义的引擎应该继承它"""
+
+    def search(self, keyword: str) -> List[DanmakuMetaInfo]:
+        """搜索相关番剧, 返回指向番剧详情页的信息"""
+        pass
+
+    def get_detail(self, play_page_url: str) -> DanmakuCollection:
+        """处理一部番剧的播放页面, 解析所有视频的弹幕 id 信息"""
+        pass
+
+    def get_danmaku(self, cid: str) -> Dict:
+        """提供弹幕的 id, 解析出弹幕的内容, 并处理成 DPlayer 支持的格式"""
+        pass
+
+    def _search(self, keyword: str) -> List[DanmakuMetaInfo]:
+        """引擎管理器负责调用, 捕获异常"""
+        try:
+            return self.search(keyword)
+        except Exception as e:
+            logger.error(f"{__name__} catch exception: {e}")
+            return []
+
+    def _get_detail(self, play_page_url: str) -> DanmakuCollection:
+        """引擎管理器负责调用, 捕获异常"""
+        try:
+            return self.get_detail(play_page_url)
+        except Exception as e:
+            logger.error(f"{__name__} catch exception: {e}")
+            return DanmakuCollection()
+
+    def _get_danmaku(self, cid: str) -> Dict:
+        """引擎管理器负责调用, 捕获异常"""
+        try:
+            return self.get_danmaku(cid)
+        except Exception as e:
+            logger.error(f"{__name__} catch exception: {e}")
+            return {}
 
 
 class VideoHandler(object):
@@ -203,6 +248,7 @@ class VideoHandler(object):
         for format_, hex_list in format_hex.items():
             for hex_sign in hex_list:
                 if hex_sign in video_meta:
+                    logger.debug(f"Video format: {format_}")
                     return format_
         logger.error("Could not detect video format from stream")
         logger.debug("Video raw binary stream (512byte):")

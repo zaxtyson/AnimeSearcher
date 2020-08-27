@@ -1,9 +1,9 @@
-from api.base import BaseEngine
+from api.base import AnimeEngine
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
 
 
-class EYunZun(BaseEngine):
+class EYunZun(AnimeEngine):
     def __init__(self):
         self._base_url = "https://api.eyunzhu.com/api/vatfs/resource_site_collect"
         self._search_api = self._base_url + "/search"

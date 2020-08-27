@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, render_template
 
 from api.cachedb import CacheDB
 from api.config import GLOBAL_CONFIG
-from api.engine_mgr import EngineManager
+from api.manager import EngineManager
 
 
 class Router(object):
@@ -33,13 +33,14 @@ class Router(object):
             return "Hello, Anime! See useage: https://github.com/zaxtyson/anime-api"
 
         @self._app.route("/search/<name>")
-        def search(name):
+        def search_anime(name):
             """搜索番剧, 返回番剧摘要信息列表"""
             ret = []
-            anime_list = self._engine_mgr.search(name)
+            self._db.clear()  # 每次搜索清空缓存数据库
+            anime_list = self._engine_mgr.search_anime(name)
             for meta in anime_list:
                 hash_key = self._db.store(meta)
-                anime_meta = {"name": meta.title, "cover_url": meta.cover_url, "category": meta.category,
+                anime_meta = {"title": meta.title, "cover_url": meta.cover_url, "category": meta.category,
                               "description": meta.desc, "engine": meta.engine,
                               "url": f"{self._domain}/detail/" + hash_key}
                 ret.append(anime_meta)
@@ -49,17 +50,17 @@ class Router(object):
         def detail(hash_key):
             """返回番剧详情页面信息"""
             meta = self._db.fetch(hash_key)
-            detail = self._engine_mgr.get_detail(meta)
+            anime_detail = self._engine_mgr.get_anime_detail(meta)
             ret = {
-                "title": detail.title,
-                "cover_url": detail.cover_url,
-                "description": detail.desc,
-                "category": detail.category,
+                "title": anime_detail.title,
+                "cover_url": anime_detail.cover_url,
+                "description": anime_detail.desc,
+                "category": anime_detail.category,
                 "play_lists": []  # 一部番剧可能有多个播放列表(播放线路)
             }
-            for vc in detail.play_lists:
-                lst = {"name": vc.name, "num": vc.num, "video_list": []}  # 一个播放列表
-                for video in vc.video_list:
+            for video_collection in anime_detail:
+                lst = {"name": video_collection.name, "num": video_collection.num, "video_list": []}  # 一个播放列表
+                for video in video_collection:
                     hash_key = self._db.store(video)  # 存起来备用
                     lst["video_list"].append({
                         "name": video.name,
@@ -109,6 +110,48 @@ class Router(object):
             video = self._db.fetch(hash_key)
             real_url = f"/video/{hash_key}/proxy"
             return render_template("player.html", real_url=real_url, video_name=video.name)
+
+        @self._app.route("/danmaku/search/<name>")
+        def search_danmaku(name):
+            """搜索番剧弹幕库"""
+            ret = []
+            meta_list = self._engine_mgr.search_danmaku(name)
+            if not meta_list:
+                return jsonify(ret)
+            for meta in meta_list:
+                hash_key = self._db.store(meta)
+                ret.append({
+                    "title": meta.title,
+                    "num": meta.num,
+                    "danmaku": meta.dm_engine,
+                    "url": f"{self._domain}/danmaku/detail/" + hash_key
+                })
+            return jsonify(ret)
+
+        @self._app.route("/danmaku/detail/<hash_key>")
+        def danmaku_detail(hash_key):
+            """获取番剧各集对应的弹幕库信息"""
+            danmaku_meta = self._db.fetch(hash_key)
+            dmk_collection = self._engine_mgr.get_danmaku_detail(danmaku_meta)
+            if not dmk_collection:
+                return []
+            ret = []
+            for dmk in dmk_collection:
+                hash_key = self._db.store(dmk)
+                ret.append({
+                    "name": dmk.name,
+                    "url": f"{self._domain}/danmaku/video/{hash_key}"
+                })
+            return jsonify(ret)
+
+        @self._app.route("/danmaku/video/<hash_key>")
+        def get_danmaku_data(hash_key):
+            """解析视频的弹幕库信息, 返回 DPlayer 支持的弹幕格式"""
+            dmk = self._db.fetch(hash_key)
+            data = self._engine_mgr.get_danmaku_data(dmk)
+            if not data:
+                return {"code": 0, "data": []}
+            return jsonify(data)
 
         @self._app.route("/settings", methods=["GET", "POST"])
         def update_settings():

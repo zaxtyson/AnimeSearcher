@@ -1,12 +1,12 @@
 import time
 from hashlib import md5
 
+from api.base import AnimeEngine, VideoHandler, HtmlParseHelper
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
-from api.base import BaseEngine, VideoHandler, HtmlParseHelper
 
 
-class ZZFun(BaseEngine):
+class ZZFun(AnimeEngine):
 
     def __init__(self):
         self._base_url = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android"

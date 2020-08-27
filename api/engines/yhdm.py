@@ -1,9 +1,9 @@
+from api.base import AnimeEngine, VideoHandler, HtmlParseHelper
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, VideoCollection, Video
-from api.base import BaseEngine, VideoHandler, HtmlParseHelper
 
 
-class YingHuaDongMan(BaseEngine):
+class YingHuaDongMan(AnimeEngine):
     def __init__(self):
         self._base_url = "http://www.yhdm.tv"
         self._search_api = self._base_url + "/search"
