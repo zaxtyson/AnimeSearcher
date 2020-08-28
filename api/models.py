@@ -14,6 +14,9 @@ class Video(object):
         self.handler = handler  # 视频绑定的处理器类名, 默认绑定 VideoHandler
         self.real_url = ""  # 解析出来的真实链接
 
+    def __repr__(self):
+        return f"<Video {self.name}>"
+
 
 class VideoCollection(object):
     """番剧的视频集合, 包含许多 Video"""
@@ -29,6 +32,9 @@ class VideoCollection(object):
 
     def __iter__(self):
         return iter(self.video_list)
+
+    def __repr__(self):
+        return f"<VideoCollection {self.name} [{self.num}]>"
 
 
 class AnimeMetaInfo(object):
@@ -47,6 +53,9 @@ class AnimeMetaInfo(object):
         self.engine = frame.f_globals["__name__"]
         del frame
 
+    def __repr__(self):
+        return f"<AnimeMetaInfo {self.title}>"
+
 
 class AnimeDetailInfo(object):
     """番剧详细信息, 包括视频播放列表"""
@@ -63,6 +72,9 @@ class AnimeDetailInfo(object):
 
     def __iter__(self):
         return iter(self.play_lists)
+
+    def __repr__(self):
+        return f"<AnimeDetailInfo {self.title}>"
 
 
 class Danmaku(object):

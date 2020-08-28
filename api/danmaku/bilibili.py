@@ -3,31 +3,45 @@ from json import loads
 from typing import List
 
 from api.base import DanmakuEngine
+from api.logger import logger
 from api.models import DanmakuMetaInfo, DanmakuCollection, Danmaku
 
 
 class BiliBili(DanmakuEngine):
+    """搜索哔哩哔哩官方和用户上传的番剧弹幕"""
+
     def __init__(self):
         self._host = "https://api.bilibili.com"
         self._search_api = self._host + "/x/web-interface/search/type"
         self._dm_api = self._host + "/x/v1/dm/list.so"
+        self._cid_api = self._host + "/x/player/pagelist"
 
     def search(self, keyword: str) -> List[DanmakuMetaInfo]:
         """搜索番剧信息"""
+        logger.info(f"Searching for danmaku: {keyword}")
         ret = []
         params = {"keyword": keyword, "search_type": "media_bangumi"}
-        resp = self.get(self._search_api, params)  # 官方番剧弹幕
-        if resp.status_code != 200:
-            return ret
-        data = resp.json()
-        if data["code"] != 0 or data["data"]["numResults"] == 0:
-            return ret
-        for item in data["data"]["result"]:
-            dm_mate = DanmakuMetaInfo()
-            dm_mate.title = item["title"].replace(r'<em class="keyword">', "").replace("</em>", "")  # 番剧标题
-            dm_mate.play_page_url = item["goto_url"]  # 番剧播放页
-            dm_mate.num = item["ep_size"]
-            ret.append(dm_mate)
+        params2 = {"keyword": keyword, "search_type": "video", "tids": 13, "order": "dm", "page": 1, "duration": 4}
+        task_list = [
+            (self.get, (self._search_api, params), {}),
+            (self.get, (self._search_api, params2), {})  # 用户上传的60 分钟以上的视频, 按弹幕数量排序
+        ]
+        resp_list = self.submit_tasks(task_list)  # 多线程同时搜索
+        for resp in resp_list:
+            if resp.status_code != 200:
+                continue
+            data = resp.json()
+            if data["code"] != 0 or data["data"]["numResults"] == 0:
+                continue
+            for item in data["data"]["result"]:
+                if '<em class="keyword">' not in item["title"]:  # 没有匹配关键字, 是B站的推广视频
+                    continue
+                dm_mate = DanmakuMetaInfo()
+                dm_mate.title = item["title"].replace(r'<em class="keyword">', "").replace("</em>", "")  # 番剧标题
+                dm_mate.play_page_url = item.get("goto_url") or item.get("arcurl")  # 番剧播放页链接
+                dm_mate.num = int(item.get("ep_size") or -1)
+                logger.debug(f"Match danmaku: {dm_mate}")
+                ret.append(dm_mate)
         return ret
 
     def get_detail(self, play_url: str) -> DanmakuCollection:
@@ -38,12 +52,20 @@ class BiliBili(DanmakuEngine):
             return ret
         data_json = re.search(r"window.__INITIAL_STATE__=({.+?});\(function\(\)", resp.text)
         data_json = loads(data_json.group(1))
-        ep_list = data_json["epList"]
-        for ep in ep_list:
-            dmk = Danmaku()
-            dmk.name = ep["titleFormat"] + ep["longTitle"]
-            dmk.cid = str(ep["cid"])  # cid 号
-            ret.append(dmk)
+        ep_list = data_json.get("epList")
+        if ep_list:  # 官方番剧
+            for ep in ep_list:
+                dmk = Danmaku()
+                dmk.name = ep["titleFormat"] + ep["longTitle"]
+                dmk.cid = str(ep["cid"])  # cid 号
+                ret.append(dmk)
+        else:
+            ep_list = data_json.get("videoData").get("pages")
+            for ep in ep_list:  # 用户上传的视频
+                dmk = Danmaku()
+                dmk.name = ep.get("part") or ep.get("from")
+                dmk.cid = str(ep["cid"])  # cid 号
+                ret.append(dmk)
         return ret
 
     def get_danmaku(self, cid: str):
@@ -62,33 +84,3 @@ class BiliBili(DanmakuEngine):
         dm_list = re.findall(r'p="(\d+\.?\d*?),\d,\d\d,(\d+?),\d+,(\d),.+?>(.+?)</d>', resp.text)
         ret["data"] = [[float(dm[0]), int(dm[2]), int(dm[1]), "", dm[3]] for dm in dm_list]
         return ret
-
-    # def get_info_from_user(name):
-    #     """从视频分区获取弹幕列表
-    #     一些番剧哔哩哔哩没有版权，番剧区找不到相关信息，但是视频区可能存在用户投稿的番剧
-    #     下面搜索 60 分钟以上的视频，分区"番剧"，按弹幕数量排序，保留前 3 条数据
-    #     """
-    #     result = []
-    #     params = {"keyword": name, "search_type": "video", "tids": 13, "order": "dm", "page": 1, "duration": 4}
-    #     data = BiliBili.search(params)[:3]  # 取弹幕数量前三的结果
-    #     for item in data:
-    #         title = item["title"].replace(r"<em class="keyword">", "").replace("</em>", "")
-    #         aid = int(item["aid"])
-    #         cid_api = "https://api.bilibili.com/x/player/pagelist"
-    #         req = requests.get(cid_api, {"aid": aid})
-    #         if req.status_code != 200 or req.json()["code"] != 0:
-    #             continue
-    #         dmk = Danmaku(title)
-    #         for ep in req.json()["data"]:
-    #             dmk.add(ep["part"], int(ep["cid"]))
-    #         result.append(dmk)
-    #     return result
-
-
-if __name__ == "__main__":
-    bl = BiliBili()
-    # print(bl.search("异世界")[0].play_url)
-    dmc = bl.get_detail("https://www.bilibili.com/bangumi/play/ss33802/")
-    a = dmc.dm_list[0]
-    print(a.name, a.cid)
-    print(bl.get_danmaku(a.cid))

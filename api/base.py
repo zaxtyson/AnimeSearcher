@@ -23,12 +23,16 @@ class HtmlParseHelper(object):
     disable_warnings(InsecureRequestWarning)  # 全局禁用 SSL 警告
 
     @staticmethod
-    def head(url: str, allow_redirects=True, **kwargs) -> requests.Response:
+    def head(url: str, params=None, allow_redirects=True, **kwargs) -> requests.Response:
         """封装 HEAD 方法, 默认开启 302 重定向, 用于获取目标直链"""
         try:
-            kwargs.setdefault("timeout", 10)
+            logger.debug(f"url: {url}, params: {params}, allow_redirects: {allow_redirects}")
+            kwargs.setdefault("timeout", 3)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
-            return requests.head(url, verify=False, allow_redirects=allow_redirects, **kwargs)
+            return requests.head(url, params=params, verify=False, allow_redirects=allow_redirects, **kwargs)
+        except requests.Timeout as e:
+            logger.warning(e)
+            return requests.Response()
         except requests.RequestException:
             return requests.Response()
 
@@ -36,11 +40,15 @@ class HtmlParseHelper(object):
     def get(url: str, params=None, html_encoding="utf-8", **kwargs) -> requests.Response:
         """封装 GET 方法, 默认网页编码为 utf-8"""
         try:
-            kwargs.setdefault("timeout", 10)
+            logger.debug(f"url: {url}, params: {params}")
+            kwargs.setdefault("timeout", 3)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.get(url, params, verify=False, **kwargs)
             ret.encoding = html_encoding  # 有些网页仍然使用 gb2312/gb18030 之类的编码, 需要单独设置
             return ret
+        except requests.Timeout as e:
+            logger.warning(e)
+            return requests.Response()
         except requests.RequestException:
             return requests.Response()
 
@@ -48,11 +56,15 @@ class HtmlParseHelper(object):
     def post(url: str, data=None, html_encoding="utf-8", **kwargs) -> requests.Response:
         """"封装 POST 方法, 默认网页编码为 utf-8"""
         try:
-            kwargs.setdefault("timeout", 10)
+            logger.debug(f"url: {url}, data: {data}")
+            kwargs.setdefault("timeout", 3)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.post(url, data, verify=False, **kwargs)
             ret.encoding = html_encoding
             return ret
+        except requests.Timeout as e:
+            logger.warning(e)
+            return requests.Response()
         except requests.RequestException:
             return requests.Response()
 
@@ -78,8 +90,8 @@ class HtmlParseHelper(object):
         executor = ThreadPoolExecutor()
         all_task = []
         result = []
-        for fn, arg, kwargs in task_list:
-            executor.submit(fn, args=arg, kwargs=kwargs)
+        for fn, args, kwargs in task_list:
+            all_task.append(executor.submit(fn, *args, **kwargs))
         for task in as_completed(all_task):
             ret = task.result()
             if ret is not None:
@@ -103,7 +115,7 @@ class AnimeEngine(HtmlParseHelper):
         try:
             return self.search(keyword)
         except Exception as e:
-            logger.error(f"{__name__} catch exception: {e}")
+            logger.error(f"Catch exception: {e} when searching for {keyword}")
             return []
 
     def _get_detail(self, detail_page_url: str) -> AnimeDetailInfo:
@@ -111,7 +123,7 @@ class AnimeEngine(HtmlParseHelper):
         try:
             return self.get_detail(detail_page_url)
         except Exception as e:
-            logger.error(f"{__name__} catch exception: {e}")
+            logger.error(f"Catch exception: {e} when searching for {keyword}")
             return AnimeDetailInfo()
 
 
@@ -135,7 +147,7 @@ class DanmakuEngine(HtmlParseHelper):
         try:
             return self.search(keyword)
         except Exception as e:
-            logger.error(f"{__name__} catch exception: {e}")
+            logger.error(f"Catch exception: {e} when searching for {keyword}")
             return []
 
     def _get_detail(self, play_page_url: str) -> DanmakuCollection:
@@ -143,7 +155,7 @@ class DanmakuEngine(HtmlParseHelper):
         try:
             return self.get_detail(play_page_url)
         except Exception as e:
-            logger.error(f"{__name__} catch exception: {e}")
+            logger.error(f"Catch exception: {e} when processing {play_page_url}")
             return DanmakuCollection()
 
     def _get_danmaku(self, cid: str) -> Dict:
@@ -151,7 +163,7 @@ class DanmakuEngine(HtmlParseHelper):
         try:
             return self.get_danmaku(cid)
         except Exception as e:
-            logger.error(f"{__name__} catch exception: {e}")
+            logger.error(f"Catch exception: {e} when parsing danmaku {cid}")
             return {}
 
 

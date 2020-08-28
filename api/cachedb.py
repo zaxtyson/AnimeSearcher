@@ -2,6 +2,8 @@ from hashlib import md5
 
 from api.logger import logger
 
+__all__ = ["AnimeDB", "DanmakuDB"]
+
 
 class CacheDB(object):
     """用于保存临时数据的简易对象数据库"""
@@ -30,5 +32,15 @@ class CacheDB(object):
         return key
 
     def clear(self):
-        logger.warning(f"CacheDB cleaning, object in total: {len(self._db)}")
+        logger.warning(f"{self.__class__.__name__} cleaning, object in total: {len(self._db)}")
         self._db.clear()
+
+
+class AnimeDB(CacheDB):
+    """储存番剧信息用的临时数据库"""
+    pass
+
+
+class DanmakuDB(CacheDB):
+    """储存弹幕库用的临时数据库"""
+    pass

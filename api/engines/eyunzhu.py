@@ -4,6 +4,8 @@ from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
 
 
 class EYunZun(AnimeEngine):
+    """该引擎网络不稳定, 有时响应响应很长时间"""
+
     def __init__(self):
         self._base_url = "https://api.eyunzhu.com/api/vatfs/resource_site_collect"
         self._search_api = self._base_url + "/search"
@@ -11,13 +13,14 @@ class EYunZun(AnimeEngine):
 
     def search(self, keyword: str):
         logger.info(f"Searching for: {keyword}")
-        resp = self.get(self._search_api, params={"kw": keyword, "per_page": 50, "page": 1})
+        ret = []
+        resp = self.get(self._search_api, params={"kw": keyword, "per_page": 100, "page": 1})  # 取前 100 条结果
         if resp.status_code != 200 or resp.json()["code"] != 1:
             logger.warning(f"Response error: {resp.status_code} {self._search_api}")
-            return []
+            return ret
 
-        anime_meta_list = resp.json().get("data").get("data")
-        ret = []
+        data = resp.json()
+        anime_meta_list = data.get("data").get("data") if data else []
         for meta in anime_meta_list:
             anime = AnimeMetaInfo()
             anime.title = meta["name"]

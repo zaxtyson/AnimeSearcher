@@ -1,0 +1,25 @@
+    Hello, AnimeSearcher!
+
+    Github: https://github.com/zaxtyson/AnimeSearcher
+
+    API Interface:
+
+    GET /search/<name>                      Return anime summary information
+    GET /detail/<hash_key>                  Return anime details information
+    GET /video/<hash_key>/url               Return the direct URL of video
+    GET /video/<hash_key>/proxy             Return the binary stream of video by API proxy
+    GET /danmaku/search/<name>              Return danmaku summary information
+    GET /danmaku/detail/<hash_key>          Return danmaku details information
+    GET /danmaku/data/<hash_key>            Return the danmaku data with Dplayer supported format
+
+    Settings Interface:
+    GET  /settings                          Return the current settings information
+    POST /settings/engine                   Enable or disable the specific Engine
+    POST /settings/danmaku                  Enable or disable the specific Danmaku
+
+    Form /settings/engine                   {"name": "api.engines.xxx", "enable": false}
+    Form /settings/danmaku                  {"name": "api.danmaku.xxx", "enable": true}
+
+    Test Interface:
+    GET /video/<hash_key>/player            Play video online by its direct URL
+    GET /video/<hash_key>/proxy_player      Play video online by API proxy
