@@ -192,6 +192,7 @@ class Router(object):
         def apply_caching(response):
             """设置响应的全局 headers, 允许跨域(前端播放器和api端口不同)"""
             response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Headers"] = "*"
             response.headers["Server"] = "Anime-API/0.5.0"
             return response
 
