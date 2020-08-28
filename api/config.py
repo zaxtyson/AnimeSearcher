@@ -48,7 +48,7 @@ class Config:
             return True
         return False
 
-    def enabled_engine(self, engine: str) -> bool:
+    def enable_engine(self, engine: str) -> bool:
         """启用某个引擎"""
         if engine in self.get_all_engines():
             logger.info(f"Engine {engine} enabled")
@@ -78,7 +78,7 @@ class Config:
             return True
         return False
 
-    def enabled_danmaku(self, danmaku: str) -> bool:
+    def enable_danmaku(self, danmaku: str) -> bool:
         """启用某个弹幕引擎"""
         if danmaku in self.get_all_danmaku():
             logger.info(f"Danmaku {danmaku} enabled")

@@ -27,7 +27,7 @@ class HtmlParseHelper(object):
         """封装 HEAD 方法, 默认开启 302 重定向, 用于获取目标直链"""
         try:
             logger.debug(f"url: {url}, params: {params}, allow_redirects: {allow_redirects}")
-            kwargs.setdefault("timeout", 3)
+            kwargs.setdefault("timeout", 10)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             return requests.head(url, params=params, verify=False, allow_redirects=allow_redirects, **kwargs)
         except requests.Timeout as e:

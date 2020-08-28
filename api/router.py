@@ -154,12 +154,36 @@ class Router(object):
                 return {"code": 0, "data": []}
             return jsonify(data)
 
-        @self._app.route("/settings", methods=["GET", "POST"])
-        def update_settings():
+        @self._app.route("/settings")
+        def show_settings():
             if request.method == "GET":
                 return jsonify(GLOBAL_CONFIG.get_all_configs())
-            # 使用 POST 更新设置
-            return "not implemented"
+
+        @self._app.route("/settings/engine", methods=["POST"])
+        def update_engine_status():
+            """动态启用或者禁用资源引擎"""
+            name = request.form.get("name")
+            enable = request.form.get("enable")
+            if enable == "true":
+                ret = self._engine_mgr.enable_engine(name)
+            elif enable == "false":
+                ret = self._engine_mgr.disable_engine(name)
+            else:
+                ret = False
+            return jsonify(ret)
+
+        @self._app.route("/settings/danmaku", methods=["POST"])
+        def update_danmaku_status():
+            """动态启用或者禁用弹幕搜索引擎"""
+            name = request.form.get("name")
+            enable = request.form.get("enable")
+            if enable == "true":
+                ret = self._engine_mgr.enable_danmaku(name)
+            elif enable == "false":
+                ret = self._engine_mgr.disable_danmaku(name)
+            else:
+                ret = False
+            return jsonify(ret)
 
         @self._app.after_request
         def apply_caching(response):
