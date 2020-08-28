@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from importlib import import_module
 from inspect import getmembers
 from inspect import isclass
-from typing import List, Dict
+from typing import List
 
 import requests
 
@@ -123,15 +123,15 @@ class EngineManager(object):
             return DanmakuCollection()
         return target_engine()._get_detail(meta.play_page_url)
 
-    def get_danmaku_data(self, dmk: Danmaku) -> Dict:
+    def get_danmaku_data(self, dmk: Danmaku) -> List:
         """解析一部番剧的详情页，返回包含视频列表的详细信息"""
         if not dmk:
             logger.error(f"Invalid request")
-            return {}
+            return []
         target_engine = self._danmaku_engine.get(dmk.dm_engine)
         if not target_engine:
             logger.error(f"Danmaku Engine not found: {dmk.dm_engine}")
-            return {}
+            return []
         return target_engine()._get_danmaku(dmk.cid)
 
     def enable_engine(self, engine: str) -> bool:

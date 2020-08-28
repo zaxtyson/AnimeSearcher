@@ -69,18 +69,15 @@ class BiliBili(DanmakuEngine):
         return ret
 
     def get_danmaku(self, cid: str):
-        """解析一集视频的弹幕, 输出 DPlayer 可接受的格式
-        :return {"code": 0,
-                 "data" [
-                         [time, pos, color, message],  # 一条弹幕: float 时间,位置参数(0右边,1上边,2底部),颜色码 10 进制,弹幕内容
-                         [time, pos, color, message],
-                        ]}
+        """解析一集视频的弹幕, 处理为 DPlayer 可接受的格式
+        返回弹幕 list, 弹幕格式为:
+                [time, pos, color, message],  # 距离视频开头的秒数(float), 位置参数(0右边,1上边,2底部), 颜色码 10 进制, 弹幕内容
         """
-        ret = {"code": 0, "data": []}
+        ret = []
         params = {"oid": cid}
         resp = self.get(self._dm_api, params=params)
         if resp.status_code != 200:
             return ret
         dm_list = re.findall(r'p="(\d+\.?\d*?),\d,\d\d,(\d+?),\d+,(\d),.+?>(.+?)</d>', resp.text)
-        ret["data"] = [[float(dm[0]), int(dm[2]), int(dm[1]), "", dm[3]] for dm in dm_list]
+        ret = [[float(dm[0]), int(dm[2]), int(dm[1]), "", dm[3]] for dm in dm_list]
         return ret

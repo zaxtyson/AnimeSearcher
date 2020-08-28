@@ -127,7 +127,7 @@ class Router(object):
                     "title": meta.title,
                     "num": meta.num,
                     "danmaku": meta.dm_engine,
-                    "url": f"{self._domain}/danmaku/detail/" + hash_key
+                    "url": f"{self._domain}/danmaku/detail/{hash_key}"
                 })
             return jsonify(ret)
 
@@ -141,18 +141,20 @@ class Router(object):
                 hash_key = self._danmaku_db.store(dmk)
                 ret.append({
                     "name": dmk.name,
-                    "url": f"{self._domain}/danmaku/data/{hash_key}"
+                    "url": f"{self._domain}/danmaku/data/{hash_key}",
+                    "real_url": f"{self._domain}/danmaku/data/{hash_key}/v3"
                 })
             return jsonify(ret)
 
-        @self._app.route("/danmaku/data/<hash_key>")
+        @self._app.route("/danmaku/data/<hash_key>/v3")
         def get_danmaku_data(hash_key):
-            """解析视频的弹幕库信息, 返回 DPlayer 支持的弹幕格式"""
+            """解析视频的弹幕库信息, 返回 DPlayer 支持的弹幕格式
+            前端 Dplayer 请求地址填 /danmaku/data/<hash_key> 没有 v3
+            """
             dmk = self._danmaku_db.fetch(hash_key)
             data = self._engine_mgr.get_danmaku_data(dmk)
-            if not data:
-                return {"code": 0, "data": []}
-            return jsonify(data)
+            ret = {"code": 0, "data": data}
+            return jsonify(ret)
 
         @self._app.route("/settings")
         def show_settings():

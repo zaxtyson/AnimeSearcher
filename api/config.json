@@ -6,6 +6,7 @@
         "api.engines.eyunzhu": true
     },
     "danmaku": {
-        "api.danmaku.bilibili": true
+        "api.danmaku.bilibili": true,
+        "api.danmaku.bahamut": true
     }
 }

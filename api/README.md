@@ -16,6 +16,8 @@ API 提供了一个解析框架, 使得用户编写资源搜索引擎变得容�
 
 ## 进度
 
+- [x] 新增一个弹幕引擎, 巴哈姆特
+- [x] 繁体弹幕转简体弹幕
 - [x] 实现了引擎的动态配置接口
 - [x] 修复线程池的bug, 弹幕库接口已经可用
 
@@ -43,7 +45,7 @@ GET /video/<hash_key>/url               Return the direct URL of video
 GET /video/<hash_key>/proxy             Return the binary stream of video by API proxy
 GET /danmaku/search/<name>              Return danmaku summary information
 GET /danmaku/detail/<hash_key>          Return danmaku details information
-GET /danmaku/data/<hash_key>            Return the danmaku data with Dplayer supported format
+GET /danmaku/data/<hash_key>/v3         Return the danmaku data with Dplayer supported format
 
 Settings Interface:
 GET  /settings                          Return the current settings information

@@ -7,6 +7,7 @@ from flask import request, Response
 from lxml import etree
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
+from zhconv import convert
 
 from api.logger import logger
 from api.models import AnimeDetailInfo, AnimeMetaInfo, Video, DanmakuMetaInfo, DanmakuCollection
@@ -41,7 +42,7 @@ class HtmlParseHelper(object):
         """封装 GET 方法, 默认网页编码为 utf-8"""
         try:
             logger.debug(f"url: {url}, params: {params}")
-            kwargs.setdefault("timeout", 3)
+            kwargs.setdefault("timeout", 5)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.get(url, params, verify=False, **kwargs)
             ret.encoding = html_encoding  # 有些网页仍然使用 gb2312/gb18030 之类的编码, 需要单独设置
@@ -57,7 +58,7 @@ class HtmlParseHelper(object):
         """"封装 POST 方法, 默认网页编码为 utf-8"""
         try:
             logger.debug(f"url: {url}, data: {data}")
-            kwargs.setdefault("timeout", 3)
+            kwargs.setdefault("timeout", 5)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.post(url, data, verify=False, **kwargs)
             ret.encoding = html_encoding
@@ -123,12 +124,20 @@ class AnimeEngine(HtmlParseHelper):
         try:
             return self.get_detail(detail_page_url)
         except Exception as e:
-            logger.error(f"Catch exception: {e} when searching for {keyword}")
+            logger.error(f"Catch exception: {e} when processing {detail_page_url}")
             return AnimeDetailInfo()
 
 
 class DanmakuEngine(HtmlParseHelper):
     """弹幕库引擎基类, 用户自定义的引擎应该继承它"""
+
+    def convert_to_zh(self, text: str):
+        """将繁体弹幕转换为简体"""
+        return convert(text, "zh-cn")
+
+    def convert_to_tw(self, text: str):
+        """简体转繁体"""
+        return convert(text, "zh-tw")
 
     def search(self, keyword: str) -> List[DanmakuMetaInfo]:
         """搜索相关番剧, 返回指向番剧详情页的信息"""
