@@ -119,6 +119,7 @@ class Router(object):
         @self._app.route("/danmaku/search/<name>")
         def search_danmaku(name):
             """搜索番剧弹幕库"""
+            self._danmaku_db.clear()  # 每次搜索清空上一次搜索结果
             ret = []
             meta_list = self._engine_mgr.search_danmaku(name)
             for meta in meta_list:

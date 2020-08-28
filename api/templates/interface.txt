@@ -10,7 +10,7 @@
     GET /video/<hash_key>/proxy             Return the binary stream of video by API proxy
     GET /danmaku/search/<name>              Return danmaku summary information
     GET /danmaku/detail/<hash_key>          Return danmaku details information
-    GET /danmaku/data/<hash_key>            Return the danmaku data with Dplayer supported format
+    GET /danmaku/data/<hash_key>/v3         Return the danmaku data with Dplayer supported format
 
     Settings Interface:
     GET  /settings                          Return the current settings information
