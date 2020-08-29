@@ -137,6 +137,7 @@ class EngineManager(object):
     def enable_engine(self, engine: str) -> bool:
         """启用某个动漫搜索引擎"""
         if engine in self._engines:
+            logger.info(f"Anime Engine {engine} has already loaded")
             return True  # 已经启用了
         self._load_engine(engine)  # 动态加载引擎
         return GLOBAL_CONFIG.enable_engine(engine)  # 更新配置文件
@@ -144,6 +145,7 @@ class EngineManager(object):
     def disable_engine(self, engine: str) -> bool:
         """禁用某个动漫搜索引擎, engine: api.engines.xxx"""
         if engine not in self._engines:
+            logger.info(f"Anime Engine {engine} has already disabled")
             return True  # 本来就没启用
         self._engines.pop(engine)
         logger.info(f"Disabled Anime Engine: {engine}")
@@ -152,6 +154,7 @@ class EngineManager(object):
     def enable_danmaku(self, danmaku: str) -> bool:
         """启用某个弹幕搜索引擎"""
         if danmaku in self._danmaku_engine:
+            logger.info(f"Danmaku Engine {danmaku} has already loaded")
             return True  # 已经启用了
         self._load_danmaku(danmaku)  # 动态加载引擎
         return GLOBAL_CONFIG.enable_engine(danmaku)  # 更新配置文件
@@ -159,6 +162,7 @@ class EngineManager(object):
     def disable_danmaku(self, danmaku: str) -> bool:
         """禁用某个弹幕搜索引擎, engine: api.danmaku.xxx"""
         if danmaku not in self._danmaku_engine:
+            logger.info(f"Danmaku Engine {danmaku} has already disabled")
             return True  # 本来就没启用
         self._danmaku_engine.pop(danmaku)
         logger.info(f"Disabled Danmaku Engine: {danmaku}")

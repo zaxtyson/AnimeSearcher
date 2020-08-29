@@ -290,6 +290,7 @@ class VideoHandler(object):
         elif self._video_format == "mp4":
             resp = Response(data_iter, status=206)  # 状态码需设置为 206, 否则无法拖动进度条
             resp.content_range = header.get("Content-Range", None)  # 将服务器的响应头的信息作为代理的响应头
+            resp.content_type = header.get("Content-Type", None)
         else:
             resp = Response(data_iter, status=200)
             resp.content_range = header.get("Content-Range", None)

@@ -11,14 +11,13 @@ class Router(object):
 
     def __init__(self):
         self._app = Flask(__name__)
+        self._debug = False
         self._port = 80
         self._host = "127.0.0.1"
         self._domain = f"http://{self._host}:{self._port}"
-        # self._server = None
         self._engine_mgr = EngineManager()
         self._anime_db = AnimeDB()
         self._danmaku_db = DanmakuDB()
-        self._proxy_clients = {}
 
     def listen(self, host: str, port: int):
         self._host = host
@@ -28,11 +27,15 @@ class Router(object):
     def set_domain(self, domain: str):
         self._domain = f"{domain}:{self._port}"
 
+    def enable_debug(self):
+        self._debug = True
+
     def _init_routes(self):
         """初始化 API 路由接口"""
 
         @self._app.route("/")
         def index():
+            """API 主页显示帮助信息"""
             with open(f"{dirname(__file__)}/templates/interface.txt") as f:
                 text = f.read()
             return Response(text, mimetype="text/plain")
@@ -165,27 +168,25 @@ class Router(object):
         @self._app.route("/settings/engine", methods=["POST"])
         def update_engine_status():
             """动态启用或者禁用资源引擎"""
-            name = request.form.get("name")
-            enable = request.form.get("enable")
-            if enable == "true":
+            data = request.json
+            name = data.get("name")
+            enable = data.get("enable")  # True or False
+            if enable:
                 ret = self._engine_mgr.enable_engine(name)
-            elif enable == "false":
-                ret = self._engine_mgr.disable_engine(name)
             else:
-                ret = False
+                ret = self._engine_mgr.disable_engine(name)
             return jsonify(ret)
 
         @self._app.route("/settings/danmaku", methods=["POST"])
         def update_danmaku_status():
             """动态启用或者禁用弹幕搜索引擎"""
-            name = request.form.get("name")
-            enable = request.form.get("enable")
-            if enable == "true":
+            data = request.json
+            name = data.get("name")
+            enable = data.get("enable")  # True or False
+            if enable:
                 ret = self._engine_mgr.enable_danmaku(name)
-            elif enable == "false":
-                ret = self._engine_mgr.disable_danmaku(name)
             else:
-                ret = False
+                ret = self._engine_mgr.disable_danmaku(name)
             return jsonify(ret)
 
         @self._app.after_request
@@ -199,9 +200,4 @@ class Router(object):
     def run(self):
         """后台运行"""
         self._init_routes()
-        # self._server = Thread(target=self._app.run, kwargs={"host": self._host, "port": self._port})
-        # self._server.start()
-        self._app.run(host=self._host, port=self._port, debug=True)
-
-    # def stop(self):
-    #     self._server.join()
+        self._app.run(host=self._host, port=self._port, debug=self._debug, use_reloader=False)
