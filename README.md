@@ -2,7 +2,7 @@
 <h3 align="center">- Anime Searcher -</h3>
 <p align="center">
 <img src="https://img.shields.io/github/v/release/zaxtyson/AnimeSearcher.svg?logo=bilibili">
-<img src="https://img.shields.io/github/downloads/zaxtyson/AnimeSeacher/total">
+<img src="https://img.shields.io/github/downloads/zaxtyson/AnimeSearcher/total">
 </p>
 
 ## 简介
