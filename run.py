@@ -1,4 +1,5 @@
 import os
+import sys
 import webbrowser
 from threading import Timer
 
@@ -7,7 +8,7 @@ from api.router import Router
 
 def open_index():
     """打开浏览器"""
-    index = "file://" + os.path.dirname(__file__) + "/web/index.html"
+    index = "file://" + os.path.dirname(os.path.realpath(sys.argv[0])) + "/web/index.html"
     webbrowser.open(index)
 
 
