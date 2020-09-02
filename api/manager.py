@@ -85,7 +85,7 @@ class EngineManager(object):
             logger.error(f"VideoHandler not found: {video.handler}")
             return "error"
         target_handler = target_handler(video)
-        return target_handler.get_real_url()
+        return target_handler._get_real_url()
 
     def make_response_for(self, video: Video) -> requests.Response:
         """获取视频对应的 handler 对象, 用于代理访问数据并返回响应给客户端"""

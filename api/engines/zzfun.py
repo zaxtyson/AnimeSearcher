@@ -73,7 +73,7 @@ class ZZFunVideoHandler(VideoHandler, HtmlParseHelper):
 
     def set_proxy_headers(self):
         # 有些视频是超星学习通网盘里面的, 需要设置为客户端的 UA, 直接访问会 403
-        real_url = self.get_real_url()
+        real_url = self._get_real_url()
         if "chaoxing.com" in real_url:
             logger.info(f"Set proxy headers for {real_url}")
             return {

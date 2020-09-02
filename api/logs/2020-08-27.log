@@ -1,8 +1,0 @@
-[2020-08-27 06:43:50] INFO [config.py:15] __init__ - Loading config from E:\Temple\Python_Environment\projects\Zaxtyson-projects\AnimeSearcher\api\config.json
-[2020-08-27 06:43:50] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler VideoHandler: <class 'api.base.VideoHandler'>
-[2020-08-27 06:43:50] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler YHDMVideoHandler: <class 'api.engines.yhdm.YHDMVideoHandler'>
-[2020-08-27 06:43:50] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.yhdm.YingHuaDongMan: <class 'api.engines.yhdm.YingHuaDongMan'>
-[2020-08-27 06:43:50] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler VideoHandler: <class 'api.base.VideoHandler'>
-[2020-08-27 06:43:50] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.zzfun.ZZFun: <class 'api.engines.zzfun.ZZFun'>
-[2020-08-27 06:43:50] INFO [engine_mgr.py:34] _load_engine - Loading VideoHandler ZZFunVideoHandler: <class 'api.engines.zzfun.ZZFunVideoHandler'>
-[2020-08-27 06:43:50] INFO [engine_mgr.py:37] _load_engine - Loading engine api.engines.eyunzhu.EYunZun: <class 'api.engines.eyunzhu.EYunZun'>

@@ -1,5 +1,5 @@
+import time
 from random import random
-from time import sleep
 
 import requests
 
@@ -71,48 +71,70 @@ class AgeFans(AnimeEngine):
                 video.raw_url = video_block.xpath("a/@href")[0]  # /play/20170172?playid=1_1
                 video.handler = "AgeFansVideoHandler"  # 绑定视频处理器
                 vc.append(video)
-            anime_detail.append(vc)
+            if vc.num != 0:  # 可能有空的播放列表
+                anime_detail.append(vc)
         return anime_detail
 
 
 class AgeFansVideoHandler(VideoHandler, HtmlParseHelper):
 
+    def __init__(self, video):
+        VideoHandler.__init__(self, video)
+        self._base_url = "https://www.agefans.tv"
+        self._play_api = self._base_url + "/_getplay"
+        self._client = requests.Session()
+
+    def set_cookie(self):
+        # 计算 k2 的值
+        # https://www.agefans.tv/age/static/js/s_runtimelib.js?ver=202008211700   __getplay_pck()
+        t1 = self._client.cookies.get("t1")
+        logger.debug(f"Get cookie t1={t1}")
+        t = (int(t1) // 1000) >> 5
+        k2 = (t * (t % 4096) + 39382) * (t % 4096) + t
+        k2 = str(k2)
+        # 计算 t2 的值, 生成一个后三位包含 k2 最后一位的数时间戳
+        # https://www.agefans.tv/age/static/js/s_dett.js?ver=202008211700   __getplay_pck2()
+        k2_last = k2[-1]
+        t2 = ""
+        while True:
+            now = str(int(time.time() * 1000))
+            last_3w = now[-3:]
+            if 0 <= last_3w.find(k2_last):
+                t2 = now
+                break
+        logger.debug(f"Set cookies, k2={k2}, t2={t2}")
+        self._client.cookies.update({"k2": k2, "t2": t2})
+
     def get_real_url(self):
-        host = "https://www.agefans.tv"
+
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4033.0 Safari/537.36 Edg/81.0.403.1",
-            "Referer": host
+            "Referer": self._base_url
         }
-        play_page_url = host + self.get_raw_url()  # "https://www.agefans.tv/play/20170172?playid=1_1"
+
+        play_page_url = self._base_url + self.get_raw_url()  # "https://www.agefans.tv/play/20170172?playid=1_1"
         logger.info(f"Parse page: {play_page_url}")
-        play_api = host + "/_getplay"  # _getplay?aid=20170172&playindex=1&epindex=66&r=0.28174977677245283"
         aid = play_page_url.split("?")[0].split("/")[-1]
         playindex, epindex = play_page_url.split("=")[-1].split("_")
         params = {"aid": aid, "playindex": playindex, "epindex": epindex, "r": random()}
-        logger.info(f"Args: {params}")
-        client = requests.Session()
-        client.get(play_page_url, headers=headers)  # 接受服务器设置的 cookie, 不需要 body, 加快速度
-        logger.debug(client.cookies)
 
-        while True:
-            resp = client.get(play_api, params=params, headers=headers, verify=False)
-            resp.encoding = "utf-8"
-            params = {"aid": aid, "playindex": playindex, "epindex": epindex, "r": random()}  # 更换随机数
-            logger.info(f"URL1: {resp.url}")
-            if resp.text != "err:timeout":
-                logger.debug(f"{resp.status_code}")
-                logger.info(f"URL1: {resp.url}")
-                try:
-                    data = resp.json()
-                    logger.debug(data)
-                except:
-                    sleep(0.5)
-                    continue
-                if "mp4" in data["playid"]:
-                    return "https:" + data["vurl"]
-                elif "tieba" in data["playid"]:
-                    return data["purlf"] + data["vurl"]
-                else:
-                    return data["purlf"] + data["vurl"]
-                break
-        return "no url"
+        self._client.head(play_page_url, headers=headers)  # 接受服务器设置的 cookie, 不需要 body, 加快速度
+        self.set_cookie()  # 否则返回的数据与视频对不上
+        resp = self._client.get(self._play_api, params=params, headers=headers, verify=False)
+        while "err:timeout" in resp.text:
+            logger.debug("Response : err:timeout")
+            self.set_cookie()
+            resp = self._client.get(self._play_api, params=params, headers=headers, verify=False)
+        logger.debug(resp.status_code)
+        logger.debug(resp.text)
+        try:
+            data = resp.json()
+            real_url = data["purlf"] + data["vurl"]
+            real_url = real_url.split("?")[-1].replace("url=", "")
+            real_url = requests.utils.unquote(real_url)
+            if real_url.startswith("//"):
+                real_url = "http:" + real_url
+            logger.debug(f"real_url={real_url}")
+        except Exception:
+            return "error, try agin"
+        return real_url

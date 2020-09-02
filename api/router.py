@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request, render_template, Response
 
 from api.cachedb import AnimeDB, DanmakuDB
 from api.config import GLOBAL_CONFIG
+from api.logger import logger
 from api.manager import EngineManager
 
 
@@ -84,6 +85,8 @@ class Router(object):
         def get_video_format(hash_key):
             """获取视频直链"""
             video = self._anime_db.fetch(hash_key)
+            if not video:
+                return "URL Invalid"
             if video.real_url:  # 已经解析过了
                 return video.real_url
             real_url = self._engine_mgr.get_video_url(video)
@@ -95,7 +98,10 @@ class Router(object):
         def get_video_data(hash_key: str):
             """通过API代理访问, 获取视频数据流"""
             video = self._anime_db.fetch(hash_key)
+            if not video:
+                return "URL Invalid"
             if not video.real_url:
+                logger.warning("Not real url")
                 real_url = self._engine_mgr.get_video_url(video)
                 video.real_url = real_url
                 self._anime_db.update(hash_key, video)
@@ -105,6 +111,8 @@ class Router(object):
         def simple_player(hash_key):
             """简易播放器测试用"""
             video = self._anime_db.fetch(hash_key)
+            if not video:
+                return "URL Invalid"
             if video.real_url:
                 return render_template("player.html", real_url=video.real_url, video_name=video.name)
             real_url = self._engine_mgr.get_video_url(video)
@@ -116,6 +124,8 @@ class Router(object):
         def simple_proxy_player(hash_key):
             """简易代理播放器测试用"""
             video = self._anime_db.fetch(hash_key)
+            if not video:
+                return "URL Invalid"
             real_url = f"/video/{hash_key}/proxy"
             return render_template("player.html", real_url=real_url, video_name=video.name)
 
@@ -146,11 +156,11 @@ class Router(object):
                 ret.append({
                     "name": dmk.name,
                     "url": f"{self._domain}/danmaku/data/{hash_key}",
-                    "real_url": f"{self._domain}/danmaku/data/{hash_key}/v3"
+                    "real_url": f"{self._domain}/danmaku/data/{hash_key}/v3/"
                 })
             return jsonify(ret)
 
-        @self._app.route("/danmaku/data/<hash_key>/v3")
+        @self._app.route("/danmaku/data/<hash_key>/v3/")
         def get_danmaku_data(hash_key):
             """解析视频的弹幕库信息, 返回 DPlayer 支持的弹幕格式
             前端 Dplayer 请求地址填 /danmaku/data/<hash_key> 没有 v3

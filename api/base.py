@@ -197,9 +197,11 @@ class VideoHandler(object):
         return self._raw_url
 
     def _get_real_url(self):
-        if not self._real_url:  # 缓存解析完成的直链, 防止重复解析
-            self._real_url = self.get_real_url()
-        return self._real_url
+        """获取视频直链, 如果有缓存的话, 使用缓存的值"""
+        if self._real_url:  # 缓存解析完成的直链, 防止重复解析
+            logger.debug(f"Using cached real url: {self._real_url}")
+            return self._real_url
+        return self.get_real_url()
 
     def set_proxy_headers(self) -> Dict:
         """设置代理访问使用的请求头, 如果服务器存在防盗链, 可以尝试重写本方法
@@ -223,8 +225,9 @@ class VideoHandler(object):
         else:
             self._proxy_headers["Range"] = f"bytes={byte_start}-{byte_end}"
         try:
-            req = requests.get(self._get_real_url(), stream=True, headers=self._proxy_headers, verify=False)
-            return req.headers, req.iter_content(self._chunk_size)
+            real_url = self._get_real_url()
+            resp = requests.get(real_url, stream=True, headers=self._proxy_headers, verify=False)
+            return resp.headers, resp.iter_content(self._chunk_size)
         except requests.RequestException:
             return None, None
 
