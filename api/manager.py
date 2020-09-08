@@ -1,10 +1,9 @@
+import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from importlib import import_module
 from inspect import getmembers
 from inspect import isclass
 from typing import List
-
-import requests
 
 from api.base import AnimeEngine, DanmakuEngine
 from api.base import VideoHandler
@@ -157,7 +156,7 @@ class EngineManager(object):
             logger.info(f"Danmaku Engine {danmaku} has already loaded")
             return True  # 已经启用了
         self._load_danmaku(danmaku)  # 动态加载引擎
-        return GLOBAL_CONFIG.enable_engine(danmaku)  # 更新配置文件
+        return GLOBAL_CONFIG.enable_danmaku(danmaku)  # 更新配置文件
 
     def disable_danmaku(self, danmaku: str) -> bool:
         """禁用某个弹幕搜索引擎, engine: api.danmaku.xxx"""
@@ -166,4 +165,4 @@ class EngineManager(object):
             return True  # 本来就没启用
         self._danmaku_engine.pop(danmaku)
         logger.info(f"Disabled Danmaku Engine: {danmaku}")
-        return GLOBAL_CONFIG.disable_engine(danmaku)
+        return GLOBAL_CONFIG.disable_danmaku(danmaku)
