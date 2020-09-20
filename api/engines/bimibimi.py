@@ -63,12 +63,12 @@ class BimibimiVideoHandler(VideoHandler, HtmlParseHelper):
             return "error"
         data = resp.json()["data"][0]
         real_url = data["url"]
-        if "qq.com" in real_url:
-            resp = self.head(real_url, allow_redirects=False)
-            real_url = resp.headers.get("Location")  # 重定向之后才是直链
-        elif not real_url.startswith("http"):  # 需要进一步处理
+        if data.get("parse"):  # 需要进一步处理
             url = "http://49.234.56.246/danmu/json.php?url=" + real_url
             resp = self.get(url)
             real_url = resp.json().get("url") or "error"
+        elif "qq.com" in real_url:
+            resp = self.head(real_url, allow_redirects=False)
+            real_url = resp.headers.get("Location")  # 重定向之后才是直链
         logger.info(f"Video real url: {real_url}")
         return real_url
