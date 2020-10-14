@@ -27,5 +27,3 @@ file_handler = TimedRotatingFileHandler(filename=logging_path + "/api.log", when
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
-
-

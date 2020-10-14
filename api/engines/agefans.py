@@ -3,12 +3,12 @@ from random import random
 
 import requests
 
-from api.base import AnimeEngine, VideoHandler, HtmlParseHelper
+from api.base import BaseEngine, VideoHandler
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
 
 
-class AgeFans(AnimeEngine):
+class AgeFans(BaseEngine):
     def __init__(self):
         self._base_url = "https://www.agefans.tv"
         self._search_api = self._base_url + "/search"
@@ -76,7 +76,7 @@ class AgeFans(AnimeEngine):
         return anime_detail
 
 
-class AgeFansVideoHandler(VideoHandler, HtmlParseHelper):
+class AgeFansVideoHandler(VideoHandler):
 
     def __init__(self, video):
         VideoHandler.__init__(self, video)

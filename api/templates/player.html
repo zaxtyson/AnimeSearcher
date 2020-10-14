@@ -22,23 +22,24 @@
 <body>
 <div id="iframe"></div>
 <script type="text/javascript">
-		function initPlayer(){
-		    player = new DPlayer({
-	            container: document.getElementById('iframe'),
-	            video: {
-	                url: '{{ real_url }}',
-	                type: 'auto',
-	                autoplay: true,
-	                preload: 'auto'
-	            }
-	        });
-	        player.on('canplay', function () {
-                player.play();
-                player.fullScreen.request();
-            });
-		}
-		var player;
-		initPlayer();
-  </script>
+    function initPlayer() {
+        player = new DPlayer({
+            container: document.getElementById('iframe'),
+            video: {
+                url: '{{ real_url }}',
+                type: 'auto',
+                autoplay: true,
+                preload: 'auto'
+            }
+        });
+        player.on('canplay', function () {
+            player.play();
+            player.fullScreen.request();
+        });
+    }
+
+    var player;
+    initPlayer();
+</script>
 </body>
 </html>

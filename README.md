@@ -2,17 +2,18 @@
 <h3 align="center">- Anime Searcher -</h3>
 <p align="center">
 <img src="https://img.shields.io/github/v/release/zaxtyson/AnimeSearcher.svg?logo=bilibili">
-<img src="https://img.shields.io/github/downloads/zaxtyson/AnimeSearcher/total">
 </p>
 
 ## 简介
 
-通过整合第三方网站的视频和弹幕资源, 提供最舒适的看番体验~一起做快乐的白嫖党吧！
+通过整合第三方网站的视频和弹幕资源, 提供最舒适的看番体验~
 
-目前有 5 个资源搜索引擎和 2 个弹幕搜索引擎, 资源丰富, 更新超快, 不用下载, 在线观看,
+番剧、国漫、电影、美剧、日剧、韩剧、泰剧，应有尽有，甚至还有可以看 CCTV 和地方卫视台~
+
+目前有 6 个资源搜索引擎和 5 个弹幕搜索引擎, 资源丰富, 更新超快, 不用下载, 在线观看,
 再也不用去那些飘满广告的网站或者网盘找资源了
 
-自动匹配第三方网站的弹幕,看番怎能少了弹幕, 就算是白嫖我们也要嫖出 VIP 一般的体验
+自动匹配第三方网站的弹幕, 看番怎能少了弹幕, 就算是白嫖我们也要嫖出 VIP 一般的体验
 ( •̀ ω •́ )✧
 
 Tips: 因为资源引擎 `eyunzhu` 时常有不雅水印~~荷官在线发牌~~，默认关闭。 弹幕引擎 `bahamut` 服务器位于台湾,
@@ -39,3 +40,16 @@ Tips: 因为资源引擎 `eyunzhu` 时常有不雅水印~~荷官在线发牌~~�
 ## 扩展
 
 如果你有好康的网站, 可以编写资源引擎添加到本项目, [详情](https://github.com/zaxtyson/Anime-API)
+
+## 更新日志
+
+### `v0.9.9`
+
+- 修复 Windows 安装版中弹幕源 bahamut 繁简体转换异常的问题
+- 修复引擎 bimibimi 部分视频解析失败的问题和弹幕 undefined 的问题
+- 修复 zzfun 接口变化导致无法播放视频的问题
+- 新增弹幕源 youku
+- 新增弹幕源 tencent
+- 补充 bilibili 影视区弹幕
+- UI 美化, 新增一套主题
+- 增加新番更新表功能

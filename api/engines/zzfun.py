@@ -1,12 +1,12 @@
 import time
 from hashlib import md5
 
-from api.base import AnimeEngine, VideoHandler, HtmlParseHelper
+from api.base import BaseEngine, VideoHandler
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
 
 
-class ZZFun(AnimeEngine):
+class ZZFun(BaseEngine):
 
     def __init__(self):
         self._base_url = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android"
@@ -51,10 +51,10 @@ class ZZFun(AnimeEngine):
         return anime_detail
 
 
-class ZZFunVideoHandler(VideoHandler, HtmlParseHelper):
+class ZZFunVideoHandler(VideoHandler):
     def get_real_url(self):
         """通过视频的 play_id 获取视频链接"""
-        play_api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/video/newplay"
+        play_api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/video/107play"
         play_id = self.get_raw_url()
         secret_key = "zandroidzz"
         now = int(time.time() * 1000)  # 13 位时间戳
@@ -73,7 +73,7 @@ class ZZFunVideoHandler(VideoHandler, HtmlParseHelper):
 
     def set_proxy_headers(self):
         # 有些视频是超星学习通网盘里面的, 需要设置为客户端的 UA, 直接访问会 403
-        real_url = self._get_real_url()
+        real_url = self.get_cached_real_url()
         if "chaoxing.com" in real_url:
             logger.info(f"Set proxy headers for {real_url}")
             return {

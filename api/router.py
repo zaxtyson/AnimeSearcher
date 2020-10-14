@@ -2,8 +2,10 @@ from os.path import dirname
 
 from flask import Flask, jsonify, request, render_template, Response
 
-from api.cachedb import AnimeDB, DanmakuDB
+from api.bangumi.timeline import Timeline
+from api.cachedb import AnimeDB, DanmakuDB, IPTVDB
 from api.config import GLOBAL_CONFIG
+from api.live.iptv import IPTV
 from api.logger import logger
 from api.manager import EngineManager
 
@@ -19,6 +21,8 @@ class Router(object):
         self._engine_mgr = EngineManager()
         self._anime_db = AnimeDB()
         self._danmaku_db = DanmakuDB()
+        self._anime_update = Timeline()
+        self._iptv_db = IPTVDB()
 
     def listen(self, host: str, port: int):
         self._host = host
@@ -155,8 +159,8 @@ class Router(object):
                 hash_key = self._danmaku_db.store(dmk)
                 ret.append({
                     "name": dmk.name,
-                    "url": f"{self._domain}/danmaku/data/{hash_key}",
-                    "real_url": f"{self._domain}/danmaku/data/{hash_key}/v3/"
+                    "url": f"{self._domain}/danmaku/data/{hash_key}",  # Dplayer 会自动添加 /v3
+                    "real_url": f"{self._domain}/danmaku/data/{hash_key}/v3/"  # 调试用
                 })
             return jsonify(ret)
 
@@ -199,12 +203,38 @@ class Router(object):
                 ret = self._engine_mgr.disable_danmaku(name)
             return jsonify(ret)
 
+        @self._app.route("/bangumi/timeline")
+        def get_bangumi_timeline():
+            """获取番剧更新时间表"""
+            tl_list = self._anime_update.get_full_timeline()
+            data_json = [tl.to_dict() for tl in tl_list]
+            return jsonify(data_json)
+
+        @self._app.route("/live/list")
+        def get_iptv_list():
+            """直播源"""
+            ret = []
+            for tv in IPTV().get_tv_list():
+                key = self._iptv_db.store(tv)
+                ret.append({
+                    "name": tv.name,
+                    "url": tv.raw_url,
+                    "proxy_player": f"{self._domain}/live/{key}/player"
+                })
+            return jsonify(ret)
+
+        @self._app.route("/live/<hash_key>/player")
+        def iptv_player(hash_key):
+            """简易播放器测试用"""
+            tv = self._iptv_db.fetch(hash_key)
+            return render_template("player.html", real_url=tv.raw_url, video_name=tv.name)
+
         @self._app.after_request
         def apply_caching(response):
             """设置响应的全局 headers, 允许跨域(前端播放器和api端口不同)"""
             response.headers["Access-Control-Allow-Origin"] = "*"
             response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Server"] = "Anime-API/0.5.0"
+            response.headers["Server"] = "Anime-API"
             return response
 
     def run(self):

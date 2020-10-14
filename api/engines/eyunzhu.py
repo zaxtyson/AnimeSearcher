@@ -1,9 +1,9 @@
-from api.base import AnimeEngine
+from api.base import BaseEngine
 from api.logger import logger
 from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
 
 
-class EYunZun(AnimeEngine):
+class EYunZun(BaseEngine):
     """该引擎网络不稳定, 有时响应响应很长时间"""
 
     def __init__(self):

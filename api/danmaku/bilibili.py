@@ -20,11 +20,14 @@ class BiliBili(DanmakuEngine):
         """搜索番剧信息"""
         logger.info(f"Searching for danmaku: {keyword}")
         ret = []
-        params = {"keyword": keyword, "search_type": "media_bangumi"}
-        params2 = {"keyword": keyword, "search_type": "video", "tids": 13, "order": "dm", "page": 1, "duration": 4}
+        params = {"keyword": keyword, "search_type": "media_bangumi"}  # 搜索番剧
+        params2 = {"keyword": keyword, "search_type": "media_ft"}  # 搜索影视
+        # 用户上传的60 分钟以上的视频, 按弹幕数量排序
+        params3 = {"keyword": keyword, "search_type": "video", "tids": 13, "order": "dm", "page": 1, "duration": 4}
         task_list = [
             (self.get, (self._search_api, params), {}),
-            (self.get, (self._search_api, params2), {})  # 用户上传的60 分钟以上的视频, 按弹幕数量排序
+            (self.get, (self._search_api, params2), {}),
+            (self.get, (self._search_api, params3), {})
         ]
         resp_list = self.submit_tasks(task_list)  # 多线程同时搜索
         for resp in resp_list:
@@ -71,11 +74,11 @@ class BiliBili(DanmakuEngine):
     def get_danmaku(self, cid: str):
         """解析一集视频的弹幕, 处理为 DPlayer 可接受的格式
         返回弹幕 list, 弹幕格式为:
-                [time, pos, color, message],  # 距离视频开头的秒数(float), 位置参数(0右边,1上边,2底部), 颜色码 10 进制, 弹幕内容
+                [time, pos, color, user, message],  # 距离视频开头的秒数(float), 位置参数(0右边,1上边,2底部), 颜色码 10 进制, 弹幕内容
         """
         ret = []
         params = {"oid": cid}
-        resp = self.get(self._dm_api, params=params)
+        resp = self.get(self._dm_api, params=params, timeout=10)
         if resp.status_code != 200:
             return ret
         dm_list = re.findall(r'p="(\d+\.?\d*?),\d,\d\d,(\d+?),\d+,(\d),.+?>(.+?)</d>', resp.text)

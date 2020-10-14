@@ -11,6 +11,10 @@ class CacheDB(object):
     def __init__(self):
         self._db = {}
 
+    def is_empty(self):
+        """判空"""
+        return not self._db
+
     def store(self, obj: object) -> str:
         """储存一个对象，返回其 key"""
         hash_str = str(id(obj))
@@ -43,4 +47,9 @@ class AnimeDB(CacheDB):
 
 class DanmakuDB(CacheDB):
     """储存弹幕库用的临时数据库"""
+    pass
+
+
+class IPTVDB(CacheDB):
+    """报错直播源的临时数据库"""
     pass

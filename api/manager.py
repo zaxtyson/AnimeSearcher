@@ -1,11 +1,12 @@
-import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from importlib import import_module
 from inspect import getmembers
 from inspect import isclass
 from typing import List
 
-from api.base import AnimeEngine, DanmakuEngine
+import requests
+
+from api.base import BaseEngine, DanmakuEngine
 from api.base import VideoHandler
 from api.config import GLOBAL_CONFIG
 from api.logger import logger
@@ -34,7 +35,7 @@ class EngineManager(object):
             if issubclass(cls, VideoHandler):
                 self._handlers.setdefault(cls_name, cls)  # 'xxHandler': <class 'api.engines.xx.xxHandler'>
                 logger.info(f"Loading VideoHandler {cls_name}: {cls}")
-            if issubclass(cls, AnimeEngine) and cls != AnimeEngine:
+            if issubclass(cls, BaseEngine) and cls != BaseEngine:
                 self._engines.setdefault(cls.__module__, cls)  # 'api.engines.xx': <class 'api.engines.xx.xxEngine'>
                 logger.info(f"Loading engine {cls.__module__}.{cls.__name__}: {cls}")
 
@@ -84,7 +85,7 @@ class EngineManager(object):
             logger.error(f"VideoHandler not found: {video.handler}")
             return "error"
         target_handler = target_handler(video)
-        return target_handler._get_real_url()
+        return target_handler.get_cached_real_url()
 
     def make_response_for(self, video: Video) -> requests.Response:
         """获取视频对应的 handler 对象, 用于代理访问数据并返回响应给客户端"""

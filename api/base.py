@@ -12,7 +12,7 @@ from zhconv import convert
 from api.logger import logger
 from api.models import AnimeDetailInfo, AnimeMetaInfo, Video, DanmakuMetaInfo, DanmakuCollection
 
-__all__ = ["HtmlParseHelper", "VideoHandler", "AnimeEngine", "DanmakuEngine"]
+__all__ = ["HtmlParseHelper", "VideoHandler", "BaseEngine", "DanmakuEngine"]
 
 
 class HtmlParseHelper(object):
@@ -100,7 +100,7 @@ class HtmlParseHelper(object):
         return result
 
 
-class AnimeEngine(HtmlParseHelper):
+class BaseEngine(HtmlParseHelper):
     """基础引擎类, 用户自定义引擎应该继承此类"""
 
     def search(self, keyword: str) -> List[AnimeMetaInfo]:
@@ -176,7 +176,7 @@ class DanmakuEngine(HtmlParseHelper):
             return {}
 
 
-class VideoHandler(object):
+class VideoHandler(HtmlParseHelper):
     """视频解析类, 用于处理视频的真实 url、推断视频格式、视频数据修复等功能
     代理访问视频数据流并返回响应给客户端, 以此绕过服务器的防盗链
     如果 Video 没有设置 handler, 则默认使用本 Handler"""
@@ -196,7 +196,7 @@ class VideoHandler(object):
         """获取视频真实链接, 如果提取的视频 url 不是直链, 应该重写本方法"""
         return self._raw_url
 
-    def _get_real_url(self):
+    def get_cached_real_url(self):
         """获取视频直链, 如果有缓存的话, 使用缓存的值"""
         if self._real_url:  # 缓存解析完成的直链, 防止重复解析
             logger.debug(f"Using cached real url: {self._real_url}")
@@ -225,7 +225,7 @@ class VideoHandler(object):
         else:
             self._proxy_headers["Range"] = f"bytes={byte_start}-{byte_end}"
         try:
-            real_url = self._get_real_url()
+            real_url = self.get_cached_real_url()
             resp = requests.get(real_url, stream=True, headers=self._proxy_headers, verify=False)
             return resp.headers, resp.iter_content(self._chunk_size)
         except requests.RequestException:
@@ -245,7 +245,7 @@ class VideoHandler(object):
     def detect_video_format(self) -> str:
         """判断视频真正的格式, url 可能没有视频后缀"""
         # 尝试从 url 提取后缀
-        url = self._get_real_url()
+        url = self.get_cached_real_url()
         try:
             ext = url.split("?")[0].split(".")[-1].lower()
             if ext in ["mp4", "flv"]:

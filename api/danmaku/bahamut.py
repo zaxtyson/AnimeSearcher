@@ -15,7 +15,7 @@ class DanmukaBahamt(DanmakuEngine):
     def search(self, keyword: str):
         ret = []
         keyword = self.convert_to_tw(keyword)  # 使用繁体搜索, 否则没什么结果
-        logger.info(f"Searching for anmie: {keyword}")
+        logger.info(f"Searching for danmaku: {keyword}")
         resp = self.get(self._search_api, params={"kw": keyword})
         if resp.status_code != 200:
             return ret
@@ -47,7 +47,7 @@ class DanmukaBahamt(DanmakuEngine):
     def get_danmaku(self, cid: str):
         payload = {"sn": cid}
         ret = []
-        resp = self.post(self._dm_api, data=payload)
+        resp = self.post(self._dm_api, data=payload, timeout=10)
         if resp.status_code != 200:
             return ret
         data = resp.json()
@@ -56,6 +56,7 @@ class DanmukaBahamt(DanmakuEngine):
                 item["time"],  # 弹幕的时间
                 item["position"],  # 弹幕位置
                 int(item["color"][1:], 16),  # 弹幕颜色 10 进制
+                "",
                 self.convert_to_zh(item["text"]),  # 弹幕繁体转简体
             ])
         return ret
