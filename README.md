@@ -20,13 +20,13 @@ Tips: 因为资源引擎 `eyunzhu` 时常有不雅水印~~荷官在线发牌~~�
 访问速度可能较慢慢，也默认关闭。
 
 ## 界面
-![](https://s1.ax1x.com/2020/09/02/wS2JO0.png)
 
-![](https://s1.ax1x.com/2020/09/02/wS4giT.png)
-
-![](https://s1.ax1x.com/2020/09/02/wSIgv4.png)
-
-![](https://s1.ax1x.com/2020/09/02/wSo2Jf.png)
+![1.png](https://s1.ax1x.com/2020/10/25/BmtcfP.png)
+![2.png](https://s1.ax1x.com/2020/10/25/BmtBeH.png)
+![3.png](https://s1.ax1x.com/2020/10/25/BmtrTA.png)
+![4.png](https://s1.ax1x.com/2020/10/25/BmtyFI.png)
+![5.png](https://s1.ax1x.com/2020/10/25/Bmt6Yt.png)
+![6.png](https://s1.ax1x.com/2020/10/25/BmtDwd.png)
 
 ## 维护
 - [lozyue](https://github.com/Cangqifeng) : 前端 UI 界面
@@ -53,7 +53,5 @@ Tips: 因为资源引擎 `eyunzhu` 时常有不雅水印~~荷官在线发牌~~�
 - 新增资源引擎 meijuxia
 - 补充 bilibili 影视区弹幕
 - UI 美化, 新增一套主题
-
-### TODO
-- [ ] 主页番剧更新列表
-- [ ] IPTV 直播(CCTV/地方台)
+- 主页番剧更新列表
+- IPTV 直播(CCTV/地方台)
