@@ -1,17 +1,17 @@
 {
-    "engines": {
-      "api.engines.yhdm": true,
-      "api.engines.zzfun": true,
-      "api.engines.agefans": true,
-      "api.engines.eyunzhu": false,
-      "api.engines.bimibimi": true,
-      "api.engines.meijuxia": true
-    },
-    "danmaku": {
-      "api.danmaku.bilibili": true,
-      "api.danmaku.bimibimi": true,
-      "api.danmaku.bahamut": false,
-      "api.danmaku.youku": true,
-      "api.danmaku.tencent": true
-    }
+  "engines": {
+    "api.engines.yhdm": true,
+    "api.engines.zzfun": true,
+    "api.engines.agefans": true,
+    "api.engines.eyunzhu": false,
+    "api.engines.bimibimi": true,
+    "api.engines.meijuxia": true
+  },
+  "danmaku": {
+    "api.danmaku.bilibili": true,
+    "api.danmaku.bimibimi": true,
+    "api.danmaku.bahamut": false,
+    "api.danmaku.youku": true,
+    "api.danmaku.tencent": true
+  }
 }

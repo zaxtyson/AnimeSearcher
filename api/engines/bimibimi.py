@@ -67,10 +67,14 @@ class BimibimiVideoHandler(VideoHandler):
         real_url = data["url"]
         parse_js = data.get("parse")
         if parse_js:  # 需要进一步处理
-            parse_api = re.search(r'{"(http.+?)"}', parse_js).group(1)
-            url = parse_api + real_url
-            resp = self.get(url)
-            real_url = resp.json().get("url") or "error"
+            logger.debug(parse_js)
+            parse_apis = re.findall(r'"(https?://.+?)"', parse_js)  # 可能存在多个解析接口
+            for api in parse_apis:
+                url = api + real_url
+                resp = self.get(url)
+                real_url = resp.json().get("url")
+                if real_url is not None:
+                    break  # 已经得到了
         elif "qq.com" in real_url:
             resp = self.head(real_url, allow_redirects=False)
             real_url = resp.headers.get("Location")  # 重定向之后才是直链
