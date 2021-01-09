@@ -6,6 +6,7 @@ import time
 from typing import List
 
 from api.base import DanmakuEngine
+from api.logger import logger
 from api.models import DanmakuMetaInfo, DanmakuCollection, Danmaku
 
 
@@ -29,10 +30,10 @@ class DanmukuYouku(DanmakuEngine):
             meta = DanmakuMetaInfo()
             meta.title = info["titleDTO"]["displayName"].replace("\t", "")
             meta.play_page_url = info["leftButtonDTO"]["action"]["value"]
-            if "youku.com" not in meta.play_page_url:
-                continue  # 有时候返回 qq 的播放链接
-            num = re.search(r"更新至(\d+)集|(\d+)集全", info["stripeBottom"])
-            meta.num = int(num.group(1) or num.group(2) or 0)
+            if meta.play_page_url and ("youku.com" not in meta.play_page_url):
+                continue  # 有时候返回 qq 的播放链接, 有时候该字段为 null
+            num = re.search(r"(\d+?)集", info.get("stripeBottom", ""))  # 该字段可能不存在
+            meta.num = int(num.group(1)) if num else 0
             result.append(meta)
         return result
 
@@ -43,6 +44,9 @@ class DanmukuYouku(DanmakuEngine):
         if resp.status_code != 200:
             return ret
         data = re.search(r"__INITIAL_DATA__\s*?=\s*?({.+?});", resp.text)
+        if not data:  # 多半是碰到反爬机制了
+            logger.error("We are blocked by youku")
+            return ret
         data = json.loads(data.group(1))
         # 我们需要的数据在第 13 层! 写出这种代码的程序员应该被绑到绞刑架上
         data = data["data"]["data"]["nodes"][0]["nodes"]

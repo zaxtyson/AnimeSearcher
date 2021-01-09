@@ -34,7 +34,8 @@ class HtmlParseHelper(object):
         except requests.Timeout as e:
             logger.warning(e)
             return requests.Response()
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.exception(e)
             return requests.Response()
 
     @staticmethod
@@ -50,7 +51,8 @@ class HtmlParseHelper(object):
         except requests.Timeout as e:
             logger.warning(e)
             return requests.Response()
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.exception(e)
             return requests.Response()
 
     @staticmethod
@@ -66,7 +68,8 @@ class HtmlParseHelper(object):
         except requests.Timeout as e:
             logger.warning(e)
             return requests.Response()
-        except requests.RequestException:
+        except requests.RequestException as e:
+            logger.exception(e)
             return requests.Response()
 
     @staticmethod
@@ -116,7 +119,7 @@ class BaseEngine(HtmlParseHelper):
         try:
             return self.search(keyword)
         except Exception as e:
-            logger.error(f"Catch exception: {e} when searching for {keyword}")
+            logger.exception(e)
             return []
 
     def _get_detail(self, detail_page_url: str) -> AnimeDetailInfo:
@@ -124,7 +127,7 @@ class BaseEngine(HtmlParseHelper):
         try:
             return self.get_detail(detail_page_url)
         except Exception as e:
-            logger.error(f"Catch exception: {e} when processing {detail_page_url}")
+            logger.exception(e)
             return AnimeDetailInfo()
 
 
@@ -156,7 +159,7 @@ class DanmakuEngine(HtmlParseHelper):
         try:
             return self.search(keyword)
         except Exception as e:
-            logger.error(f"Catch exception: {e} when searching for {keyword}")
+            logger.exception(e)
             return []
 
     def _get_detail(self, play_page_url: str) -> DanmakuCollection:
@@ -164,7 +167,7 @@ class DanmakuEngine(HtmlParseHelper):
         try:
             return self.get_detail(play_page_url)
         except Exception as e:
-            logger.error(f"Catch exception: {e} when processing {play_page_url}")
+            logger.exception(e)
             return DanmakuCollection()
 
     def _get_danmaku(self, cid: str) -> Dict:
@@ -172,7 +175,7 @@ class DanmakuEngine(HtmlParseHelper):
         try:
             return self.get_danmaku(cid)
         except Exception as e:
-            logger.error(f"Catch exception: {e} when parsing danmaku {cid}")
+            logger.exception(e)
             return {}
 
 

@@ -45,7 +45,7 @@ class Router(object):
                 text = f.read()
             return Response(text, mimetype="text/plain")
 
-        @self._app.route("/search/<name>")
+        @self._app.route("/search/<path:name>")
         def search_anime(name):
             """搜索番剧, 返回番剧摘要信息列表"""
             ret = []
@@ -133,7 +133,7 @@ class Router(object):
             real_url = f"/video/{hash_key}/proxy"
             return render_template("player.html", real_url=real_url, video_name=video.name)
 
-        @self._app.route("/danmaku/search/<name>")
+        @self._app.route("/danmaku/search/<path:name>")
         def search_danmaku(name):
             """搜索番剧弹幕库"""
             self._danmaku_db.clear()  # 每次搜索清空上一次搜索结果

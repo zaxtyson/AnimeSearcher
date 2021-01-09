@@ -18,8 +18,10 @@ class AgeFans(BaseEngine):
         ret, html = self.parse_one_page(keyword, 1)
         result += ret  # 保存第一页搜索结果
 
-        max_page = self.xpath(html, '//a[text()="尾页"]/@href')[0]  # 'javascript:void(0);' 或 /search?query=A&page=38
-        max_page = int(max_page.split('=')[-1]) if "page=" in max_page else 1  # 尾页编号 38
+        max_page = self.xpath(html, '//a[text()="尾页"]/@href')
+        if not max_page:
+            return result
+        max_page = int(max_page[0].split('=')[-1]) if "page=" in max_page else 1  # 尾页编号 38
         if max_page == 1:
             return result  # 搜索结果只有一页
 

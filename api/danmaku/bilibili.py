@@ -53,22 +53,25 @@ class BiliBili(DanmakuEngine):
         resp = self.get(play_url)
         if resp.status_code != 200:
             return ret
-        data_json = re.search(r"window.__INITIAL_STATE__=({.+?});\(function\(\)", resp.text)
+        data_json = re.search(r"window.__INITIAL_STATE__=({.+?\});\(function\(\)", resp.text)
         data_json = loads(data_json.group(1))
-        ep_list = data_json.get("epList")
+        ep_list = data_json.get("epList")  # 官方番剧数据
+        if not ep_list and data_json.get("sections"):
+            ep_list = data_json["sections"][0]["epList"]  # PV 的数据位置不一样
         if ep_list:  # 官方番剧
             for ep in ep_list:
                 dmk = Danmaku()
                 dmk.name = ep["titleFormat"] + ep["longTitle"]
                 dmk.cid = str(ep["cid"])  # cid 号
                 ret.append(dmk)
-        else:
-            ep_list = data_json.get("videoData").get("pages")
-            for ep in ep_list:  # 用户上传的视频
-                dmk = Danmaku()
-                dmk.name = ep.get("part") or ep.get("from")
-                dmk.cid = str(ep["cid"])  # cid 号
-                ret.append(dmk)
+            return ret
+        # 用户上传的视频
+        ep_list = data_json.get("videoData").get("pages")
+        for ep in ep_list:  # 用户上传的视频
+            dmk = Danmaku()
+            dmk.name = ep.get("part") or ep.get("from")
+            dmk.cid = str(ep["cid"])  # cid 号
+            ret.append(dmk)
         return ret
 
     def get_danmaku(self, cid: str):
