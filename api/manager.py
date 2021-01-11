@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from importlib import import_module
 from inspect import getmembers
 from inspect import isclass
-from typing import List
+from typing import List, Iterator
 
 import requests
 
@@ -50,19 +50,14 @@ class EngineManager(object):
                                                 cls)  # 'api.danmaku.xxx': <class 'api.danmaku.xx.xxEngine'>
                 logger.info(f"Loading DanmakuEngine {cls.__module__}.{cls.__name__}: {cls}")
 
-    def search_anime(self, keyword: str) -> List[AnimeMetaInfo]:
+    def search_anime(self, keyword: str) -> Iterator[AnimeMetaInfo]:
         """搜索番剧, 返回番剧的摘要信息(不包括视频列表)"""
         if not keyword:
-            return []
-        result = []
+            return ()
         executor = ThreadPoolExecutor()
-        engine_list = [e() for e in self._engines.values()]
-        logger.info(f"Searching for anime {keyword}...")
-        all_task = [executor.submit(obj._search, keyword) for obj in engine_list]
+        all_task = [executor.submit(engine()._search, keyword) for engine in self._engines.values()]
         for task in as_completed(all_task):
-            result += task.result()
-        logger.info(f"Anime searching result in total: {len(result)}")
-        return result
+            yield from task.result()
 
     def get_anime_detail(self, meta: AnimeMetaInfo) -> AnimeDetailInfo:
         """解析一部番剧的详情页，返回包含视频列表的详细信息"""
@@ -98,19 +93,14 @@ class EngineManager(object):
             return requests.Response()
         return target_handler(video).make_response()
 
-    def search_danmaku(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search_danmaku(self, keyword: str) -> Iterator[DanmakuMetaInfo]:
         """搜索番剧, 返回番剧弹幕的元信息"""
         if not keyword:
-            return []
-        result = []
+            return ()
         executor = ThreadPoolExecutor()
-        engine_list = [e() for e in self._danmaku_engine.values()]
-        logger.info(f"Searching for danmaku {keyword}...")
-        all_task = [executor.submit(obj._search, keyword) for obj in engine_list]
+        all_task = [executor.submit(engine()._search, keyword) for engine in self._danmaku_engine.values()]
         for task in as_completed(all_task):
-            result += task.result()
-        logger.info(f"Danmaku searching result in total: {len(result)}")
-        return result
+            yield from task.result()
 
     def get_danmaku_detail(self, meta: DanmakuMetaInfo) -> DanmakuCollection:
         """解析一部番剧的详情页，返回包含视频列表的详细信息"""

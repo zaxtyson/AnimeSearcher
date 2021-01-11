@@ -14,7 +14,7 @@ def open_index():
 
 if __name__ == '__main__':
     rt = Router()
-    rt.listen("127.0.0.1", 6001)
+    rt.listen("127.0.0.1", port=6001, ws_port=6002)
     rt.enable_debug()
     Timer(1, open_index).start()
     rt.run()

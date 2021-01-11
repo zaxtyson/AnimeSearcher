@@ -14,3 +14,5 @@ requests==2.22.0
 urllib3==1.25.8
 Werkzeug==0.16.1
 zhconv==1.4.1
+websockets==8.1
+

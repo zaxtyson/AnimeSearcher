@@ -18,18 +18,16 @@ class ZZFun(BaseEngine):
         resp = self.post(self._search_api, data={"userid": "", "key": keyword})
         if resp.status_code != 200:
             logger.warning(f"Response error: {resp.status_code} {self._search_api}")
-            return []
+            return
 
         anime_meta_list = resp.json().get("data")
-        ret = []
         for meta in anime_meta_list:
             anime = AnimeMetaInfo()
             anime.title = meta["videoName"]
             anime.cover_url = meta["videoImg"]
             anime.category = meta["videoClass"]
             anime.detail_page_url = meta["videoId"]
-            ret.append(anime)
-        return ret
+            yield anime
 
     def get_detail(self, detail_page_url: str):
         resp = self.get(self._detail_api, params={"userid": "", "videoId": detail_page_url})

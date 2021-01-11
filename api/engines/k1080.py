@@ -1,7 +1,6 @@
 import json
 import re
 from base64 import b64decode
-from typing import List
 
 import requests
 from requests.utils import unquote
@@ -38,25 +37,22 @@ class K1080(BaseEngine):
             ret.append(anime)
         return ret, resp.text
 
-    def search(self, keyword: str) -> List[AnimeMetaInfo]:
-        result = []
+    def search(self, keyword: str):
         ret, html = self.parse_one_page(keyword, 1)
-        result += ret  # 保存第一页搜索结果
-
+        yield from ret
         max_page_url = self.xpath(html, "//a[text()='尾页']/@href")
         if not max_page_url:
-            return result
+            return
         # 尾页链接 /vodsearch/xxxxx----------4---.html
         max_page = re.search(r"--(\d+?)--", max_page_url[0]).group(1)
         max_page = int(max_page)
         if max_page == 1:
-            return result  # 搜索结果只有一页
+            return  # 搜索结果只有一页
 
         # 多线程处理剩下的页面
         all_task = [(self.parse_one_page, (keyword, i), {}) for i in range(2, max_page + 1)]
         for ret, _ in self.submit_tasks(all_task):
-            result += ret
-        return result
+            yield from ret
 
     def get_detail(self, detail_page_url: str) -> AnimeDetailInfo:
         detail_api = self._base_url + detail_page_url

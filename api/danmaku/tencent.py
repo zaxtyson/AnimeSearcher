@@ -9,14 +9,13 @@ from api.models import DanmakuCollection, DanmakuMetaInfo, Danmaku
 class DanmakuTencent(DanmakuEngine):
     """腾讯视频的弹幕"""
 
-    def search(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search(self, keyword: str):
         """搜索相关的电视剧/番剧"""
         # 先通过接口搜索, 没有结果再解析网页数据
-        return self.search_from_api(keyword) or self.search_from_web(keyword)
+        yield from self.search_from_api(keyword) or self.search_from_web(keyword)
 
     def search_from_api(self, keyword: str) -> List[DanmakuMetaInfo]:
         """通过接口搜索同一系列的剧集"""
-        result = []
         api = "https://s.video.qq.com/load_poster_list_info"
         params = {
             "otype": "json",
@@ -28,7 +27,7 @@ class DanmakuTencent(DanmakuEngine):
         }
         resp = self.get(api, params=params)
         if resp.status_code != 200:
-            return result
+            return
         data = resp.text.lstrip("QZOutputJson=").rstrip(";").replace("\u0005", "").replace("\u0006", "")
         data = json.loads(data)
         data = data["PosterListMod"]["posterList"]
@@ -47,16 +46,14 @@ class DanmakuTencent(DanmakuEngine):
                     meta.num = num.group(1)
                 else:
                     meta.num = 1
-            result.append(meta)
-        return result
+            yield meta
 
     def search_from_web(self, keyword: str) -> List[DanmakuMetaInfo]:
         """从网页版提取数据"""
-        result = []
         api = "http://m.v.qq.com/x/search.html"  # PC 版数据过于杂乱, 所以抓移动版
         resp = self.get(api, params={"keyWord": keyword})
         if resp.status_code != 200:
-            return result
+            return
         data = self.xpath(resp.text, '//div[@class="search_item"]')
         for node in data[:-1]:  # 最后一个是搜索推荐, 丢弃
             url = node.xpath("./a/@href")
@@ -72,8 +69,7 @@ class DanmakuTencent(DanmakuEngine):
             else:
                 num = re.search(r"(\d+)", ep_num[0]).group(1)
                 meta.num = int(num)
-            result.append(meta)
-        return result
+            yield meta
 
     def get_detail(self, play_page_url: str) -> DanmakuCollection:
         result = DanmakuCollection()

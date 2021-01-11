@@ -1,5 +1,3 @@
-from typing import List
-
 from api.base import BaseEngine
 from api.models import AnimeMetaInfo, AnimeDetailInfo
 from api.models import Video, VideoCollection
@@ -11,8 +9,7 @@ class Meijuxia(BaseEngine):
     def __init__(self):
         self._api = "http://api.meijuxia.com/"
 
-    def search(self, keyword: str) -> List[AnimeMetaInfo]:
-        result = []
+    def search(self, keyword: str):
         payload = {
             "service": "App.Vod.Search",
             "search": keyword,
@@ -23,18 +20,17 @@ class Meijuxia(BaseEngine):
         payload.update(self.encrypt())
         resp = self.post(self._api, data=payload)
         if resp.status_code != 200:
-            return result
+            return
         data = resp.json()
         data = list(filter(lambda x: x["type"] == "vod", data["data"]))[0]
         for item in data["videos"]:
-            meta = AnimeMetaInfo()
-            meta.title = item["vod_name"]
-            meta.category = item["vod_type"]
-            meta.cover_url = item["vod_pic"]
-            meta.desc = item["vod_keywords"] + " 豆瓣评分:" + item["vod_douban_score"]
-            meta.detail_page_url = str(item["vod_id"])  # 详情页id参数
-            result.append(meta)
-        return result
+            anime = AnimeMetaInfo()
+            anime.title = item["vod_name"]
+            anime.category = item["vod_type"]
+            anime.cover_url = item["vod_pic"]
+            anime.desc = item["vod_keywords"] + " 豆瓣评分:" + item["vod_douban_score"]
+            anime.detail_page_url = str(item["vod_id"])  # 详情页id参数
+            yield anime
 
     def get_detail(self, detail_id: str) -> AnimeDetailInfo:
         detail = AnimeDetailInfo()

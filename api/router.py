@@ -1,5 +1,10 @@
+import asyncio
+from json import dumps
 from os.path import dirname
+from threading import Thread
+from time import perf_counter
 
+import websockets
 from flask import Flask, jsonify, request, render_template, Response
 
 from api.bangumi.timeline import Timeline
@@ -15,7 +20,8 @@ class Router(object):
     def __init__(self):
         self._app = Flask(__name__)
         self._debug = False
-        self._port = 80
+        self._port = 6001
+        self._ws_port = 6002  # websocket port
         self._host = "127.0.0.1"
         self._domain = f"http://{self._host}:{self._port}"
         self._engine_mgr = EngineManager()
@@ -24,9 +30,10 @@ class Router(object):
         self._anime_update = Timeline()
         self._iptv_db = IPTVDB()
 
-    def listen(self, host: str, port: int):
+    def listen(self, host: str, port: int = 6001, ws_port: int = 6002):
         self._host = host
         self._port = port
+        self._ws_port = ws_port
         self._domain = f"http://{self._host}:{self._port}"
 
     def set_domain(self, domain: str):
@@ -47,7 +54,7 @@ class Router(object):
 
         @self._app.route("/search/<path:name>")
         def search_anime(name):
-            """搜索番剧, 返回番剧摘要信息列表"""
+            """搜索番剧, 返回番剧摘要信息列表, 该方法回阻塞直到所有引擎数据返回"""
             ret = []
             self._anime_db.clear()  # 每次搜索清空缓存数据库
             anime_list = self._engine_mgr.search_anime(name)
@@ -138,8 +145,10 @@ class Router(object):
             """搜索番剧弹幕库"""
             self._danmaku_db.clear()  # 每次搜索清空上一次搜索结果
             ret = []
+            start = perf_counter()
             meta_list = self._engine_mgr.search_danmaku(name)
             for meta in meta_list:
+                print(meta.title, meta.num)
                 hash_key = self._danmaku_db.store(meta)
                 ret.append({
                     "title": meta.title,
@@ -147,6 +156,7 @@ class Router(object):
                     "danmaku": meta.dm_engine,
                     "url": f"{self._domain}/danmaku/detail/{hash_key}"
                 })
+            print(f"use time:{perf_counter() - start}")
             return jsonify(ret)
 
         @self._app.route("/danmaku/detail/<hash_key>")
@@ -237,7 +247,30 @@ class Router(object):
             response.headers["Server"] = "Anime-API"
             return response
 
+    async def search_and_push(self, websocket, path):
+        """向前端推送搜索结果"""
+        keyword = await websocket.recv()
+        self._anime_db.clear()
+        for meta in self._engine_mgr.search_anime(keyword):
+            hash_key = self._anime_db.store(meta)
+            anime_meta = {"title": meta.title, "cover_url": meta.cover_url, "category": meta.category,
+                          "description": meta.desc, "engine": meta.engine,
+                          "url": f"{self._domain}/detail/" + hash_key}
+            await websocket.send(dumps(anime_meta))
+            ack = await websocket.recv()
+            if ack.lower() != "ok":  # 客户端没收到消息, 重发
+                await websocket.send(dumps(anime_meta))
+
+    def anime_search_server(self, loop):
+        """后台的动漫搜索服务, 使用 websockets 通信"""
+        asyncio.set_event_loop(loop)
+        start_server = websockets.serve(self.search_and_push, self._host, self._ws_port)
+        loop.run_until_complete(start_server)
+        loop.run_forever()
+
     def run(self):
         """后台运行"""
         self._init_routes()
+        loop = asyncio.get_event_loop()
+        Thread(target=lambda: self.anime_search_server(loop)).start()
         self._app.run(host=self._host, port=self._port, debug=self._debug, use_reloader=False)

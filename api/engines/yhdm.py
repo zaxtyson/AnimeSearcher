@@ -9,19 +9,17 @@ class YingHuaDongMan(BaseEngine):
         self._search_api = self._base_url + "/search"
 
     def search(self, keyword: str):
-        result = []
         ret, html = self.parse_one_page(keyword, 1)
-        result += ret  # 保存第一页搜索结果
+        yield from ret
         max_page = self.xpath(html, '//div[@class="pages"]/a[@id="lastn"]/text()')  # ['12'] 或 []
         if not max_page:
-            return result  # 搜索结果只有一页
+            return  # 搜索结果只有一页
 
         # 多线程处理剩下的页面
         max_page = int(max_page[0])
         all_task = [(self.parse_one_page, (keyword, i), {}) for i in range(2, max_page + 1)]
         for ret, _ in self.submit_tasks(all_task):
-            result += ret
-        return result
+            yield from ret
 
     def parse_one_page(self, keyword: str, page: int):
         logger.info(f"Searching for {keyword}, page {page}")

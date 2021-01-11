@@ -1,5 +1,6 @@
 import time
 from random import random
+from typing import Iterator
 
 import requests
 
@@ -13,26 +14,23 @@ class AgeFans(BaseEngine):
         self._base_url = "https://www.agefans.net"
         self._search_api = self._base_url + "/search"
 
-    def search(self, keyword: str):
-        result = []
+    def search(self, keyword: str) -> Iterator[AnimeMetaInfo]:
         ret, html = self.parse_one_page(keyword, 1)
-        result += ret  # 保存第一页搜索结果
-
+        yield from ret
         max_page = self.xpath(html, '//a[text()="尾页"]/@href')
         if not max_page:
-            return result
+            return
         max_page = int(max_page[0].split('=')[-1]) if "page=" in max_page else 1  # 尾页编号 38
         if max_page == 1:
-            return result  # 搜索结果只有一页
+            return  # 搜索结果只有一页
 
         # 多线程处理剩下的页面
         all_task = [(self.parse_one_page, (keyword, i), {}) for i in range(2, max_page + 1)]
         for ret, _ in self.submit_tasks(all_task):
-            result += ret
-        return result
+            yield from ret
 
     def parse_one_page(self, keyword: str, page: int):
-        """处理一页的所有番剧摘要信息"""
+        """处理一页的所有番剧摘要信息, 同时返回当前页面的 HTML"""
         logger.info(f"Searching for: {keyword}, page: {page}")
         resp = self.get(self._search_api, params={'query': keyword, 'page': page})
         if resp.status_code != 200 or "0纪录" in resp.text:

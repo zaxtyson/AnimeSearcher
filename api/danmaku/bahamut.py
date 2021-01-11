@@ -13,12 +13,11 @@ class DanmukaBahamt(DanmakuEngine):
         self._dm_api = self._host + "/ajax/danmuGet.php"
 
     def search(self, keyword: str):
-        ret = []
         keyword = self.convert_to_tw(keyword)  # 使用繁体搜索, 否则没什么结果
         logger.info(f"Searching for danmaku: {keyword}")
         resp = self.get(self._search_api, params={"kw": keyword})
         if resp.status_code != 200:
-            return ret
+            return
         anime_list = self.xpath(resp.text, '//a[contains(@href, "animeRef")]')
         for anime in anime_list:
             meta = DanmakuMetaInfo()
@@ -26,8 +25,7 @@ class DanmukaBahamt(DanmakuEngine):
             meta.play_page_url = anime.xpath('@href')[0]  # /animeRef.php?sn=111487
             num_str = anime.xpath('.//span[@class="theme-number"]/text()')[0]  # 第14集
             meta.num = int(num_str.strip().replace("第", "").replace("集", ""))  # 14
-            ret.append(meta)
-        return ret
+            yield meta
 
     def get_detail(self, play_page_url: str):
         sn = play_page_url.split("=")[-1]  # 111487

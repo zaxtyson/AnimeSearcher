@@ -13,11 +13,10 @@ class EYunZun(BaseEngine):
 
     def search(self, keyword: str):
         logger.info(f"Searching for: {keyword}")
-        ret = []
         resp = self.get(self._search_api, params={"kw": keyword, "per_page": 100, "page": 1})  # 取前 100 条结果
         if resp.status_code != 200 or resp.json()["code"] != 1:
             logger.warning(f"Response error: {resp.status_code} {self._search_api}")
-            return ret
+            return
 
         data = resp.json()
         anime_meta_list = data.get("data").get("data") if data else []
@@ -28,8 +27,7 @@ class EYunZun(BaseEngine):
             anime.category = meta["type"]
             anime.detail_page_url = str(meta["vid"])
             anime.desc = meta["label"]
-            ret.append(anime)
-        return ret
+            yield anime
 
     def get_detail(self, detail_page_url: str):
         resp = self.get(self._detail_api, params={"vid": detail_page_url})

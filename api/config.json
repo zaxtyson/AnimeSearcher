@@ -1,6 +1,6 @@
 {
   "engines": {
-    "api.engines.yhdm": false,
+    "api.engines.yhdm": true,
     "api.engines.zzfun": true,
     "api.engines.agefans": true,
     "api.engines.eyunzhu": false,

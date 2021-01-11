@@ -4,7 +4,7 @@
 
     API Interface:
 
-    GET /search/<name>                      Return anime summary information
+    GET /search/<name> (deprecated)         Return anime summary information
     GET /detail/<hash_key>                  Return anime details information
     GET /video/<hash_key>/url               Return the direct URL of video
     GET /video/<hash_key>/proxy             Return the binary stream of video by API proxy
@@ -24,3 +24,6 @@
     Test Interface:
     GET /video/<hash_key>/player            Play video online by its direct URL
     GET /video/<hash_key>/proxy_player      Play video online by API proxy
+
+    WebSockets Interface:
+    ws://localhost:6002                     async search anime

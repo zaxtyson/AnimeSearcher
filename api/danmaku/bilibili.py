@@ -1,13 +1,12 @@
 import re
 from json import loads
-from typing import List
 
 from api.base import DanmakuEngine
 from api.logger import logger
 from api.models import DanmakuMetaInfo, DanmakuCollection, Danmaku
 
 
-class BiliBili(DanmakuEngine):
+class DanmakuBiliBili(DanmakuEngine):
     """搜索哔哩哔哩官方和用户上传的番剧弹幕"""
 
     def __init__(self):
@@ -16,10 +15,9 @@ class BiliBili(DanmakuEngine):
         self._dm_api = self._host + "/x/v1/dm/list.so"
         self._cid_api = self._host + "/x/player/pagelist"
 
-    def search(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search(self, keyword: str):
         """搜索番剧信息"""
         logger.info(f"Searching for danmaku: {keyword}")
-        ret = []
         params = {"keyword": keyword, "search_type": "media_bangumi"}  # 搜索番剧
         params2 = {"keyword": keyword, "search_type": "media_ft"}  # 搜索影视
         # 用户上传的60 分钟以上的视频, 按弹幕数量排序
@@ -29,8 +27,8 @@ class BiliBili(DanmakuEngine):
             (self.get, (self._search_api, params2), {}),
             (self.get, (self._search_api, params3), {})
         ]
-        resp_list = self.submit_tasks(task_list)  # 多线程同时搜索
-        for resp in resp_list:
+
+        for resp in self.submit_tasks(task_list):
             if resp.status_code != 200:
                 continue
             data = resp.json()
@@ -39,13 +37,12 @@ class BiliBili(DanmakuEngine):
             for item in data["data"]["result"]:
                 if '<em class="keyword">' not in item["title"]:  # 没有匹配关键字, 是B站的推广视频
                     continue
-                dm_mate = DanmakuMetaInfo()
-                dm_mate.title = item["title"].replace(r'<em class="keyword">', "").replace("</em>", "")  # 番剧标题
-                dm_mate.play_page_url = item.get("goto_url") or item.get("arcurl")  # 番剧播放页链接
-                dm_mate.num = int(item.get("ep_size") or -1)
-                logger.debug(f"Match danmaku: {dm_mate}")
-                ret.append(dm_mate)
-        return ret
+                meta = DanmakuMetaInfo()
+                meta.title = item["title"].replace(r'<em class="keyword">', "").replace("</em>", "")  # 番剧标题
+                meta.play_page_url = item.get("goto_url") or item.get("arcurl")  # 番剧播放页链接
+                meta.num = int(item.get("ep_size") or -1)
+                logger.debug(f"Match danmaku: {meta}")
+                yield meta
 
     def get_detail(self, play_url: str) -> DanmakuCollection:
         """解析番剧播放页, 提取所有视频的弹幕信息"""

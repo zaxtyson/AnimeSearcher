@@ -14,22 +14,18 @@ class DanmukaBimibimi(DanmakuEngine):
         self._headers = {"User-Agent": "Dart/2.7 (dart:io)", "appid": "4150439554430555"}
 
     def search(self, keyword: str):
-        ret = []
         logger.info(f"Searching for danmaku: {keyword}")
         resp = self.get(self._search_api, params={"limit": "100", "key": keyword, "page": "1"}, headers=self._headers)
-        if resp.status_code != 200:
+        if resp.status_code != 200 or resp.json()["data"]["total"] == 0:
             logger.warning(f"Response error: {resp.status_code} {self._search_api}")
-            return ret
-        if resp.json().get("data").get("total") == 0:
-            return ret
+            return
         anime_meta_list = resp.json().get("data").get("items")
         for anime in anime_meta_list:
             meta = DanmakuMetaInfo()
             meta.title = anime["name"]
             meta.play_page_url = str(anime["id"])
             meta.num = anime["total"]
-            ret.append(meta)
-        return ret
+            yield meta
 
     def get_detail(self, play_page_url: str):
         collection = DanmakuCollection()

@@ -1,6 +1,6 @@
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Tuple, TypeVar, Callable, Optional, Dict
+from typing import List, Tuple, TypeVar, Callable, Optional, Dict, Iterator
 
 import requests
 from flask import request, Response
@@ -28,12 +28,9 @@ class HtmlParseHelper(object):
         """封装 HEAD 方法, 默认开启 302 重定向, 用于获取目标直链"""
         try:
             logger.debug(f"url: {url}, params: {params}, allow_redirects: {allow_redirects}")
-            kwargs.setdefault("timeout", 10)
+            kwargs.setdefault("timeout", 30)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             return requests.head(url, params=params, verify=False, allow_redirects=allow_redirects, **kwargs)
-        except requests.Timeout as e:
-            logger.warning(e)
-            return requests.Response()
         except requests.RequestException as e:
             logger.exception(e)
             return requests.Response()
@@ -43,14 +40,11 @@ class HtmlParseHelper(object):
         """封装 GET 方法, 默认网页编码为 utf-8"""
         try:
             logger.debug(f"url: {url}, params: {params}")
-            kwargs.setdefault("timeout", 5)
+            kwargs.setdefault("timeout", 30)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.get(url, params, verify=False, **kwargs)
             ret.encoding = html_encoding  # 有些网页仍然使用 gb2312/gb18030 之类的编码, 需要单独设置
             return ret
-        except requests.Timeout as e:
-            logger.warning(e)
-            return requests.Response()
         except requests.RequestException as e:
             logger.exception(e)
             return requests.Response()
@@ -60,14 +54,11 @@ class HtmlParseHelper(object):
         """"封装 POST 方法, 默认网页编码为 utf-8"""
         try:
             logger.debug(f"url: {url}, data: {data}")
-            kwargs.setdefault("timeout", 5)
+            kwargs.setdefault("timeout", 30)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.post(url, data, verify=False, **kwargs)
             ret.encoding = html_encoding
             return ret
-        except requests.Timeout as e:
-            logger.warning(e)
-            return requests.Response()
         except requests.RequestException as e:
             logger.exception(e)
             return requests.Response()
@@ -83,9 +74,10 @@ class HtmlParseHelper(object):
             return None
 
     T = TypeVar("T")  # 提交任务的返回类型
+    TASK = Tuple[Callable[..., T], Tuple, Dict]
 
     @staticmethod
-    def submit_tasks(task_list: List[Tuple[Callable[..., T], Tuple, Dict]]) -> List[T]:
+    def submit_tasks(task_list: List[TASK]) -> Iterator[T]:
         """线程池, 解析多个网页时可以使用, 加快解析速度
         @task_list 任务列表, 每一个 task 都是元组:  (待调用的函数, 参数列表, 关键字参数列表), 示例
                     (function, (arg1, arg2), {"kwarg1":"value"})
@@ -93,20 +85,16 @@ class HtmlParseHelper(object):
         """
         executor = ThreadPoolExecutor()
         all_task = []
-        result = []
         for fn, args, kwargs in task_list:
             all_task.append(executor.submit(fn, *args, **kwargs))
         for task in as_completed(all_task):
-            ret = task.result()
-            if ret is not None:
-                result.append(ret)
-        return result
+            yield task.result()
 
 
 class BaseEngine(HtmlParseHelper):
     """基础引擎类, 用户自定义引擎应该继承此类"""
 
-    def search(self, keyword: str) -> List[AnimeMetaInfo]:
+    def search(self, keyword: str) -> Iterator[AnimeMetaInfo]:
         """搜索番剧, 返回番剧摘要信息的列表"""
         pass
 
@@ -114,13 +102,13 @@ class BaseEngine(HtmlParseHelper):
         """处理一部番剧的详情页面, 解析视频播放列表, 返回详情信息"""
         pass
 
-    def _search(self, keyword: str) -> List[AnimeMetaInfo]:
+    def _search(self, keyword: str) -> Iterator[AnimeMetaInfo]:
         """引擎管理器负责调用, 捕获异常"""
         try:
-            return self.search(keyword)
+            yield from self.search(keyword)
         except Exception as e:
             logger.exception(e)
-            return []
+            return
 
     def _get_detail(self, detail_page_url: str) -> AnimeDetailInfo:
         """引擎管理器负责调用, 捕获异常"""
@@ -134,15 +122,15 @@ class BaseEngine(HtmlParseHelper):
 class DanmakuEngine(HtmlParseHelper):
     """弹幕库引擎基类, 用户自定义的引擎应该继承它"""
 
-    def convert_to_zh(self, text: str):
+    def convert_to_zh(self, text: str) -> str:
         """将繁体弹幕转换为简体"""
         return convert(text, "zh-cn")
 
-    def convert_to_tw(self, text: str):
+    def convert_to_tw(self, text: str) -> str:
         """简体转繁体"""
         return convert(text, "zh-tw")
 
-    def search(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search(self, keyword: str) -> Iterator[DanmakuMetaInfo]:
         """搜索相关番剧, 返回指向番剧详情页的信息"""
         pass
 
@@ -154,13 +142,13 @@ class DanmakuEngine(HtmlParseHelper):
         """提供弹幕的 id, 解析出弹幕的内容, 并处理成 DPlayer 支持的格式"""
         pass
 
-    def _search(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def _search(self, keyword: str) -> Iterator[DanmakuMetaInfo]:
         """引擎管理器负责调用, 捕获异常"""
         try:
-            return self.search(keyword)
+            yield from self.search(keyword)
         except Exception as e:
             logger.exception(e)
-            return []
+            return
 
     def _get_detail(self, play_page_url: str) -> DanmakuCollection:
         """引擎管理器负责调用, 捕获异常"""
