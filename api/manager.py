@@ -33,11 +33,14 @@ class EngineManager(object):
         module = import_module(engine)
         for cls_name, cls in getmembers(module, isclass):
             if issubclass(cls, VideoHandler):
-                self._handlers.setdefault(cls_name, cls)  # 'xxHandler': <class 'api.engines.xx.xxHandler'>
-                logger.info(f"Loading VideoHandler {cls_name}: {cls}")
+                if cls_name not in self._handlers:
+                    self._handlers[cls_name] = cls  # 'xxHandler': <class 'api.engines.xx.xxHandler'>
+                    logger.info(f"Loading VideoHandler: {cls_name}: {cls}")
             if issubclass(cls, BaseEngine) and cls != BaseEngine:
-                self._engines.setdefault(cls.__module__, cls)  # 'api.engines.xx': <class 'api.engines.xx.xxEngine'>
-                logger.info(f"Loading engine {cls.__module__}.{cls.__name__}: {cls}")
+                engine_name = cls.__module__
+                if engine_name not in self._engines:
+                    self._engines[engine_name] = cls  # 'api.engines.xx': <class 'api.engines.xx.xxEngine'>
+                    logger.info(f"Loading Engine: {cls.__name__}: {cls}")
 
     def _load_danmaku(self, danmaku: str):
         """按照配置加载弹幕库引擎
@@ -65,9 +68,13 @@ class EngineManager(object):
             logger.error(f"Invalid request")
             return AnimeDetailInfo()
         target_engine = self._engines.get(meta.engine)
-        if not target_engine:
-            logger.error(f"Engine not found: {meta.engine}")
-            return AnimeDetailInfo()
+        if target_engine is not None:
+            return target_engine()._get_detail(meta.detail_page_url)
+        # 如果引擎没加载, 临时加载一次
+        logger.info(f"Engine not found: {meta.engine}, it will be loaded temporarily.")
+        self._load_engine(meta.engine)
+        target_engine = self._engines.pop(meta.engine)
+        logger.info(f"Unloading engine: {target_engine}")
         return target_engine()._get_detail(meta.detail_page_url)
 
     def get_video_url(self, video: Video) -> str:

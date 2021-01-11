@@ -26,4 +26,4 @@
     GET /video/<hash_key>/proxy_player      Play video online by API proxy
 
     WebSockets Interface:
-    ws://localhost:6002                     async search anime
+    /search                                 Async search anime

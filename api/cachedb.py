@@ -1,6 +1,8 @@
+from base64 import b16decode
 from hashlib import md5
 
 from api.logger import logger
+from api.models import AnimeMetaInfo
 
 __all__ = ["AnimeDB", "DanmakuDB"]
 
@@ -17,8 +19,11 @@ class CacheDB(object):
 
     def store(self, obj: object) -> str:
         """储存一个对象，返回其 key"""
-        hash_str = str(id(obj))
-        key = md5(hash_str.encode("utf-8")).hexdigest()
+        if hasattr(obj, "hash"):
+            key = obj.hash  # 如果对象自定义了 hash
+        else:
+            hash_str = str(id(obj))  # 临时计算一个
+            key = md5(hash_str.encode("utf-8")).hexdigest()
         if key not in self._db:
             logger.debug(f"Store {obj} -> {key}")
             self._db[key] = obj
@@ -42,7 +47,25 @@ class CacheDB(object):
 
 class AnimeDB(CacheDB):
     """储存番剧信息用的临时数据库"""
-    pass
+
+    def build_anime_meta(self, hash_str: str):
+        """尝试通过 hash 生成一个 AnimeMetaInfo"""
+        try:
+            engine, detail_page_url = b16decode(hash_str.upper()).decode("utf-8").split("|")
+            meta = AnimeMetaInfo()
+            meta.engine = engine
+            meta.detail_page_url = detail_page_url
+            logger.debug(f"Build AnimeMetaInfo from hash {hash_str}")
+            logger.debug(f"engine: {engine} detail_page_url: {detail_page_url}")
+            return meta
+        except Exception:
+            return
+
+    def fetch(self, key: str):
+        ret = super().fetch(key)
+        if ret is not None:
+            return ret
+        return self.build_anime_meta(key)
 
 
 class DanmakuDB(CacheDB):

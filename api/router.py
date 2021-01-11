@@ -2,7 +2,6 @@ import asyncio
 from json import dumps
 from os.path import dirname
 from threading import Thread
-from time import perf_counter
 
 import websockets
 from flask import Flask, jsonify, request, render_template, Response
@@ -145,10 +144,8 @@ class Router(object):
             """搜索番剧弹幕库"""
             self._danmaku_db.clear()  # 每次搜索清空上一次搜索结果
             ret = []
-            start = perf_counter()
             meta_list = self._engine_mgr.search_danmaku(name)
             for meta in meta_list:
-                print(meta.title, meta.num)
                 hash_key = self._danmaku_db.store(meta)
                 ret.append({
                     "title": meta.title,
@@ -156,7 +153,6 @@ class Router(object):
                     "danmaku": meta.dm_engine,
                     "url": f"{self._domain}/danmaku/detail/{hash_key}"
                 })
-            print(f"use time:{perf_counter() - start}")
             return jsonify(ret)
 
         @self._app.route("/danmaku/detail/<hash_key>")
@@ -247,7 +243,7 @@ class Router(object):
             response.headers["Server"] = "Anime-API"
             return response
 
-    async def search_and_push(self, websocket, path):
+    async def search_and_push(self, websocket):
         """向前端推送搜索结果"""
         keyword = await websocket.recv()
         self._anime_db.clear()
@@ -261,16 +257,22 @@ class Router(object):
             if ack.lower() != "ok":  # 客户端没收到消息, 重发
                 await websocket.send(dumps(anime_meta))
 
-    def anime_search_server(self, loop):
+    async def ws_connection_handler(self, websocket, path):
+        """websockets 连接处理"""
+        logger.debug(f"Websocket connected, path: {path}")
+        if path == "/search":
+            await self.search_and_push(websocket)
+
+    def ws_server(self, loop):
         """后台的动漫搜索服务, 使用 websockets 通信"""
         asyncio.set_event_loop(loop)
-        start_server = websockets.serve(self.search_and_push, self._host, self._ws_port)
-        loop.run_until_complete(start_server)
+        server = websockets.serve(self.ws_connection_handler, self._host, self._ws_port)
+        loop.run_until_complete(server)
         loop.run_forever()
 
     def run(self):
         """后台运行"""
         self._init_routes()
         loop = asyncio.get_event_loop()
-        Thread(target=lambda: self.anime_search_server(loop)).start()
+        Thread(target=lambda: self.ws_server(loop)).start()
         self._app.run(host=self._host, port=self._port, debug=self._debug, use_reloader=False)

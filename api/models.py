@@ -1,3 +1,4 @@
+from base64 import b16encode
 from inspect import currentframe
 from typing import List
 
@@ -52,6 +53,12 @@ class AnimeMetaInfo(object):
 
     def __repr__(self):
         return f"<AnimeMetaInfo {self.title}>"
+
+    @property
+    def hash(self):
+        """可以通过此信息构造一个对象, 包含引擎和详情页信息"""
+        sign = f"{self.engine}|{self.detail_page_url}".encode("utf-8")
+        return b16encode(sign).decode("utf-8").lower()
 
 
 class AnimeDetailInfo(object):

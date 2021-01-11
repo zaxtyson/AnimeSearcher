@@ -75,8 +75,3 @@ class Meijuxia(BaseEngine):
             "sign": "d8a1999ecd07d17c78f4e8c0f57b9f02"
         }
         return data
-
-
-if __name__ == '__main__':
-    mj = Meijuxia()
-    mj.search("权力的")
