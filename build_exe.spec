@@ -6,10 +6,17 @@
 
 block_cipher = None
 
+# 繁简体转换库 zhconv 中的 json 路径
+zhconv_data_path = 'zhconv/zhcdict.json'
 
 a = Analysis(['run.pyw'],
              pathex=['.'],
-             datas=[('web','web'), ('api', 'api')],
+             datas=[
+                ('web','web'),
+                ('api', 'api'),
+                ('logo.ico', '.'),
+                (zhconv_data_path, 'zhconv')
+                ],
              binaries=[],
              hiddenimports=[],
              hookspath=[],
@@ -30,7 +37,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True , icon='logo.ico')
+          console=False,
+          icon='logo.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
