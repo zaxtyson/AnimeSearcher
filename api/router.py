@@ -56,15 +56,13 @@ class Router(object):
         @self._app.route("/statistics")
         def statistics():
             """百度统计转发, 用户体验计划"""
-            if self._statistics.transmit(request):
-                return jsonify({"status": "request success"})
-            return jsonify({"status": "request failed"})
+            data = self._statistics.transmit(request)
+            return Response(data, mimetype="image/gif")
 
         @self._app.route("/statistics/<path:hmjs_url>")
         def get_statistics_js(hmjs_url):
-            ref_page = request.args.get("u", "")
-            user_agent = request.headers.get("User-Agent")
-            js_text = self._statistics.get_hm_js(self._domain, ref_page, request.cookies, user_agent)
+            # user_agent = request.headers.get("User-Agent")
+            js_text = self._statistics.get_hm_js(self._domain, request.cookies)
             return Response(js_text, mimetype="application/javascript")
 
         @self._app.route("/search/<path:name>")

@@ -9,22 +9,17 @@ class Statistics:
 
     def __init__(self):
         self._flag_domain = "client.wegather.world"
-        self._hm_js_url = "https://hm.baidu.com/hm.js?77d4810f1ecfdcdc46eb18a3ee36bc49"
+        self._hm_js_url = "https://hm.baidu.com/hm.js?9f472f02c404ee99590fa4402c1af609"
         self._hm_status_url = "https://hm.baidu.com/hm.gif"
 
-    def get_hm_js(self, localhost: str, ref_page: str, cookies: dict, user_agent: str) -> str:
-        pat = re.compile(r"file:///.+?/index\.html(?P<route>.*)")
-        if pat.search(ref_page):
-            ref_page = pat.sub(rf"{self._flag_domain}\g<route>", ref_page)  # 替换文件路径为标记域名
-
+    def get_hm_js(self, localhost: str, cookies: dict) -> str:
         cookies_str = ""
         for key, value in cookies.items():
             cookies_str += f"{key}={value};"
 
         stat_headers = {
-            "User-Agent": user_agent,
-            "Referer": ref_page or self._flag_domain,
-            "Cookie": cookies_str,
+            "Referer": self._flag_domain,
+            "Cookie": cookies_str,  # chrome blocked
         }
         logger.debug(stat_headers)
         resp = requests.get(self._hm_js_url, headers=stat_headers)
@@ -37,14 +32,14 @@ class Statistics:
             .replace(f"{self._flag_domain}/statistics", localhost + "/statistics")
         return text
 
-    def transmit(self, request) -> bool:
+    def transmit(self, request):
         """百度统计转发"""
         args = dict(request.args)
-        ref_page = args.get("u", "")  # u = file:///path/to/index.html#/route
-        pat = re.compile(r"file:///.+?/index\.html#(?P<route>.*)")
-        if pat.search(ref_page):
-            ref_page = pat.sub(rf"{self._flag_domain}\g<route>", ref_page)  # 替换 index 文件路径为标记域名
-            args["u"] = ref_page
+        ref_page_u = args.get("u", "")  # u = (file|http):///path/to/index.html#/
+        ref_page_su = args.get("su", "")
+        pat = re.compile(r".+?:///.+?/index\.html#(?P<route>/[^/]+).*")  # route= index|detail|tvlive|result
+        args["u"] = pat.sub(rf"{self._flag_domain}\g<route>", ref_page_u)  # 替换 index 文件路径为标记域名 host/route
+        args["su"] = pat.sub(rf"{self._flag_domain}\g<route>", ref_page_su)
 
         cookies_str = ""
         for key, value in request.cookies.items():
@@ -52,10 +47,10 @@ class Statistics:
 
         stat_headers = {
             "User-Agent": request.headers.get("User-Agent"),
-            "Referer": ref_page or self._flag_domain,
+            "Referer": args["u"] or self._flag_domain,
             "Cookie": cookies_str,
         }
         logger.debug(args)
         logger.debug(stat_headers)
         resp = requests.get(self._hm_status_url, params=args, headers=stat_headers)
-        return resp.status_code == 200
+        return resp.content
