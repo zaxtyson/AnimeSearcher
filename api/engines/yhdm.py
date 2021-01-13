@@ -1,6 +1,6 @@
-from api.base import BaseEngine, VideoHandler
-from api.logger import logger
-from api.models import AnimeMetaInfo, AnimeDetailInfo, VideoCollection, Video
+from api.core.base import BaseEngine, VideoHandler
+from api.core.models import AnimeMetaInfo, AnimeDetailInfo, VideoCollection, Video
+from api.utils.logger import logger
 
 
 class YingHuaDongMan(BaseEngine):

@@ -1,8 +1,8 @@
 import re
 
-from api.base import BaseEngine, VideoHandler
-from api.logger import logger
-from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
+from api.core.base import BaseEngine, VideoHandler
+from api.core.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
+from api.utils.logger import logger
 
 
 class Bimibimi(BaseEngine):
@@ -55,7 +55,7 @@ class BimibimiVideoHandler(VideoHandler):
         """通过视频的 play_id 获取视频链接"""
         play_url = "https://proxy.app.maoyuncloud.com/app/video/play" + self.get_raw_url()
         headers = {"User-Agent": "Dart/2.7 (dart:io)", "appid": "4150439554430555"}
-        logger.info(f"Parsing real url for {play_url}")
+        logger.debug(f"Parsing real url for {play_url}")
         resp = self.get(play_url, headers=headers)
         if resp.status_code != 200:
             logger.warning(f"Response error: {resp.status_code} {play_url}")
@@ -75,5 +75,5 @@ class BimibimiVideoHandler(VideoHandler):
         elif "qq.com" in real_url:
             resp = self.head(real_url, allow_redirects=False)
             real_url = resp.headers.get("Location")  # 重定向之后才是直链
-        logger.info(f"Video real url: {real_url}")
+        logger.debug(f"Video real url: {real_url}")
         return real_url

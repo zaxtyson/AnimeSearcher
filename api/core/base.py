@@ -9,8 +9,8 @@ from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from zhconv import convert
 
-from api.logger import logger
-from api.models import AnimeDetailInfo, AnimeMetaInfo, Video, DanmakuMetaInfo, DanmakuCollection
+from api.core.models import AnimeDetailInfo, AnimeMetaInfo, Video, DanmakuMetaInfo, DanmakuCollection
+from api.utils.logger import logger
 
 __all__ = ["HtmlParseHelper", "VideoHandler", "BaseEngine", "DanmakuEngine"]
 
@@ -28,7 +28,7 @@ class HtmlParseHelper(object):
         """封装 HEAD 方法, 默认开启 302 重定向, 用于获取目标直链"""
         try:
             logger.debug(f"url: {url}, params: {params}, allow_redirects: {allow_redirects}")
-            kwargs.setdefault("timeout", 30)
+            kwargs.setdefault("timeout", 5)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             return requests.head(url, params=params, verify=False, allow_redirects=allow_redirects, **kwargs)
         except requests.RequestException as e:
@@ -40,7 +40,7 @@ class HtmlParseHelper(object):
         """封装 GET 方法, 默认网页编码为 utf-8"""
         try:
             logger.debug(f"url: {url}, params: {params}")
-            kwargs.setdefault("timeout", 30)
+            kwargs.setdefault("timeout", 5)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.get(url, params, verify=False, **kwargs)
             ret.encoding = html_encoding  # 有些网页仍然使用 gb2312/gb18030 之类的编码, 需要单独设置
@@ -54,7 +54,7 @@ class HtmlParseHelper(object):
         """"封装 POST 方法, 默认网页编码为 utf-8"""
         try:
             logger.debug(f"url: {url}, data: {data}")
-            kwargs.setdefault("timeout", 30)
+            kwargs.setdefault("timeout", 5)
             kwargs.setdefault("headers", HtmlParseHelper._headers)
             ret = requests.post(url, data, verify=False, **kwargs)
             ret.encoding = html_encoding

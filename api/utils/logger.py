@@ -19,7 +19,7 @@ console_handler.setLevel(logging.INFO)
 logger.addHandler(console_handler)
 
 # 输出日志到文件 保存最近 3 小时的日志
-logging_path = os.path.dirname(__file__) + "/logs"
+logging_path = os.path.dirname(__file__) + "/../logs"
 if not os.path.exists(logging_path):
     os.makedirs(logging_path)
 file_handler = TimedRotatingFileHandler(filename=logging_path + "/api.log", when="H", interval=1, backupCount=3,

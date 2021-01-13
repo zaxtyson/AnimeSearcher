@@ -2,7 +2,7 @@ import json
 from os.path import dirname
 from typing import List
 
-from api.models import Video
+from api.core.models import Video
 
 
 class IPTV:

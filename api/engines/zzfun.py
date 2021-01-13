@@ -1,9 +1,9 @@
 import time
 from hashlib import md5
 
-from api.base import BaseEngine, VideoHandler
-from api.logger import logger
-from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
+from api.core.base import BaseEngine, VideoHandler
+from api.core.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
+from api.utils.logger import logger
 
 
 class ZZFun(BaseEngine):

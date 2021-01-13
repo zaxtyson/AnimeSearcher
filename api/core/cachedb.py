@@ -1,8 +1,8 @@
 from base64 import b16decode
 from hashlib import md5
 
-from api.logger import logger
-from api.models import AnimeMetaInfo
+from api.core.models import AnimeMetaInfo
+from api.utils.logger import logger
 
 __all__ = ["AnimeDB", "DanmakuDB"]
 

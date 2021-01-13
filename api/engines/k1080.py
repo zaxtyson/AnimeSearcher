@@ -5,9 +5,9 @@ from base64 import b64decode
 import requests
 from requests.utils import unquote
 
-from api.base import BaseEngine, VideoHandler
-from api.logger import logger
-from api.models import AnimeMetaInfo, AnimeDetailInfo, VideoCollection, Video
+from api.core.base import BaseEngine, VideoHandler
+from api.core.models import AnimeMetaInfo, AnimeDetailInfo, VideoCollection, Video
+from api.utils.logger import logger
 
 
 class K1080(BaseEngine):
@@ -19,6 +19,9 @@ class K1080(BaseEngine):
         url = f"{self._base_url}/vodsearch/{keyword}----------{page}---.html"
         resp = self.get(url)
         if resp.status_code != 200:
+            return [], ""
+        if "请输入验证码" in resp.text:
+            logger.error("We are blocked by K1080P, need to enter the verification code.")
             return [], ""
 
         ret = []

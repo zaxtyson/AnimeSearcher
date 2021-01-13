@@ -1,6 +1,6 @@
-from api.base import BaseEngine
-from api.logger import logger
-from api.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
+from api.core.base import BaseEngine
+from api.core.models import AnimeMetaInfo, AnimeDetailInfo, Video, VideoCollection
+from api.utils.logger import logger
 
 
 class EYunZun(BaseEngine):

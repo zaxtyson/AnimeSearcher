@@ -2,7 +2,7 @@ import json
 import os
 from typing import List, Dict
 
-from api.logger import logger
+from api.utils.logger import logger
 
 __all__ = ["GLOBAL_CONFIG"]
 

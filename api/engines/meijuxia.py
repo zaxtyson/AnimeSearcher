@@ -1,6 +1,6 @@
-from api.base import BaseEngine
-from api.models import AnimeMetaInfo, AnimeDetailInfo
-from api.models import Video, VideoCollection
+from api.core.base import BaseEngine
+from api.core.models import AnimeMetaInfo, AnimeDetailInfo
+from api.core.models import Video, VideoCollection
 
 
 class Meijuxia(BaseEngine):

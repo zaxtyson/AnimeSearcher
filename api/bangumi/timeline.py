@@ -3,8 +3,8 @@ from typing import List
 
 from zhconv import convert
 
-from api.base import HtmlParseHelper
-from api.models import TimelineAnimeInfo, TimelineOneDay
+from api.core.base import HtmlParseHelper
+from api.core.models import TimelineAnimeInfo, TimelineOneDay
 
 
 class Timeline(HtmlParseHelper):

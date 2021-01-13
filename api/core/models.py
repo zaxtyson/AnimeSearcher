@@ -71,6 +71,10 @@ class AnimeDetailInfo(object):
         self.desc = ""  # 番剧的简介信息
         self.play_lists: List[VideoCollection] = []  # 播放列表, 一部番剧可能有多条播放路线, 一条线路对应一个 VideoCollection
 
+        frame = currentframe().f_back
+        self.engine = frame.f_globals["__name__"]
+        del frame
+
     def append(self, video_collection: VideoCollection):
         self.play_lists.append(video_collection)
 

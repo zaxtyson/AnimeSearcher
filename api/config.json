@@ -5,7 +5,7 @@
     "api.engines.agefans": true,
     "api.engines.eyunzhu": false,
     "api.engines.bimibimi": true,
-    "api.engines.meijuxia": true,
+    "api.engines.meijuxia": false,
     "api.engines.k1080": true
   },
   "danmaku": {

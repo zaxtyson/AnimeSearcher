@@ -7,7 +7,7 @@
 block_cipher = None
 
 
-a = Analysis(['run.py'],
+a = Analysis(['run.pyw'],
              pathex=['.'],
              datas=[('web','web'), ('api', 'api')],
              binaries=[],

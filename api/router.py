@@ -7,11 +7,12 @@ import websockets
 from flask import Flask, jsonify, request, render_template, Response
 
 from api.bangumi.timeline import Timeline
-from api.cachedb import AnimeDB, DanmakuDB, IPTVDB
 from api.config import GLOBAL_CONFIG
+from api.core.cachedb import AnimeDB, DanmakuDB, IPTVDB
+from api.core.manager import EngineManager
 from api.live.iptv import IPTV
-from api.logger import logger
-from api.manager import EngineManager
+from api.utils.logger import logger
+from api.utils.statistic import Statistics
 
 
 class Router(object):
@@ -28,6 +29,7 @@ class Router(object):
         self._danmaku_db = DanmakuDB()
         self._anime_update = Timeline()
         self._iptv_db = IPTVDB()
+        self._statistics = Statistics()
 
     def listen(self, host: str, port: int = 6001, ws_port: int = 6002):
         self._host = host
@@ -50,6 +52,20 @@ class Router(object):
             with open(f"{dirname(__file__)}/templates/interface.txt") as f:
                 text = f.read()
             return Response(text, mimetype="text/plain")
+
+        @self._app.route("/statistics")
+        def statistics():
+            """百度统计转发, 用户体验计划"""
+            if self._statistics.transmit(request):
+                return jsonify({"status": "request success"})
+            return jsonify({"status": "request failed"})
+
+        @self._app.route("/statistics/<path:hmjs_url>")
+        def get_statistics_js(hmjs_url):
+            ref_page = request.args.get("u", "")
+            user_agent = request.headers.get("User-Agent")
+            js_text = self._statistics.get_hm_js(self._domain, ref_page, request.cookies, user_agent)
+            return Response(js_text, mimetype="application/javascript")
 
         @self._app.route("/search/<path:name>")
         def search_anime(name):
@@ -75,6 +91,7 @@ class Router(object):
                 "cover_url": anime_detail.cover_url,
                 "description": anime_detail.desc,
                 "category": anime_detail.category,
+                "engine": anime_detail.engine,
                 "play_lists": []  # 一部番剧可能有多个播放列表(播放线路)
             }
             for video_collection in anime_detail:
@@ -273,6 +290,6 @@ class Router(object):
     def run(self):
         """后台运行"""
         self._init_routes()
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
         Thread(target=lambda: self.ws_server(loop)).start()
         self._app.run(host=self._host, port=self._port, debug=self._debug, use_reloader=False)
