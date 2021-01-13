@@ -10,7 +10,7 @@
   },
   "danmaku": {
     "api.danmaku.bilibili": true,
-    "api.danmaku.bimibimi": true,
+    "api.danmaku.bimibimi": false,
     "api.danmaku.bahamut": true,
     "api.danmaku.youku": true,
     "api.danmaku.tencent": true
