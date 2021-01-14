@@ -4,6 +4,7 @@ from typing import List
 
 from api.core.base import DanmakuEngine
 from api.core.models import DanmakuCollection, DanmakuMetaInfo, Danmaku
+from api.utils.logger import logger
 
 
 class DanmakuTencent(DanmakuEngine):
@@ -12,7 +13,8 @@ class DanmakuTencent(DanmakuEngine):
     def search(self, keyword: str):
         """搜索相关的电视剧/番剧"""
         # 先通过接口搜索, 没有结果再解析网页数据
-        yield from self.search_from_api(keyword) or self.search_from_web(keyword)
+        logger.info(f"Searching for danmaku: {keyword}")
+        yield from (*self.search_from_api(keyword), *self.search_from_web(keyword))
 
     def search_from_api(self, keyword: str) -> List[DanmakuMetaInfo]:
         """通过接口搜索同一系列的剧集"""

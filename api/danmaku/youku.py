@@ -15,6 +15,7 @@ class DanmukuYouku(DanmakuEngine):
 
     def search(self, keyword: str) -> List[DanmakuMetaInfo]:
         """搜索视频"""
+        logger.info(f"Searching for danmaku: {keyword}")
         search_api = "https://search.youku.com/search_video"
         resp = self.get(search_api, params={"keyword": keyword})
         if resp.status_code != 200:
