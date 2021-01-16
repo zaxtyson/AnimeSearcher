@@ -5,7 +5,7 @@ from api.utils.logger import logger
 
 class YingHuaDongMan(BaseEngine):
     def __init__(self):
-        self._base_url = "http://www.yhdm.tv"
+        self._base_url = "http://www.yhdm.io"
         self._search_api = self._base_url + "/search"
 
     def search(self, keyword: str):
@@ -70,7 +70,7 @@ class YingHuaDongMan(BaseEngine):
 class YHDMVideoHandler(VideoHandler):
 
     def get_real_url(self) -> str:
-        url = "http://www.yhdm.tv/" + self.get_raw_url()
+        url = "http://www.yhdm.io/" + self.get_raw_url()
         logger.info(f"Parsing real url for {url}")
         resp = self.get(url)
         if resp.status_code != 200:

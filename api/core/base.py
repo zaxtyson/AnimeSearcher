@@ -5,12 +5,14 @@ from typing import List, Tuple, TypeVar, Callable, Optional, Dict, Iterator
 import requests
 from flask import request, Response
 from lxml import etree
+from requests import Timeout
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from zhconv import convert
 
 from api.core.models import AnimeDetailInfo, AnimeMetaInfo, Video, DanmakuMetaInfo, DanmakuCollection
 from api.utils.logger import logger
+from api.utils.useragent import get_random_ua
 
 __all__ = ["HtmlParseHelper", "VideoHandler", "BaseEngine", "DanmakuEngine"]
 
@@ -18,10 +20,11 @@ __all__ = ["HtmlParseHelper", "VideoHandler", "BaseEngine", "DanmakuEngine"]
 class HtmlParseHelper(object):
     """辅助引擎处理网页提取数据的类"""
 
-    _headers = {
-        "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-    }
     disable_warnings(InsecureRequestWarning)  # 全局禁用 SSL 警告
+
+    @staticmethod
+    def _headers():
+        return {"User-Agent": get_random_ua()}
 
     @staticmethod
     def head(url: str, params=None, allow_redirects=True, **kwargs) -> requests.Response:
@@ -29,9 +32,11 @@ class HtmlParseHelper(object):
         try:
             logger.debug(f"url: {url}, params: {params}, allow_redirects: {allow_redirects}")
             kwargs.setdefault("timeout", 5)
-            kwargs.setdefault("headers", HtmlParseHelper._headers)
+            kwargs.setdefault("headers", HtmlParseHelper._headers())
             return requests.head(url, params=params, verify=False, allow_redirects=allow_redirects, **kwargs)
-        except requests.RequestException as e:
+        except (TimeoutError, Timeout):
+            return requests.Response()
+        except Exception as e:
             logger.exception(e)
             return requests.Response()
 
@@ -41,11 +46,13 @@ class HtmlParseHelper(object):
         try:
             logger.debug(f"url: {url}, params: {params}")
             kwargs.setdefault("timeout", 5)
-            kwargs.setdefault("headers", HtmlParseHelper._headers)
+            kwargs.setdefault("headers", HtmlParseHelper._headers())
             ret = requests.get(url, params, verify=False, **kwargs)
             ret.encoding = html_encoding  # 有些网页仍然使用 gb2312/gb18030 之类的编码, 需要单独设置
             return ret
-        except requests.RequestException as e:
+        except (TimeoutError, Timeout):
+            return requests.Response()
+        except Exception as e:
             logger.exception(e)
             return requests.Response()
 
@@ -55,11 +62,13 @@ class HtmlParseHelper(object):
         try:
             logger.debug(f"url: {url}, data: {data}")
             kwargs.setdefault("timeout", 5)
-            kwargs.setdefault("headers", HtmlParseHelper._headers)
+            kwargs.setdefault("headers", HtmlParseHelper._headers())
             ret = requests.post(url, data, verify=False, **kwargs)
             ret.encoding = html_encoding
             return ret
-        except requests.RequestException as e:
+        except (TimeoutError, Timeout):
+            return requests.Response()
+        except Exception as e:
             logger.exception(e)
             return requests.Response()
 
@@ -83,12 +92,12 @@ class HtmlParseHelper(object):
                     (function, (arg1, arg2), {"kwarg1":"value"})
                     (function, (arg1, ), {})
         """
-        executor = ThreadPoolExecutor()
-        all_task = []
-        for fn, args, kwargs in task_list:
-            all_task.append(executor.submit(fn, *args, **kwargs))
-        for task in as_completed(all_task):
-            yield task.result()
+        futures = []
+        with ThreadPoolExecutor() as executor:
+            for fn, args, kwargs in task_list:
+                futures.append(executor.submit(fn, *args, **kwargs))
+            for task in as_completed(futures):
+                yield task.result()
 
 
 class BaseEngine(HtmlParseHelper):

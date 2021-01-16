@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from importlib import import_module
 from inspect import getmembers
 from inspect import isclass
+from queue import Queue
 from typing import List, Iterator
 
 import requests
@@ -55,12 +56,27 @@ class EngineManager(object):
 
     def search_anime(self, keyword: str) -> Iterator[AnimeMetaInfo]:
         """搜索番剧, 返回番剧的摘要信息(不包括视频列表)"""
+        logger.info(f"Searching for {keyword}, enabled engine num: {len(self._engines)}")
         if not keyword:
             return ()
-        executor = ThreadPoolExecutor()
-        all_task = [executor.submit(engine()._search, keyword) for engine in self._engines.values()]
-        for task in as_completed(all_task):
-            yield from task.result()
+
+        queue = Queue()
+        futures = []
+
+        def producer(engine_cls):
+            for item in engine_cls()._search(keyword):
+                queue.put(item)
+
+        with ThreadPoolExecutor() as executor:
+            for engine_cls in self._engines.values():
+                futures.append(executor.submit(producer, engine_cls))
+
+            while True:
+                while not queue.empty():
+                    yield queue.get()
+                if all(f.done() for f in futures):
+                    logger.info("Searching tasks finished")
+                    break
 
     def get_anime_detail(self, meta: AnimeMetaInfo) -> AnimeDetailInfo:
         """解析一部番剧的详情页，返回包含视频列表的详细信息"""
