@@ -2,28 +2,62 @@
 
     Github: https://github.com/zaxtyson/AnimeSearcher
 
-    API Interface:
 
-    GET /search/<name> (deprecated)         Return anime summary information
-    GET /detail/<hash_key>                  Return anime details information
-    GET /video/<hash_key>/url               Return the direct URL of video
-    GET /video/<hash_key>/proxy             Return the binary stream of video by API proxy
-    GET /danmaku/search/<name>              Return danmaku summary information
-    GET /danmaku/detail/<hash_key>          Return danmaku details information
-    GET /danmaku/data/<hash_key>/v3/        Return the danmaku data with Dplayer supported format
-    GET /bangumi/timeline                   Return anime update info recently
 
-    Settings Interface:
-    GET  /settings                          Return the current settings information
-    POST /settings/engine                   Enable or disable the specific Engine
-    POST /settings/danmaku                  Enable or disable the specific Danmaku
+    ===================
+    Anime API Interface
+    ===================
 
-    Form /settings/engine                   {"name": "api.engines.xxx", "enable": false}
-    Form /settings/danmaku                  {"name": "api.danmaku.xxx", "enable": true}
+    WS  /anime/search                                       异步视频搜索接口, 通过 Websocket 即时推送搜索结果
+    GET /anime/search/<keyword>                             视频搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
+    GET /anime/<token>                                      剧集详情接口, 返回播放列表等信息
+    GET /anime/<token>/<playlist>/<episode>/raw             直链解析接口, 通过 302 重定向到视频直链
+    GET /anime/<token>/<playlist>/<episode>/proxy           代理访问接口, 返回视频数据流, 用于解决防盗链和跨域问题
+    GET /bangumi/timeline                                   番组表接口, 获取最近更新的番剧信息
 
-    Test Interface:
-    GET /video/<hash_key>/player            Play video online by its direct URL
-    GET /video/<hash_key>/proxy_player      Play video online by API proxy
 
-    WebSockets Interface:
-    /search                                 Async search anime
+    =====================
+    Danmaku API Interface
+    =====================
+
+    WS  /danmaku/search                                     异步弹幕搜索接口, 通过 Websocket 即时推送搜索结果
+    GET /danmaku/search/<keyword>                           弹幕搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
+    GET /danmaku/<token>                                    弹幕详情接口, 返回弹幕播放列表
+    GET /danmaku/<token>/<episode>/v3/                      弹幕数据接口, 返回一集视频的弹幕(Dplayer格式)
+
+
+    ===================
+    Comic API Interface
+    ===================
+
+    WS  /comic/search                                       异步漫画搜索接口
+    GET /comic/search/<name>                                漫画搜索接口
+    GET /comic/<token>                                      获取漫画详情页信息
+    GET /comic/<token>/<chapter>                            获取一章漫画的信息
+    GET /comic/<token>/<chapter>/<page>                     重定向到本页图片的直链
+
+
+    ==============
+    IPTV Interface
+    ==============
+
+    GET /iptv/list                                          获取 IPTV 源列表
+
+
+    =====================
+    Player Test Interface
+    =====================
+
+    GET /player/iptv/<token>                                IPTV 播放测试
+    GET /player/anime/<token>/<playlist>/<episode>/raw      视频播放测试(直链)
+    GET /player/anime/<token>/<playlist>/<episode>/proxy    视频播放测试(代理)
+    GET /player/danmaku/<token>/<episode>                   弹幕播放测试
+    GET /player/comic/<token>/<chapter>                     漫画阅读测试
+
+
+    ==================
+    Settings Interface
+    ==================
+
+    GET /settings                                           返回全部设置信息
+    PUT /settings/engine                                    启用/停用指定的引擎模块

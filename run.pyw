@@ -4,6 +4,7 @@ import webbrowser
 from threading import Thread
 from tkinter import Tk, Label, CENTER, Button
 
+from api.config import CONFIG
 from api.router import Router
 
 PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -14,7 +15,7 @@ class SimpleServer:
     def __init__(self):
         self.ui = Tk()
         self.init_ui()
-        self.open_browser()  # 自动打开一次
+        # self.open_browser()  # 自动打开一次
 
     def init_ui(self):
         self.ui.title("AnimeSearcher")
@@ -38,8 +39,12 @@ class SimpleServer:
 
 
 if __name__ == '__main__':
+    host = CONFIG.get("system", "host")
+    port = CONFIG.get("system", "port")
+    domain = CONFIG.get("system", "domain")
+
     server = SimpleServer()
-    rt = Router()
-    rt.listen("127.0.0.1", port=6001, ws_port=6002)
-    Thread(target=rt.run, daemon=True).start()
+    router = Router(host, int(port))
+    router.set_domain(domain)  # if needed
+    Thread(target=router.run, daemon=True).start()
     server.run()

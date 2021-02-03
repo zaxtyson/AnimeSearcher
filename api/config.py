@@ -1,92 +1,92 @@
 import json
-import os
-from typing import List, Dict
+from copy import deepcopy
+from os.path import dirname
+from typing import List
 
 from api.utils.logger import logger
 
-__all__ = ["GLOBAL_CONFIG"]
+__all__ = ["CONFIG"]
 
 
 class Config:
 
     def __init__(self):
-        self._file = os.path.dirname(__file__) + os.sep + "config.json"
+        self._file = f"{dirname(__file__)}/config.json"
         self._dict = {}
+        self._load_config()
 
+    def _load_config(self):
         logger.info(f"Loading config from {self._file}")
-
-        with open(self._file, "r") as f:
+        with open(self._file, "r", encoding="utf-8") as f:
             self._dict = json.load(f)
 
-    def _save(self):
+    def _save_config(self):
         logger.info(f"Save config to {self._file}")
-        with open(self._file, "w") as f:
-            json.dump(self._dict, f, indent=4)
+        with open(self._file, "w", encoding="utf-8") as f:
+            json.dump(self._dict, f, indent=4, ensure_ascii=False)
 
-    def get_all_configs(self) -> dict:
+    @property
+    def all_configs(self) -> dict:
         """获全部配置信息"""
-        return self._dict
+        config = deepcopy(self._dict)  # 替换当前版本链接的 tag
+        tag_name = config["version"]["tag"]
+        cur_url = config["version"]["current"]
+        config["version"]["current"] = cur_url.replace("#tag", tag_name)
+        return config
 
-    def get_all_engines(self) -> Dict[str, bool]:
-        """获取所有引擎的状态"""
-        return self._dict.get("engines")
+    def get_all_modules(self) -> List[str]:
+        """
+        获取已经启用的引擎模块名
+        :return: ["api.xxx.foo", "api.xxx.bar"]
+        """
+        engines = []
+        for e_type in ["anime", "danmaku", "comic"]:
+            for item in self._dict.get(e_type):
+                engines.append(item["module"])
+        return engines
 
-    def get_enabled_engines(self) -> List[str]:
-        """获取已启用的引擎列表"""
-        enabled_engines = []
-        for engine, status in self._dict.get("engines").items():
-            if status:
-                enabled_engines.append(engine)
-        return enabled_engines
+    def get_enabled_modules(self) -> List[str]:
+        """获取已经启用的引擎模块名"""
+        engines = []
+        for e_type in ["anime", "danmaku", "comic"]:
+            for item in self._dict.get(e_type):
+                if item["enable"]:
+                    engines.append(item["module"])
+        return engines
 
-    def disable_engine(self, engine: str) -> bool:
+    def get(self, part: str, key: str):
+        """获取指定配置项"""
+        if part in self._dict:
+            if key in self._dict[part]:
+                return self._dict[part][key]
+
+    def set_engine_status(self, module: str, enable: bool) -> bool:
+        """
+        启用或禁用指定引擎模块
+        :param module: 模块名, 如 api.anime.xxx
+        :param enable: 目标状态
+        :return: 若模块已经处于目标状态返回 True
+        """
+        if module not in self.get_all_modules():  # 模块名非法
+            return False
+
+        module_types = ["anime", "danmaku", "comic"]
+        for module_type in module_types:
+            for info in self._dict[module_type]:
+                if info["module"] == module and info["enable"] != enable:  # 与目标状态不一致时更新配置文件
+                    info["enable"] = enable
+                    logger.info(f"<module '{module}'> has {'loaded' if enable else 'unloaded'}")
+                    self._save_config()
+        return True
+
+    def disable_engine(self, module: str) -> bool:
         """禁用某个引擎"""
-        if engine in self.get_all_engines():
-            logger.warning(f"Engine {engine} disabled")
-            self._dict["engines"][engine] = False
-            self._save()
-            return True
-        return False
+        return self.set_engine_status(module, False)
 
-    def enable_engine(self, engine: str) -> bool:
+    def enable_engine(self, module: str) -> bool:
         """启用某个引擎"""
-        if engine in self.get_all_engines():
-            logger.info(f"Engine {engine} enabled")
-            self._dict["engines"][engine] = True
-            self._save()
-            return True
-        return False
-
-    def get_all_danmaku(self) -> Dict[str, bool]:
-        """获取所有弹幕引擎的状态"""
-        return self._dict.get("danmaku")
-
-    def get_enabled_danmaku(self) -> List[str]:
-        """获取已启用的弹幕引擎列表"""
-        enabled_danmaku = []
-        for engine, status in self._dict.get("danmaku").items():
-            if status:
-                enabled_danmaku.append(engine)
-        return enabled_danmaku
-
-    def disable_danmaku(self, danmaku: str) -> bool:
-        """禁用某个弹幕引擎"""
-        if danmaku in self.get_all_danmaku():
-            logger.warning(f"Danmaku {danmaku} disabled")
-            self._dict["danmaku"][danmaku] = False
-            self._save()
-            return True
-        return False
-
-    def enable_danmaku(self, danmaku: str) -> bool:
-        """启用某个弹幕引擎"""
-        if danmaku in self.get_all_danmaku():
-            logger.info(f"Danmaku {danmaku} enabled")
-            self._dict["danmaku"][danmaku] = True
-            self._save()
-            return True
-        return False
+        return self.set_engine_status(module, True)
 
 
 # 全局配置对象
-GLOBAL_CONFIG = Config()
+CONFIG = Config()

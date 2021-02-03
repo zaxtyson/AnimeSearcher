@@ -1,5 +1,5 @@
-from api.core.base import DanmakuEngine
-from api.core.models import Danmaku, DanmakuMetaInfo, DanmakuCollection
+from api.core.danmaku import DanmakuEngine
+from api.core.models import Danmaku, DanmakuMeta, DanmakuCollection
 from api.utils.logger import logger
 
 
@@ -20,7 +20,7 @@ class DanmukaBahamt(DanmakuEngine):
             return
         anime_list = self.xpath(resp.text, '//a[contains(@href, "animeRef")]')
         for anime in anime_list:
-            meta = DanmakuMetaInfo()
+            meta = DanmakuMeta()
             meta.title = self.convert_to_zh(anime.xpath('div[@class="theme-info-block"]/p/text()')[0])  # 转简体
             meta.play_page_url = anime.xpath('@href')[0]  # /animeRef.php?sn=111487
             num_str = anime.xpath('.//span[@class="theme-number"]/text()')[0]  # 第14集

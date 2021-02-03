@@ -5,15 +5,15 @@ import re
 import time
 from typing import List
 
-from api.core.base import DanmakuEngine
-from api.core.models import DanmakuMetaInfo, DanmakuCollection, Danmaku
+from api.core.danmaku import DanmakuEngine
+from api.core.models import DanmakuMeta, DanmakuCollection, Danmaku
 from api.utils.logger import logger
 
 
 class DanmukuYouku(DanmakuEngine):
     """抓取优酷的弹幕"""
 
-    def search(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search(self, keyword: str) -> List[DanmakuMeta]:
         """搜索视频"""
         logger.info(f"Searching for danmaku: {keyword}")
         search_api = "https://search.youku.com/search_video"
@@ -27,7 +27,7 @@ class DanmukuYouku(DanmakuEngine):
             info = item.get("commonData")
             if not info:
                 continue
-            meta = DanmakuMetaInfo()
+            meta = DanmakuMeta()
             meta.title = info["titleDTO"]["displayName"].replace("\t", "")
             meta.play_page_url = info["leftButtonDTO"]["action"]["value"]
             if meta.play_page_url and ("youku.com" not in meta.play_page_url):

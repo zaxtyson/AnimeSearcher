@@ -1,293 +1,301 @@
-import asyncio
-from json import dumps
 from os.path import dirname
-from threading import Thread
 
-import websockets
-from flask import Flask, jsonify, request, render_template, Response
+from quart import Quart, jsonify, request, render_template, Response, redirect, websocket
 
 from api.bangumi.timeline import Timeline
-from api.config import GLOBAL_CONFIG
+from api.config import CONFIG
+from api.core.anime import *
 from api.core.cachedb import AnimeDB, DanmakuDB, IPTVDB
 from api.core.manager import EngineManager
-from api.live.iptv import IPTV
-from api.utils.logger import logger
+from api.core.models import *
+from api.iptv.iptv import IPTV
 from api.utils.statistic import Statistics
 
 
-class Router(object):
+class Router:
 
-    def __init__(self):
-        self._app = Flask(__name__)
+    def __init__(self, host: str, port: int):
+        self._app = Quart(__name__)
         self._debug = False
-        self._port = 6001
-        self._ws_port = 6002  # websocket port
-        self._host = "127.0.0.1"
-        self._domain = f"http://{self._host}:{self._port}"
+        self._host = host
+        self._port = port
+        self._domain = f"http://{host}:{port}"
         self._engine_mgr = EngineManager()
         self._anime_db = AnimeDB()
         self._danmaku_db = DanmakuDB()
-        self._anime_update = Timeline()
+        self._bangumi = Timeline()
         self._iptv_db = IPTVDB()
         self._statistics = Statistics()
 
-    def listen(self, host: str, port: int = 6001, ws_port: int = 6002):
-        self._host = host
-        self._port = port
-        self._ws_port = ws_port
-        self._domain = f"http://{self._host}:{self._port}"
-
     def set_domain(self, domain: str):
-        self._domain = f"{domain}:{self._port}"
+        """
+        设置 API 返回的资源链接的域名, 域名不含端口号
+        如: http://www.foo.bar
+        """
+        self._domain = f"{domain}:{self._port}" if domain else self._domain
 
-    def enable_debug(self):
-        self._debug = True
+    def run(self):
+        """启动 API 解析服务"""
+        self._init_routers()
+        self._app.run(host=self._host, port=self._port, debug=False, use_reloader=False)
 
-    def _init_routes(self):
-        """初始化 API 路由接口"""
+    async def _get_cached_anime_detail(self, token: str) -> Optional[AnimeDetail]:
+        """获取缓存的详情页信息, 避免重复解析"""
+        detail: AnimeDetail = self._anime_db.fetch(token)
+        if detail is not None:
+            return detail
+        detail = await self._engine_mgr.parse_anime_detail(AnimeMeta(token))
+        if not detail or detail.is_empty():
+            return
+        self._anime_db.store(detail, token)  # 详情页信息暂存
+        return detail
+
+    async def _get_cached_anime_handler(self, token: str, playlist: int, episode: int) -> Optional[AnimeHandler]:
+        """获取缓存的 Handler, 避免重复解析直链"""
+        handler_token = f"{token}|{playlist}|{episode}"  # 一个 handler 对应一个 video 资源
+        handler: AnimeHandler = self._anime_db.fetch(handler_token)
+        if handler:
+            return handler
+        detail = await self._get_cached_anime_detail(token)
+        if detail is not None:
+            video: Video = detail.get_video(playlist, episode)
+            if video is not None:
+                handler = self._engine_mgr.get_anime_handler(video)
+                if handler is not None:
+                    self._anime_db.store(handler, handler_token)
+                    return handler
+
+    def _init_routers(self):
+        """创建路由接口"""
+
+        @self._app.after_request
+        async def apply_caching(resp: Response):
+            """设置响应的全局 headers, 允许跨域"""
+            resp.headers["Server"] = "Anime-API"
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            resp.headers["Access-Control-Allow-Headers"] = "*"
+            return resp
 
         @self._app.route("/")
-        def index():
+        async def index():
             """API 主页显示帮助信息"""
-            with open(f"{dirname(__file__)}/templates/interface.txt") as f:
+            file = f"{dirname(__file__)}/templates/interface.txt"
+            with open(file, encoding="utf-8") as f:
                 text = f.read()
             return Response(text, mimetype="text/plain")
 
         @self._app.route("/statistics")
-        def statistics():
+        async def statistics():
             """百度统计转发, 用户体验计划"""
-            data = self._statistics.transmit(request)
+            data = await self._statistics.transmit(request)
             return Response(data, mimetype="image/gif")
 
-        @self._app.route("/statistics/<path:hmjs_url>")
-        def get_statistics_js(hmjs_url):
-            # user_agent = request.headers.get("User-Agent")
-            js_text = self._statistics.get_hm_js(self._domain, request.cookies)
+        @self._app.route("/statistics/<js_url>")
+        async def get_statistics_js(js_url):
+            js_text = await self._statistics.get_hm_js(self._domain, request.cookies)
             return Response(js_text, mimetype="application/javascript")
 
-        @self._app.route("/search/<path:name>")
-        def search_anime(name):
-            """搜索番剧, 返回番剧摘要信息列表, 该方法回阻塞直到所有引擎数据返回"""
-            ret = []
+        # ======================== Anime Interface ===============================
+
+        @self._app.route("/anime/search/<path:keyword>")
+        async def search_anime(keyword):
+            """番剧搜索, 该方法回阻塞直到所有引擎数据返回"""
+            result: List[AnimeMeta] = []
             self._anime_db.clear()  # 每次搜索清空缓存数据库
-            anime_list = self._engine_mgr.search_anime(name)
-            for meta in anime_list:
-                hash_key = self._anime_db.store(meta)
-                anime_meta = {"title": meta.title, "cover_url": meta.cover_url, "category": meta.category,
-                              "description": meta.desc, "engine": meta.engine,
-                              "url": f"{self._domain}/detail/" + hash_key}
-                ret.append(anime_meta)
+            await self._engine_mgr.search_anime(keyword, callback=lambda m: result.append(m))
+            ret = []
+            for meta in result:
+                ret.append({
+                    "title": meta.title,
+                    "cover_url": meta.cover_url,
+                    "category": meta.category,
+                    "description": meta.desc,
+                    "module": meta.module,
+                    "url": f"{self._domain}/anime/{meta.token}"
+                })
             return jsonify(ret)
 
-        @self._app.route("/detail/<hash_key>")
-        def detail(hash_key):
+        @self._app.websocket("/anime/search")
+        async def ws_anime_search():
+            async def push(meta: AnimeMeta):
+                await websocket.send_json({
+                    "title": meta.title,
+                    "cover_url": meta.cover_url,
+                    "category": meta.category,
+                    "description": meta.desc,
+                    "engine": meta.module,
+                    "url": f"{self._domain}/anime/{meta.token}"
+                })
+
+            # route path 不能有中文, 客户端 send 关键字
+            keyword = await websocket.receive()
+            self._anime_db.clear()
+            await self._engine_mgr.search_anime(keyword, co_callback=push)
+
+        @self._app.route("/anime/<token>")
+        async def get_anime_detail(token):
             """返回番剧详情页面信息"""
-            meta = self._anime_db.fetch(hash_key)
-            anime_detail = self._engine_mgr.get_anime_detail(meta)
+            detail = await self._get_cached_anime_detail(token)
+            if not detail:
+                return Response("Parse detail failed", status=500)
+
             ret = {
-                "title": anime_detail.title,
-                "cover_url": anime_detail.cover_url,
-                "description": anime_detail.desc,
-                "category": anime_detail.category,
-                "engine": anime_detail.engine,
-                "play_lists": []  # 一部番剧可能有多个播放列表(播放线路)
+                "title": detail.title,
+                "cover_url": detail.cover_url,
+                "description": detail.desc,
+                "category": detail.category,
+                "module": detail.module,
+                "play_lists": []
             }
-            for video_collection in anime_detail:
-                lst = {"name": video_collection.name, "num": video_collection.num, "video_list": []}  # 一个播放列表
-                for video in video_collection:
-                    hash_key = self._anime_db.store(video)  # 存起来备用
+
+            for pidx, playlist in enumerate(detail):
+                lst = {
+                    "name": playlist.name,
+                    "num": playlist.num,
+                    "video_list": []
+                }  # 一个播放列表
+                for episode, video in enumerate(playlist):
+                    video_path = f"{token}/{pidx}/{episode}"
                     lst["video_list"].append({
                         "name": video.name,
-                        "url": f"{self._domain}/video/{hash_key}/url",
-                        "proxy_url": f"{self._domain}/video/{hash_key}/proxy",
-                        "simple_player": f"{self._domain}/video/{hash_key}/player",
-                        "proxy_player": f"{self._domain}/video/{hash_key}/proxy_player"
+                        "raw_url": f"{self._domain}/anime/{video_path}/raw",
+                        "proxy_url": f"{self._domain}/anime/{video_path}/proxy",
+                        "player": f"{self._domain}/player/{video_path}/raw",
+                        "proxy_player": f"{self._domain}/player/{video_path}/proxy"
                     })
                 ret["play_lists"].append(lst)
             return jsonify(ret)
 
-        @self._app.route("/video/<hash_key>/url")
-        def get_video_format(hash_key):
-            """获取视频直链"""
-            video = self._anime_db.fetch(hash_key)
-            if not video:
-                return "URL Invalid"
-            if video.real_url:  # 已经解析过了
-                return video.real_url
-            real_url = self._engine_mgr.get_video_url(video)
-            video.real_url = real_url  # 存起来备用, 减少重复解析
-            self._anime_db.update(hash_key, video)
-            return real_url
+        @self._app.route("/anime/<token>/<playlist>/<episode>/raw")
+        async def redirect_to_video_real_url(token, playlist, episode):
+            """通过 302 重定向到视频直链"""
+            handler = await self._get_cached_anime_handler(token, int(playlist), int(episode))
+            if not handler:
+                return Response("Request url invalid", status=404)
 
-        @self._app.route("/video/<hash_key>/proxy")
-        def get_video_data(hash_key: str):
+            real_url = await handler.get_real_url()
+            if not real_url:
+                return Response(f"Parse video real url failed", status=502)
+
+            return redirect(real_url)
+
+        @self._app.route("/anime/<token>/<playlist>/<episode>/proxy")
+        async def get_video_stream(token, playlist, episode):
             """通过API代理访问, 获取视频数据流"""
-            video = self._anime_db.fetch(hash_key)
-            if not video:
-                return "URL Invalid"
-            if not video.real_url:
-                logger.warning("Not real url")
-                real_url = self._engine_mgr.get_video_url(video)
-                video.real_url = real_url
-                self._anime_db.update(hash_key, video)
-            return self._engine_mgr.make_response_for(video)
-
-        @self._app.route("/video/<hash_key>/player")
-        def simple_player(hash_key):
-            """简易播放器测试用"""
-            video = self._anime_db.fetch(hash_key)
-            if not video:
-                return "URL Invalid"
-            if video.real_url:
-                return render_template("player.html", real_url=video.real_url, video_name=video.name)
-            real_url = self._engine_mgr.get_video_url(video)
-            video.real_url = real_url
-            self._anime_db.update(hash_key, video)
-            return render_template("player.html", real_url=real_url, video_name=video.name)
-
-        @self._app.route("/video/<hash_key>/proxy_player")
-        def simple_proxy_player(hash_key):
-            """简易代理播放器测试用"""
-            video = self._anime_db.fetch(hash_key)
-            if not video:
-                return "URL Invalid"
-            real_url = f"/video/{hash_key}/proxy"
-            return render_template("player.html", real_url=real_url, video_name=video.name)
-
-        @self._app.route("/danmaku/search/<path:name>")
-        def search_danmaku(name):
-            """搜索番剧弹幕库"""
-            self._danmaku_db.clear()  # 每次搜索清空上一次搜索结果
-            ret = []
-            meta_list = self._engine_mgr.search_danmaku(name)
-            for meta in meta_list:
-                hash_key = self._danmaku_db.store(meta)
-                ret.append({
-                    "title": meta.title,
-                    "num": meta.num,
-                    "danmaku": meta.dm_engine,
-                    "url": f"{self._domain}/danmaku/detail/{hash_key}"
-                })
-            return jsonify(ret)
-
-        @self._app.route("/danmaku/detail/<hash_key>")
-        def danmaku_detail(hash_key):
-            """获取番剧各集对应的弹幕库信息"""
-            ret = []
-            danmaku_meta = self._danmaku_db.fetch(hash_key)
-            dmk_collection = self._engine_mgr.get_danmaku_detail(danmaku_meta)
-            for dmk in dmk_collection:
-                hash_key = self._danmaku_db.store(dmk)
-                ret.append({
-                    "name": dmk.name,
-                    "url": f"{self._domain}/danmaku/data/{hash_key}",  # Dplayer 会自动添加 /v3
-                    "real_url": f"{self._domain}/danmaku/data/{hash_key}/v3/"  # 调试用
-                })
-            return jsonify(ret)
-
-        @self._app.route("/danmaku/data/<hash_key>/v3/")
-        def get_danmaku_data(hash_key):
-            """解析视频的弹幕库信息, 返回 DPlayer 支持的弹幕格式
-            前端 Dplayer 请求地址填 /danmaku/data/<hash_key> 没有 v3
-            """
-            dmk = self._danmaku_db.fetch(hash_key)
-            data = self._engine_mgr.get_danmaku_data(dmk)
-            ret = {"code": 0, "data": data}
-            return jsonify(ret)
-
-        @self._app.route("/settings")
-        def show_settings():
-            if request.method == "GET":
-                return jsonify(GLOBAL_CONFIG.get_all_configs())
-
-        @self._app.route("/settings/engine", methods=["POST"])
-        def update_engine_status():
-            """动态启用或者禁用资源引擎"""
-            data = request.json
-            name = data.get("name")
-            enable = data.get("enable")  # True or False
-            if enable:
-                ret = self._engine_mgr.enable_engine(name)
-            else:
-                ret = self._engine_mgr.disable_engine(name)
-            return jsonify(ret)
-
-        @self._app.route("/settings/danmaku", methods=["POST"])
-        def update_danmaku_status():
-            """动态启用或者禁用弹幕搜索引擎"""
-            data = request.json
-            name = data.get("name")
-            enable = data.get("enable")  # True or False
-            if enable:
-                ret = self._engine_mgr.enable_danmaku(name)
-            else:
-                ret = self._engine_mgr.disable_danmaku(name)
-            return jsonify(ret)
+            headers = request.headers  # 客户端的请求头, 需要其中的 Range 信息
+            handler = await self._get_cached_anime_handler(token, int(playlist), int(episode))
+            if not handler:
+                return Response("Can't find handler", status=500)
+            return await handler.make_response(headers)
 
         @self._app.route("/bangumi/timeline")
-        def get_bangumi_timeline():
+        async def get_bangumi_timeline():
             """获取番剧更新时间表"""
-            tl_list = self._anime_update.get_full_timeline()
+            tl_list = await self._bangumi.get_timeline()
             data_json = [tl.to_dict() for tl in tl_list]
             return jsonify(data_json)
 
-        @self._app.route("/live/list")
-        def get_iptv_list():
+        # ======================== Danmaku Interface ===============================
+
+        # @app.route("/danmaku/search/<path:name>")
+        # async def search_danmaku(name):
+        #     """搜索番剧弹幕库"""
+        #     self._danmaku_db.clear()  # 每次搜索清空上一次搜索结果
+        #     ret = []
+        #     meta_list = self._engine_mgr.search_danmaku(name)
+        #     for meta in meta_list:
+        #         key = self._danmaku_db.store(meta)
+        #         ret.append({
+        #             "title": meta.title,
+        #             "num": meta.num,
+        #             "danmaku": meta.dm_engine,
+        #             "url": f"{self._domain}/danmaku/detail/{key}"
+        #         })
+        #     return jsonify(ret)
+
+        # @app.route("/danmaku/detail/<key>")
+        # async def danmaku_detail(key):
+        #     """获取番剧各集对应的弹幕库信息"""
+        #     ret = []
+        #     danmaku_meta = self._danmaku_db.fetch(key)
+        #     dmk_collection = self._engine_mgr.get_danmaku_detail(danmaku_meta)
+        #     for dmk in dmk_collection:
+        #         key = self._danmaku_db.store(dmk)
+        #         ret.append({
+        #             "name": dmk.name,
+        #             "url": f"{self._domain}/danmaku/data/{key}",  # Dplayer 会自动添加 /v3
+        #             "real_url": f"{self._domain}/danmaku/data/{key}/v3/"  # 调试用
+        #         })
+        #     return jsonify(ret)
+        #
+        # @app.route("/danmaku/data/<key>/v3/")
+        # async def get_danmaku_data(key):
+        #     """解析视频的弹幕库信息, 返回 DPlayer 支持的弹幕格式
+        #     前端 Dplayer 请求地址填 /danmaku/data/<key> 没有 v3
+        #     """
+        #     dmk = self._danmaku_db.fetch(key)
+        #     data = self._engine_mgr.get_danmaku_data(dmk)
+        #     ret = {"code": 0, "data": data}
+        #     return jsonify(ret)
+
+        # ======================== Settings Interface ===============================
+
+        @self._app.route("/settings", methods=["GET"])
+        async def show_global_settings():
+            return jsonify(CONFIG.all_configs)
+
+        @self._app.route("/settings/engine", methods=["PUT"])
+        async def modify_engine_status():
+            """动态启用或者禁用某些模块"""
+            data = await request.json
+            ret = {}
+            for module, enable in data.items():
+                ok = self._engine_mgr.set_engine_status(module, enable)
+                ret[module] = "success" if ok else "failed"
+            return jsonify(ret)
+
+        # ======================== IPTV Interface ===============================
+
+        @self._app.route("/iptv/list")
+        async def get_iptv_list():
             """直播源"""
             ret = []
+            # TODO: upgrade iptv interface
             for tv in IPTV().get_tv_list():
                 key = self._iptv_db.store(tv)
                 ret.append({
                     "name": tv.name,
                     "url": tv.raw_url,
-                    "proxy_player": f"{self._domain}/live/{key}/player"
+                    "player": f"{self._domain}/player/iptv/{key}"
                 })
             return jsonify(ret)
 
-        @self._app.route("/live/<hash_key>/player")
-        def iptv_player(hash_key):
-            """简易播放器测试用"""
-            tv = self._iptv_db.fetch(hash_key)
-            return render_template("player.html", real_url=tv.raw_url, video_name=tv.name)
+        # ======================== Player Interface ===============================
 
-        @self._app.after_request
-        def apply_caching(response):
-            """设置响应的全局 headers, 允许跨域(前端播放器和api端口不同)"""
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Server"] = "Anime-API"
-            return response
+        @self._app.route("/player/<token>/<playlist>/<episode>/raw")
+        async def player_without_proxy(token, playlist, episode):
+            """视频直链播放测试"""
+            url = f"{self._domain}/anime/{token}/{playlist}/{episode}/raw"
+            return await render_template("player.html", video_url=url, title="DUrl")
 
-    async def search_and_push(self, websocket):
-        """向前端推送搜索结果"""
-        keyword = await websocket.recv()
-        self._anime_db.clear()
-        for meta in self._engine_mgr.search_anime(keyword):
-            hash_key = self._anime_db.store(meta)
-            anime_meta = {"title": meta.title, "cover_url": meta.cover_url, "category": meta.category,
-                          "description": meta.desc, "engine": meta.engine,
-                          "url": f"{self._domain}/detail/" + hash_key}
-            await websocket.send(dumps(anime_meta))
-            ack = await websocket.recv()
-            if ack.lower() != "ok":  # 客户端没收到消息, 重发
-                await websocket.send(dumps(anime_meta))
+        @self._app.route("/player/<token>/<playlist>/<episode>/proxy")
+        async def player_with_proxy(token, playlist, episode):
+            """视频代理播放测试"""
+            url = f"{self._domain}/anime/{token}/{playlist}/{episode}/proxy"
+            return await render_template("player.html", video_url=url, title="Proxy")
 
-    async def ws_connection_handler(self, websocket, path):
-        """websockets 连接处理"""
-        logger.debug(f"Websocket connected, path: {path}")
-        if path == "/search":
-            await self.search_and_push(websocket)
+        @self._app.route("/player/iptv/<token>")
+        async def player_iptv(token):
+            """IPTV播放测试"""
+            tv = self._iptv_db.fetch(token)
+            return await render_template("player.html", video_url=tv.raw_url, title=tv.name)
 
-    def ws_server(self, loop):
-        """后台的动漫搜索服务, 使用 websockets 通信"""
-        asyncio.set_event_loop(loop)
-        server = websockets.serve(self.ws_connection_handler, self._host, self._ws_port)
-        loop.run_until_complete(server)
-        loop.run_forever()
 
-    def run(self):
-        """后台运行"""
-        self._init_routes()
-        loop = asyncio.new_event_loop()
-        Thread(target=lambda: self.ws_server(loop)).start()
-        self._app.run(host=self._host, port=self._port, debug=self._debug, use_reloader=False)
+if __name__ == '__main__':
+    host = CONFIG.get("system", "host")
+    port = CONFIG.get("system", "port")
+    domain = CONFIG.get("system", "domain")
+
+    router = Router(host, int(port))
+    router.set_domain(domain)
+    router.run()

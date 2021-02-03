@@ -1,7 +1,7 @@
 import re
 
-from api.core.base import DanmakuEngine
-from api.core.models import Danmaku, DanmakuMetaInfo, DanmakuCollection
+from api.core.danmaku import DanmakuEngine
+from api.core.models import Danmaku, DanmakuMeta, DanmakuCollection
 from api.utils.logger import logger
 
 
@@ -21,7 +21,7 @@ class DanmukaBimibimi(DanmakuEngine):
             return
         anime_meta_list = resp.json().get("data").get("items")
         for anime in anime_meta_list:
-            meta = DanmakuMetaInfo()
+            meta = DanmakuMeta()
             meta.title = anime["name"]
             meta.play_page_url = str(anime["id"])
             meta.num = anime["total"]

@@ -2,8 +2,8 @@ import json
 import re
 from typing import List
 
-from api.core.base import DanmakuEngine
-from api.core.models import DanmakuCollection, DanmakuMetaInfo, Danmaku
+from api.core.danmaku import DanmakuEngine
+from api.core.models import DanmakuCollection, DanmakuMeta, Danmaku
 from api.utils.logger import logger
 
 
@@ -16,7 +16,7 @@ class DanmakuTencent(DanmakuEngine):
         logger.info(f"Searching for danmaku: {keyword}")
         yield from (*self.search_from_api(keyword), *self.search_from_web(keyword))
 
-    def search_from_api(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search_from_api(self, keyword: str) -> List[DanmakuMeta]:
         """通过接口搜索同一系列的剧集"""
         api = "https://s.video.qq.com/load_poster_list_info"
         params = {
@@ -37,7 +37,7 @@ class DanmakuTencent(DanmakuEngine):
             url = item["url"]
             if "qq.com" not in url:
                 continue  # 不是腾讯平台的视频
-            meta = DanmakuMetaInfo()
+            meta = DanmakuMeta()
             meta.title = item["title"]
             meta.play_page_url = url
             # 提取剧集数
@@ -50,7 +50,7 @@ class DanmakuTencent(DanmakuEngine):
                     meta.num = 1
             yield meta
 
-    def search_from_web(self, keyword: str) -> List[DanmakuMetaInfo]:
+    def search_from_web(self, keyword: str) -> List[DanmakuMeta]:
         """从网页版提取数据"""
         api = "http://m.v.qq.com/x/search.html"  # PC 版数据过于杂乱, 所以抓移动版
         resp = self.get(api, params={"keyWord": keyword})
@@ -61,7 +61,7 @@ class DanmakuTencent(DanmakuEngine):
             url = node.xpath("./a/@href")
             if not url or "qq.com" not in url[0]:  # 不是电视剧/番剧, 或者不是腾讯平台的视频
                 continue
-            meta = DanmakuMetaInfo()
+            meta = DanmakuMeta()
             meta.play_page_url = url[0]
             title = "".join(node.xpath("./a/div/strong//text()"))
             meta.title = title.replace("\n", "").strip()

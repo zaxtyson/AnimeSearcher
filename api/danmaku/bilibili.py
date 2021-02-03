@@ -1,8 +1,8 @@
 import re
 from json import loads
 
-from api.core.base import DanmakuEngine
-from api.core.models import DanmakuMetaInfo, DanmakuCollection, Danmaku
+from api.core.danmaku import DanmakuEngine
+from api.core.models import DanmakuMeta, DanmakuCollection, Danmaku
 from api.utils.logger import logger
 
 
@@ -37,7 +37,7 @@ class DanmakuBiliBili(DanmakuEngine):
             for item in data["data"]["result"]:
                 if '<em class="keyword">' not in item["title"]:  # 没有匹配关键字, 是B站的推广视频
                     continue
-                meta = DanmakuMetaInfo()
+                meta = DanmakuMeta()
                 meta.title = item["title"].replace(r'<em class="keyword">', "").replace("</em>", "")  # 番剧标题
                 meta.play_page_url = item.get("goto_url") or item.get("arcurl")  # 番剧播放页链接
                 meta.num = int(item.get("ep_size") or -1)
