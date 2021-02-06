@@ -62,3 +62,10 @@
     GET /system/version                                     获取系统版本信息
     GET /system/modules                                     获取引擎模块信息
     PUT /system/modules                                     启用/停用指定的引擎模块
+
+
+    ===============
+    Utils interface
+    ===============
+
+    GET /proxy/<url>                                        代理访问 url, 解决浏览器跨域问题

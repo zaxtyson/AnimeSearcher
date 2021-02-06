@@ -100,7 +100,7 @@ class ModuleLoader(object):
     def get_anime_url_parser(self, module: str) -> Optional[AnimeUrlParser]:
         return self._anime_url_parsers.get(module)
 
-    def get_anime_proxy(self, module: str) -> Type[AnimeStreamProxy]:
+    def get_anime_proxy_class(self, module: str) -> Type[AnimeStreamProxy]:
         return self._anime_proxy_cls.get(module) or AnimeStreamProxy
 
     def get_danmaku_searcher(self) -> List[DanmakuSearcher]:

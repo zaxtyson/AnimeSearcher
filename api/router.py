@@ -1,3 +1,4 @@
+import asyncio
 from os.path import dirname
 
 from quart import Quart, jsonify, request, render_template, \
@@ -7,6 +8,7 @@ from api.config import Config
 from api.core.agent import Agent
 from api.core.anime import *
 from api.core.danmaku import *
+from api.core.proxy import RequestProxy
 from api.utils.statistic import Statistics
 
 
@@ -22,6 +24,7 @@ class APIRouter:
         self._agent = Agent()
         self._config = Config()
         self._statistics = Statistics()
+        self._proxy = RequestProxy()
 
     def set_domain(self, domain: str):
         """
@@ -32,8 +35,16 @@ class APIRouter:
 
     def run(self):
         """启动 API 解析服务"""
+
+        def exception_handler(loop, context):
+            logger.debug(context)
+
         self._init_routers()
-        self._app.run(host=self._host, port=self._port, debug=False, use_reloader=False)
+        # 为了解决事件循环内部出现的异常
+        loop = asyncio.new_event_loop()
+        loop.set_exception_handler(exception_handler)
+        asyncio.set_event_loop(loop)
+        self._app.run(host=self._host, port=self._port, debug=False, use_reloader=False, loop=loop)
 
     def _init_routers(self):
         """创建路由接口"""
@@ -65,13 +76,34 @@ class APIRouter:
             js_text = await self._statistics.get_hm_js(self._domain, request.cookies)
             return Response(js_text, mimetype="application/javascript")
 
+        @self._app.route("/proxy/<path:raw_url>")
+        async def request_proxy(raw_url):
+            """对跨域资源进行代理访问, 返回数据"""
+            return await self._proxy.make_response(raw_url)
+
         # ======================== Anime Interface ===============================
 
-        @self._app.route("/anime/update/timeline")
-        async def get_bangumi_timeline():
+        @self._app.route("/update/timeline")
+        async def get_bangumi_updates():
             """获取番剧更新时间表"""
-            bangumi = await self._agent.get_anime_timeline()
-            return jsonify([item.to_dict() for item in bangumi])
+            bangumi_list = await self._agent.get_bangumi_updates()
+            data = []
+            for bangumi in bangumi_list:
+                one_day = {
+                    "date": bangumi.date,
+                    "day_of_week": bangumi.day_of_week,
+                    "is_today": bangumi.is_today,
+                    "updates": []
+                }
+                for info in bangumi:
+                    one_day["updates"].append({
+                        "title": info.title,
+                        "cover_url": f"{self._domain}/proxy/{info.cover_url}",  # 图片一律走代理, 防止浏览器跨域拦截
+                        "update_time": info.update_time,
+                        "update_to": info.update_to
+                    })
+                data.append(one_day)
+            return jsonify(data)
 
         @self._app.route("/anime/search/<path:keyword>")
         async def search_anime(keyword):
@@ -82,7 +114,7 @@ class APIRouter:
             for meta in result:
                 ret.append({
                     "title": meta.title,
-                    "cover_url": meta.cover_url,
+                    "cover_url": f"{self._domain}/proxy/{meta.cover_url}",
                     "category": meta.category,
                     "description": meta.desc,
                     "score": 80,  # TODO: 番剧质量评分机制
@@ -96,7 +128,7 @@ class APIRouter:
             async def push(meta: AnimeMeta):
                 await websocket.send_json({
                     "title": meta.title,
-                    "cover_url": meta.cover_url,
+                    "cover_url": f"{self._domain}/proxy/{meta.cover_url}",
                     "category": meta.category,
                     "description": meta.desc,
                     "score": 80,
@@ -117,7 +149,7 @@ class APIRouter:
 
             ret = {
                 "title": detail.title,
-                "cover_url": detail.cover_url,
+                "cover_url": f"{self._domain}/proxy/{detail.cover_url}",
                 "description": detail.desc,
                 "category": detail.category,
                 "module": detail.module,
@@ -144,19 +176,19 @@ class APIRouter:
         @self._app.route("/anime/<token>/<playlist>/<episode>/raw")
         async def redirect_to_video_real_url(token, playlist, episode):
             """通过 302 重定向到视频直链"""
-            real_url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
-            if not real_url:
-                return Response(f"Parse video real url failed", status=502)
-            return redirect(real_url)
+            url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
+            if not url.is_available():
+                return Response(f"Parse video real url failed", status=404)
+            return redirect(url.real_url)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>/proxy")
         async def get_video_stream(token, playlist, episode):
             """通过API代理访问, 获取视频数据流"""
-            headers = request.headers  # 客户端的请求头, 需要其中的 Range 信息
-            handler = await self._agent.get_anime_stream(token, int(playlist), int(episode))
-            if not handler:
-                return Response("Can't find handler", status=500)
-            return await handler.make_response(headers)
+            range_field = request.headers.get("range")
+            proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
+            if not proxy:
+                return Response("proxy error", status=404)
+            return await proxy.make_response(range_field)
 
         @self._app.route("/anime/player/<token>/<playlist>/<episode>/raw")
         async def player_without_proxy(token, playlist, episode):
@@ -209,7 +241,7 @@ class APIRouter:
             """获取番剧各集对应的弹幕库信息"""
             detail = await self._agent.get_danmaku_detail(token)
             if detail.is_empty():
-                return Response("Parse danmaku detail failed", status=502)
+                return Response("Parse danmaku detail failed", status=404)
 
             data = []
             for episode, danmaku in enumerate(detail):

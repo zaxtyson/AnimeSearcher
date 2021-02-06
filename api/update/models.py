@@ -6,16 +6,13 @@ class AnimeUpdateInfo(object):
 
     def __init__(self):
         self.title = ""  # 番剧名
-        self.cover = ""  # 番剧封面
+        self.cover_url = ""  # 番剧封面
         self.update_time = ""  # 更新时间 %Y-%m-%d %H:%M:%S
         self.update_to = ""  # 更新到第几集
 
-    def to_dict(self):
-        return self.__dict__
 
-
-class TimelineOneDay(object):
-    """时间线中一天更新的番剧信息"""
+class BangumiOneDay(object):
+    """一天更新的番剧信息"""
 
     def __init__(self):
         self.date = ""  # 这一天的日期 %Y-%m-%d
@@ -28,8 +25,3 @@ class TimelineOneDay(object):
 
     def __iter__(self):
         return iter(self.updates)
-
-    def to_dict(self):
-        json = self.__dict__.copy()
-        json["update"] = [i.to_dict() for i in self]
-        return json

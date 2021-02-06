@@ -2,7 +2,7 @@ import time
 from typing import List
 
 from api.core.danmaku import HtmlParseHelper
-from api.update.models import AnimeUpdateInfo, TimelineOneDay
+from api.update.models import AnimeUpdateInfo, BangumiOneDay
 from api.utils.translate import convert_to_zh
 
 __all__ = ["Bangumi"]
@@ -17,9 +17,9 @@ class Bangumi(HtmlParseHelper):
         self._bili_overseas = "https://bangumi.bilibili.com/web_api/timeline_global"
         self._bimi_update = "https://proxy.app.maoyuncloud.com/app/video/list"
 
-    async def get_bangumi_updates(self) -> List[TimelineOneDay]:
+    async def get_bangumi_updates(self) -> List[BangumiOneDay]:
         """获取最近一段时间的新番更新时间表"""
-        result = []
+        results = []
         update_dict = {}
         await self.init_session()
         update_info = await self._get_all_bangumi()
@@ -27,17 +27,17 @@ class Bangumi(HtmlParseHelper):
         for anime in update_info:
             up_date = anime.update_time.split()[0]  # %Y-%m-%d
             update_dict.setdefault(up_date, [])
-            update_dict[up_date].append_playlist(anime)
+            update_dict[up_date].append(anime)
 
         for up_date, anime_list in update_dict.items():
-            one_day = TimelineOneDay()
+            one_day = BangumiOneDay()
             one_day.date = up_date
             one_day.day_of_week = time.strftime("%w", time.strptime(up_date, "%Y-%m-%d"))
             one_day.is_today = True if up_date == time.strftime("%Y-%m-%d", time.localtime()) else False
             one_day.updates = anime_list
-            result.append(one_day)
-        result.sort(key=lambda x: x.date)
-        return result
+            results.append(one_day)
+        results.sort(key=lambda x: x.date)
+        return results
 
     async def _get_bili_bangumi(self, api: str) -> List[AnimeUpdateInfo]:
         """获取哔哩哔哩的番剧更新时间表"""
@@ -55,7 +55,7 @@ class Bangumi(HtmlParseHelper):
                 anime = AnimeUpdateInfo()
                 title = season["title"].replace("（僅限台灣地區）", "").replace("（僅限港澳台地區）", "")
                 anime.title = convert_to_zh(title)
-                anime.cover = season["cover"]  # 番剧封面, season["square_cover"] 正方形小封面
+                anime.cover_url = season["cover"]  # 番剧封面, season["square_cover"] 正方形小封面
                 anime.update_time = self._time_format(str(season["pub_ts"]))
                 anime.update_to = season["pub_index"]
                 result.append(anime)
@@ -75,7 +75,7 @@ class Bangumi(HtmlParseHelper):
         for item in data:
             anime = AnimeUpdateInfo()
             anime.title = item["name"]
-            anime.cover = item["pic"]
+            anime.cover_url = item["pic"]
             anime.update_time = self._time_format(item["updated_at"])
             anime.update_to = item["continu"].replace("更新至", "")
             result.append(anime)

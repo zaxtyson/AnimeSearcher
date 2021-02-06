@@ -22,6 +22,8 @@ class Agent:
         # Memory Database for cache
         self._anime_db = CacheDB()
         self._danmaku_db = CacheDB()
+        self._proxy_db = CacheDB()
+        self._bangumi_cache = None
 
     def get_global_config(self):
         return self._config.all_configs
@@ -29,9 +31,11 @@ class Agent:
     def set_module_status(self, module: str, enable: bool):
         pass
 
-    async def get_anime_timeline(self):
+    async def get_bangumi_updates(self):
         """获取番组表信息"""
-        return await self._bangumi.get_bangumi_updates()
+        if not self._bangumi_cache:  # 缓存起来
+            self._bangumi_cache = await self._bangumi.get_bangumi_updates()
+        return self._bangumi_cache
 
     def get_iptv_sources(self) -> List[TVSource]:
         """获取 IPTV 源列表"""
@@ -74,13 +78,13 @@ class Agent:
         self._anime_db.store(detail, token)  # 解析成功, 缓存起来
         return detail
 
-    async def get_anime_real_url(self, token: str, playlist: int, episode: int) -> str:
+    async def get_anime_real_url(self, token: str, playlist: int, episode: int) -> DirectUrl:
         """获取资源直链, 如果存在未过期的缓存, 使用缓存的值, 否则重新解析"""
         url_token = f"{token}|{playlist}|{episode}"
         url: DirectUrl = self._anime_db.fetch(url_token)
         if url and url.is_available():  # 存在缓存且未过期
             logger.info(f"Using cached real url: {url}")
-            return url.real_url
+            return url
         # 没有发现缓存或者缓存的直链过期, 解析一次
         detail = await self.get_anime_detail(token)
         if detail is not None:
@@ -89,15 +93,23 @@ class Agent:
                 url = await self._scheduler.parse_anime_real_url(anime)
                 if url.is_available():
                     self._anime_db.store(url, url_token)
-                    return url.real_url
+                    return url
         # 其它各种情况, 解析失败
-        return ""
+        return DirectUrl()
 
-    # TODO: get anime stream
-    async def get_anime_stream(self, token: str, playlist: int, episode: int):
-        real_url = self.get_anime_real_url(token, playlist, episode)
-        if not real_url:
+    async def get_anime_proxy(self, token: str, playlist: int, episode: int) -> Optional[AnimeStreamProxy]:
+        proxy_token = f"{token}|{playlist}|{episode}"
+        proxy: AnimeStreamProxy = self._proxy_db.fetch(proxy_token)
+        if proxy is not None:
+            return proxy
+        url = await self.get_anime_real_url(token, playlist, episode)
+        if not url.is_available():
             return
+        meta = AnimeMeta.build_from(token)
+        proxy_cls = self._scheduler.get_anime_proxy_class(meta)
+        proxy: AnimeStreamProxy = proxy_cls(url)
+        self._proxy_db.store(proxy, proxy_token)
+        return proxy
 
     async def get_danmaku_detail(self, token: str) -> DanmakuDetail:
         """获取弹幕库详情信息, 如果存在缓存, 使用缓存的值"""

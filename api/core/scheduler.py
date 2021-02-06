@@ -1,6 +1,6 @@
 import asyncio
 from time import perf_counter
-from typing import Callable, Coroutine
+from typing import Callable, Coroutine, Type
 
 from api.core.anime import *
 from api.core.danmaku import *
@@ -99,6 +99,9 @@ class Scheduler:
         if url_parser is not None:
             return await url_parser._parse(anime.raw_url)
         return DirectUrl()
+
+    def get_anime_proxy_class(self, meta: AnimeMeta) -> Type[AnimeStreamProxy]:
+        return self._loader.get_anime_proxy_class(meta.module)
 
     async def parse_danmaku_detail(self, meta: DanmakuMeta) -> DanmakuDetail:
         detail_parser = self._loader.get_danmaku_detail_parser(meta.module)

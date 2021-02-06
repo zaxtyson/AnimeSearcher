@@ -5,9 +5,7 @@ from time import time
 from typing import AsyncIterator, List, Optional, Union
 from urllib.parse import unquote
 
-from aiohttp import ClientResponse
-from quart import Response
-from quart.wrappers.response import IterableBody
+from quart import Response, stream_with_context
 
 from api.core.abc import Tokenizable
 from api.core.helper import HtmlParseHelper
@@ -259,8 +257,7 @@ class AnimeStreamProxy(HtmlParseHelper):
 
     def __init__(self, url: DirectUrl):
         super().__init__()
-        self._url = url
-        self._video_format = ""  # 视频格式
+        self._url = url.real_url  # 直链应该有效
 
     def set_proxy_headers(self, real_url: str) -> dict:
         """
@@ -279,85 +276,31 @@ class AnimeStreamProxy(HtmlParseHelper):
             headers["User-Agent"] = get_random_ua()
         return headers
 
-    async def _detect_video_format(self) -> str:
-        """判断视频的格式"""
-        # 尝试从 url 提取视频后缀
-        real_url = self._url.real_url
-        try:
-            ext = real_url.split("?")[0].split(".")[-1].lower()
-            if ext in ["mp4", "flv"]:
-                logger.info(f"Detected format from url: [{ext}]")
-                return ext
-            if ext in ["m3u", "m3u8"]:
-                logger.info(f"Detected format from url: [{ext}]")
-                return "hls"
-        except (IndexError, AttributeError):
-            pass
-
-        # 通过 magic number 识别数据格式
-        format_hex = {
-            "mp4": ["69736F6D", "70617663", "18667479706D703432", "4D50454734", "4C617666"],
-            "flv": ["464C56"],
-            "hls": ["4558544D3355"]
-        }
-
-        headers = self._get_proxy_headers(real_url)
-        resp = await self.get(real_url, headers=headers, allow_redirects=True)
-        if not resp or resp.status != 200:
-            return ""
-
-        data = await resp.content.read(512)
-        resp.close()
-        logger.debug("Detecting video format from binary stream")
-        video_meta = data.hex().upper()
-        for fmt, hex_list in format_hex.items():
-            for magic in hex_list:
-                if magic in video_meta:
-                    logger.debug(f"Video format: [{fmt}]")
-                    return fmt
-
-        logger.error("Can't detect video format from binary stream")
-        logger.debug(f"Raw binary stream (512byte): {video_meta}")
-        return ""
-
-    async def get_video_format(self) -> str:
-        """获取视频格式"""
-        if not self._video_format:
-            self._video_format = await self._detect_video_format()
-        return self._video_format
-
-    @staticmethod
-    def _build_response(resp: ClientResponse) -> IterableBody:
-        async def stream():
-            async with resp:
-                while True:
-                    chunk = await resp.content.readany()
-                    if not chunk:
-                        break
-                    yield chunk
-
-        return IterableBody(stream())
-
-    async def make_response(self, req_headers: dict) -> Response:
+    async def make_response(self, range_field: str = None):
         """
         读取远程的视频流，并伪装成本地的响应返回给客户端
+        206 连续请求会导致连接中断, asyncio 库在 Windows 平台触发 ConnectionAbortedError
+        偶尔出现 LocalProtocolError, 是 RFC2616 与 RFC7231 HEAD 请求冲突导致
+        See:
+            https://bugs.python.org/issue26509
+            https://gitlab.com/pgjones/quart/-/issues/45
         """
-        fmt = await self.get_video_format()
-        real_url = self._url.real_url
-        proxy_headers = self._get_proxy_headers(real_url)
-        range_field = req_headers.get("range")
-
-        if range_field:
+        await self.init_session()
+        proxy_headers = self._get_proxy_headers(self._url)
+        if range_field is not None:
             proxy_headers["range"] = range_field
+            logger.debug(f"Client request stream range: {range_field}")
 
-        if fmt in ["mp4", "flv"]:
-            resp = await self.get(real_url, headers=proxy_headers)
-            body = self._build_response(resp)
-            return Response(body, headers=dict(resp.headers), status=resp.status)
+        resp = await self.get(self._url, headers=proxy_headers)
+        if not resp:
+            return Response(b"")
 
-        # TODO: implement m3u8 video stream proxy
-        if fmt == "hls":  # m3u8 代理暂未实现, 重定向回去
-            logger.info(f"Can't proxy video with format: [m3u8]")
-            return Response("", status=302, headers={"Location": real_url})
+        @stream_with_context
+        async def stream_iter():
+            while chunk := await resp.content.readany():
+                yield chunk
 
-        return Response("Can't proxy this video stream", status=500)
+        status = 200
+        if resp.headers.get("Content-Type") == "video/mp4":
+            status = 206  # 否则无法拖到进度条
+        return Response(stream_iter(), headers=dict(resp.headers), status=status)

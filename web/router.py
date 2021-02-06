@@ -20,6 +20,13 @@ class WebUI(object):
         self._app.run(host=self._host, port=self._port, debug=True)
 
     def _init_routers(self):
+        @self._app.after_request
+        async def apply_caching(resp):
+            """设置响应的全局 headers, 允许跨域"""
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            resp.headers["Access-Control-Allow-Headers"] = "*"
+            return resp
+
         @self._app.route("/", methods=["GET"])
         async def index():
             return await render_template("index.html")
