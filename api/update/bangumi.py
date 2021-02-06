@@ -2,11 +2,13 @@ import time
 from typing import List
 
 from api.core.danmaku import HtmlParseHelper
-from api.core.models import TimelineAnimeInfo, TimelineOneDay
+from api.update.models import AnimeUpdateInfo, TimelineOneDay
 from api.utils.translate import convert_to_zh
 
+__all__ = ["Bangumi"]
 
-class Timeline(HtmlParseHelper):
+
+class Bangumi(HtmlParseHelper):
     """新番更新时间表"""
 
     def __init__(self):
@@ -15,7 +17,29 @@ class Timeline(HtmlParseHelper):
         self._bili_overseas = "https://bangumi.bilibili.com/web_api/timeline_global"
         self._bimi_update = "https://proxy.app.maoyuncloud.com/app/video/list"
 
-    async def get_bilibili_timeline(self, api: str) -> List[TimelineAnimeInfo]:
+    async def get_bangumi_updates(self) -> List[TimelineOneDay]:
+        """获取最近一段时间的新番更新时间表"""
+        result = []
+        update_dict = {}
+        await self.init_session()
+        update_info = await self._get_all_bangumi()
+        await self.close_session()
+        for anime in update_info:
+            up_date = anime.update_time.split()[0]  # %Y-%m-%d
+            update_dict.setdefault(up_date, [])
+            update_dict[up_date].append_playlist(anime)
+
+        for up_date, anime_list in update_dict.items():
+            one_day = TimelineOneDay()
+            one_day.date = up_date
+            one_day.day_of_week = time.strftime("%w", time.strptime(up_date, "%Y-%m-%d"))
+            one_day.is_today = True if up_date == time.strftime("%Y-%m-%d", time.localtime()) else False
+            one_day.updates = anime_list
+            result.append(one_day)
+        result.sort(key=lambda x: x.date)
+        return result
+
+    async def _get_bili_bangumi(self, api: str) -> List[AnimeUpdateInfo]:
         """获取哔哩哔哩的番剧更新时间表"""
         result = []  # 结果
         resp = await self.get(api)
@@ -28,16 +52,16 @@ class Timeline(HtmlParseHelper):
             for season in item["seasons"]:
                 if season["delay"] == 1:  # 本周停更, 不记录
                     continue
-                anime = TimelineAnimeInfo()
+                anime = AnimeUpdateInfo()
                 title = season["title"].replace("（僅限台灣地區）", "").replace("（僅限港澳台地區）", "")
                 anime.title = convert_to_zh(title)
                 anime.cover = season["cover"]  # 番剧封面, season["square_cover"] 正方形小封面
-                anime.update_time = self.time_format(str(season["pub_ts"]))
+                anime.update_time = self._time_format(str(season["pub_ts"]))
                 anime.update_to = season["pub_index"]
                 result.append(anime)
         return result
 
-    async def get_bimibimi_timeline(self) -> List[TimelineAnimeInfo]:
+    async def _get_bimi_bangumi(self) -> List[AnimeUpdateInfo]:
         """获取 bimibimi 番剧的更新表"""
         result = []
         params = {"channel": "1", "sort": "addtime", "limit": "0", "page": "1"}
@@ -49,24 +73,24 @@ class Timeline(HtmlParseHelper):
         data = data["data"]["items"]
 
         for item in data:
-            anime = TimelineAnimeInfo()
+            anime = AnimeUpdateInfo()
             anime.title = item["name"]
             anime.cover = item["pic"]
-            anime.update_time = self.time_format(item["updated_at"])
+            anime.update_time = self._time_format(item["updated_at"])
             anime.update_to = item["continu"].replace("更新至", "")
             result.append(anime)
         return result
 
-    async def get_all_update_anime(self) -> List[TimelineAnimeInfo]:
+    async def _get_all_bangumi(self) -> List[AnimeUpdateInfo]:
         """获取全部更新的番剧信息"""
         tasks = [
-            self.get_bilibili_timeline(self._bili_mainland),
-            self.get_bilibili_timeline(self._bili_overseas),
-            self.get_bimibimi_timeline()
+            self._get_bili_bangumi(self._bili_mainland),
+            self._get_bili_bangumi(self._bili_overseas),
+            self._get_bimi_bangumi()
         ]
 
         task_ret = []
-        async for item in self.submit_tasks(tasks):
+        async for item in self.as_iter_completed(tasks):
             task_ret.append(item)
 
         # 信息合并去重
@@ -79,30 +103,8 @@ class Timeline(HtmlParseHelper):
 
         return result
 
-    async def get_timeline(self) -> List[TimelineOneDay]:
-        """获取最近一段时间的新番更新时间表"""
-        result = []
-        update_dict = {}
-        await self.init_session()
-        update_info = await self.get_all_update_anime()
-        await self.close_session()
-        for anime in update_info:
-            up_date = anime.update_time.split()[0]  # %Y-%m-%d
-            update_dict.setdefault(up_date, [])
-            update_dict[up_date].append(anime)
-
-        for up_date, anime_list in update_dict.items():
-            one_day = TimelineOneDay()
-            one_day.date = up_date
-            one_day.day_of_week = time.strftime("%w", time.strptime(up_date, "%Y-%m-%d"))
-            one_day.is_today = True if up_date == time.strftime("%Y-%m-%d", time.localtime()) else False
-            one_day.updates = anime_list
-            result.append(one_day)
-        result.sort(key=lambda x: x.date)
-        return result
-
     @staticmethod
-    def time_format(time_str: str):
+    def _time_format(time_str: str):
         """将时间处理成 %Y-%m-%d %H:%M:%S 的格式"""
         if time_str.isdigit():
             tm_struct = time.localtime(int(time_str))  # 哔哩哔哩

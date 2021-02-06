@@ -1,12 +1,10 @@
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, PlayList, Video
-from api.utils.logger import logger
+from api.update.models import AnimeMeta, AnimeDetail, AnimePlayList, Anime
 
 
 class SakuraAnime(AnimeSearcher):
 
     async def fetch_html(self, keyword: str, page: int):
-        logger.info(f"Searching for {keyword}, page {page}")
         api = f"http://www.yhdm.io/search/{keyword}"
         resp = await self.get(api, params={"page": page})
         if not resp or resp.status != 200:
@@ -49,7 +47,7 @@ class SakuraAnime(AnimeSearcher):
         pages = self.parse_last_page_index(html)
         if pages > 1:
             tasks = [self.parse_one_page(keyword, p) for p in range(2, pages + 1)]
-            async for item in self.submit_tasks(tasks):
+            async for item in self.as_iter_completed(tasks):
                 yield item
 
 
@@ -68,20 +66,19 @@ class SakuraDetailParser(AnimeDetailParser):
         detail.category = " ".join(body.xpath('.//div[@class="sinfo"]/span[3]/a/text()'))
         detail.desc = body.xpath('.//div[@class="info"]/text()')[0].replace("\r\n", "").strip()
         detail.cover_url = body.xpath('.//div[@class="thumb l"]/img/@src')[0]
-        playlist = PlayList()
+        playlist = AnimePlayList()
         playlist.name = "播放列表"
         video_blocks = body.xpath('.//div[@class="movurl"]//li')
         for block in video_blocks:
-            video = Video()
+            video = Anime()
             video.name = block.xpath("./a/text()")[0]
             video.raw_url = block.xpath("./a/@href")[0]  # '/v/3849-162.html'
-            video.handler = "SakuraHandler"
             playlist.append(video)
-        detail.append(playlist)
+        detail.append_playlist(playlist)
         return detail
 
 
-class SakuraHandler(AnimeHandler):
+class SakuraUrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
         url = "http://www.yhdm.io/" + raw_url
@@ -93,6 +90,5 @@ class SakuraHandler(AnimeHandler):
         video_url = video_url.split("$")[0]  # "http://quan.qq.com/video/1098_ae4be38407bf9d8227748e145a8f97a5"
         if not video_url.startswith("http"):  # 偶尔出现一些无效视频
             return ""
-        # resp = await self.head(video_url, allow_redirects=True)  # 获取直链时会重定向 2 次
-        # return resp.url  # 重定向之后的视频直链
-        return video_url
+        resp = await self.head(video_url, allow_redirects=True)  # 获取直链时会重定向 2 次
+        return resp.url  # 重定向之后的视频直链

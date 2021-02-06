@@ -3,7 +3,7 @@ from typing import Any
 
 from api.utils.logger import logger
 
-__all__ = ["AnimeDB", "DanmakuDB", "IPTVDB"]
+__all__ = ["CacheDB"]
 
 
 class CacheDB(object):
@@ -48,20 +48,5 @@ class CacheDB(object):
 
     def clear(self):
         """清空数据"""
-        logger.warning(f"{self.__class__.__name__} has been cleared, object in total: {len(self._db)}")
+        logger.warning(f"CacheDB has been cleared, object in total: {len(self._db)}")
         self._db.clear()
-
-
-class AnimeDB(CacheDB):
-    """储存番剧信息用的数据库"""
-    pass
-
-
-class DanmakuDB(CacheDB):
-    """储存弹幕库用的数据库"""
-    pass
-
-
-class IPTVDB(CacheDB):
-    """存储直播源的数据库"""
-    pass

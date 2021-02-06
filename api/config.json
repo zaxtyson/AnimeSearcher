@@ -4,15 +4,10 @@
     "current": "https://api.github.com/repos/zaxtyson/AnimeSearcher/releases/tags/#tag",
     "latest": "https://api.github.com/repos/zaxtyson/AnimeSearcher/releases/latest"
   },
-  "system": {
-    "host": "127.0.0.1",
-    "port": 6001,
-    "domain": "http://localhost"
-  },
   "anime": [
     {
       "name": "樱花动漫",
-      "notes": "网站早上和晚上经常宕机",
+      "notes": "网站早上和晚上经常宕机, 响应速度慢， 不建议启用",
       "module": "api.anime.yhdm",
       "type": [
         "动漫"
@@ -22,7 +17,7 @@
     },
     {
       "name": "ZzzFun",
-      "notes": "",
+      "notes": "资源质量还行， 响应速度快",
       "module": "api.anime.zzzfun",
       "type": [
         "动漫"
@@ -32,7 +27,7 @@
     },
     {
       "name": "哔咪动漫",
-      "notes": "",
+      "notes": "资源质量还行， 响应速度快",
       "module": "api.anime.bimibimi",
       "type": [
         "动漫",
@@ -46,17 +41,17 @@
     },
     {
       "name": "AGE动漫",
-      "notes": "",
+      "notes": "少部分资源存在水印，响应速度也不错",
       "module": "api.anime.agefans",
       "type": [
         "动漫"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {
       "name": "美剧侠",
-      "notes": "",
+      "notes": "大杂烩，啥都有, 有水印",
       "module": "api.anime.meijuxia",
       "type": [
         "动漫",
@@ -73,7 +68,7 @@
     },
     {
       "name": "影视全搜索",
-      "notes": "资源多, 但质量不佳, 无效资源和水印多",
+      "notes": "资源巨多但质量不佳, 无效资源和水印多，建议实在找不到资源才启用",
       "module": "api.anime.eyunzhu",
       "type": [
         "综合"
@@ -83,7 +78,7 @@
     },
     {
       "name": "1080影视",
-      "notes": "经常被反爬机制阻断",
+      "notes": "资源丰富， 但是经常被反爬机制阻断",
       "module": "api.anime.k1080",
       "type": [
         "动漫",
@@ -101,23 +96,23 @@
   "danmaku": [
     {
       "name": "哔哩哔哩",
-      "notes": "提供B站官方(含港澳台)和用户上传番剧的弹幕",
+      "notes": "提供B站官方和用户上传番剧的弹幕",
       "module": "api.danmaku.bilibili",
-      "enable": false,
+      "enable": true,
       "quality": 10
     },
     {
       "name": "巴哈姆特",
       "notes": "台湾的弹幕网站, 大陆访问速度一般",
       "module": "api.danmaku.bahamut",
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {
       "name": "哔咪动漫",
-      "notes": "盗版B站, 弹幕还算可以",
+      "notes": "盗版B站, 弹幕还算可以, 响应速度也很快",
       "module": "api.danmaku.bimibimi",
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {
@@ -129,11 +124,12 @@
     },
     {
       "name": "腾讯视频",
-      "notes": "打赏类弹幕较多, 该类弹幕会被过滤",
+      "notes": "弹幕中无关紧要的信息已经过滤， 放心食用",
       "module": "api.danmaku.tencent",
-      "enable": false,
+      "enable": true,
       "quality": 8
     }
   ],
-  "comic": []
+  "comic": [],
+  "music": []
 }

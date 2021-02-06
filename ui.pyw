@@ -4,18 +4,18 @@ import webbrowser
 from threading import Thread
 from tkinter import Tk, Label, CENTER, Button
 
-from api.config import CONFIG
-from api.router import Router
+from app import App
+from config import *
 
 PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 
-class SimpleServer:
+class SimpleUI:
 
     def __init__(self):
         self.ui = Tk()
         self.init_ui()
-        # self.open_browser()  # 自动打开一次
+        self.open_browser()  # 自动打开一次
 
     def init_ui(self):
         self.ui.title("AnimeSearcher")
@@ -30,21 +30,17 @@ class SimpleServer:
         btn = Button(self.ui, text="[ 打开浏览器 ]", relief="groove", command=self.open_browser)
         btn.pack()
 
-    def open_browser(self):
+    @staticmethod
+    def open_browser():
         """打开一个浏览器窗口"""
-        webbrowser.open(f"file://{PATH}/web/index.html")
+        webbrowser.open(f"{domain}:{web_port}")
 
     def run(self):
         self.ui.mainloop()
 
 
 if __name__ == '__main__':
-    host = CONFIG.get("system", "host")
-    port = CONFIG.get("system", "port")
-    domain = CONFIG.get("system", "domain")
-
-    server = SimpleServer()
-    router = Router(host, int(port))
-    router.set_domain(domain)  # if needed
-    Thread(target=router.run, daemon=True).start()
-    server.run()
+    app = App()
+    ui = SimpleUI()
+    Thread(target=app.run, daemon=True).start()
+    ui.run()

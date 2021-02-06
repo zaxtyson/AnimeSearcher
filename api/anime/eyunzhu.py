@@ -1,5 +1,4 @@
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, Video, PlayList
 
 
 class EYunZun(AnimeSearcher):
@@ -43,10 +42,10 @@ class EYunZunDetailParser(AnimeDetailParser):
         detail.desc = data["label"]
         detail.category = data["type"]
 
-        playlist = PlayList()
+        playlist = AnimePlayList()
         playlist.name = "视频列表"
         video_set = dict(data["playUrl"])
         for name, url in video_set.items():
-            playlist.append(Video(name, url))
-        detail.append(playlist)
+            playlist.append(Anime(name, url))
+        detail.append_playlist(playlist)
         return detail

@@ -2,7 +2,6 @@ import time
 from hashlib import md5
 
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, Video, PlayList
 
 
 class ZZZFun(AnimeSearcher):
@@ -36,16 +35,18 @@ class ZZZFunDetailParser(AnimeDetailParser):
         detail.cover_url = data["videoImg"]
         detail.desc = data["videoDoc"].replace("\r\n", "")  # 完整的简介
         detail.category = data["videoClass"]
-        for playlist in data["videoSets"]:
-            pl = PlayList()  # 番剧的视频列表
-            pl.name = playlist["load"]  # 列表名, 线路 I, 线路 II
-            for video in playlist["list"]:
-                pl.append(Video(video["ji"], video["playid"], "ZZZFunHandler"))
-            detail.append(pl)
+        for video_set in data["videoSets"]:
+            if "Ⅰ" in video_set["load"]:
+                continue  # 线路 I 目前播放不了
+            playlist = AnimePlayList()  # 番剧的视频列表
+            playlist.name = video_set["load"]  # 列表名, 线路 I, 线路 II
+            for video in video_set["list"]:
+                playlist.append(Anime(video["ji"], video["playid"]))
+            detail.append_playlist(playlist)
         return detail
 
 
-class ZZZFunHandler(AnimeHandler):
+class ZZZFunUrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
         play_api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/video/107play"
@@ -60,11 +61,3 @@ class ZZZFunHandler(AnimeHandler):
         data = await resp.json(content_type=None)
         real_url = data["data"]["videoplayurl"]
         return real_url
-
-    def set_proxy_headers(self, real_url: str):
-        # 有些视频是超星学习通网盘里面的, 需要设置为客户端的 UA, 直接访问会 403
-        # TODO : find out which video should use proxy
-        if "chaoxing.com" in real_url:
-            return {"User-Agent": "Dalvik/2.1.0 (Linux; U; Android 8.1.0; 16th Build/OPM1.171019.026)"}
-        if "zzzfun123pch" in real_url:
-            return {"User-Agent": "ExoSourceManager/1.1.2 (Linux;Android 8.1.0) ExoPlayerLib/2.11.3"}

@@ -1,6 +1,12 @@
     Hello, AnimeSearcher!
 
+    本页面是 API 的接口功能摘要, 以便参考
+    如果有任何问题或者建议, 欢迎到 Github Issue 页面讨论
+    如果需要帮助, 请附上系统运行日志发送至我的邮箱
+
+    Email:  zaxtyson@foxmail.com
     Github: https://github.com/zaxtyson/AnimeSearcher
+    Issues: https://github.com/zaxtyson/AnimeSearcher/issues
 
 
 
@@ -13,7 +19,9 @@
     GET /anime/<token>                                      剧集详情接口, 返回播放列表等信息
     GET /anime/<token>/<playlist>/<episode>/raw             直链解析接口, 通过 302 重定向到视频直链
     GET /anime/<token>/<playlist>/<episode>/proxy           代理访问接口, 返回视频数据流, 用于解决防盗链和跨域问题
-    GET /bangumi/timeline                                   番组表接口, 获取最近更新的番剧信息
+    GET /anime/bangumi/updates                              番组表接口, 获取最近更新的番剧信息
+    GET /anime/player/<token>/<playlist>/<episode>/raw      视频播放测试(直链)
+    GET /anime/player/<token>/<playlist>/<episode>/proxy    视频播放测试(代理)
 
 
     =====================
@@ -35,6 +43,8 @@
     GET /comic/<token>                                      获取漫画详情页信息
     GET /comic/<token>/<chapter>                            获取一章漫画的信息
     GET /comic/<token>/<chapter>/<page>                     重定向到本页图片的直链
+    GET /comic/recommends                                   近期热门漫画推荐
+    GET /comic/reader/<token>/<chapter>                     漫画阅读测试
 
 
     ==============
@@ -44,20 +54,11 @@
     GET /iptv/list                                          获取 IPTV 源列表
 
 
-    =====================
-    Player Test Interface
-    =====================
+    ================
+    System Interface
+    ================
 
-    GET /player/iptv/<token>                                IPTV 播放测试
-    GET /player/anime/<token>/<playlist>/<episode>/raw      视频播放测试(直链)
-    GET /player/anime/<token>/<playlist>/<episode>/proxy    视频播放测试(代理)
-    GET /player/danmaku/<token>/<episode>                   弹幕播放测试
-    GET /player/comic/<token>/<chapter>                     漫画阅读测试
-
-
-    ==================
-    Settings Interface
-    ==================
-
-    GET /settings                                           返回全部设置信息
-    PUT /settings/engine                                    启用/停用指定的引擎模块
+    GET /system/logs                                        API 运行日志
+    GET /system/version                                     获取系统版本信息
+    GET /system/modules                                     获取引擎模块信息
+    PUT /system/modules                                     启用/停用指定的引擎模块

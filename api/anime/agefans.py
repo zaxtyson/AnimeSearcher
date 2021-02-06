@@ -4,7 +4,6 @@ from random import random
 from yarl import URL
 
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, Video, PlayList
 from api.utils.logger import logger
 
 
@@ -56,7 +55,7 @@ class AgeFans(AnimeSearcher):
         pages = self.parse_last_page_index(html)
         if pages > 1:
             tasks = [self.parse_one_page(keyword, p) for p in range(2, pages + 1)]
-            async for item in self.submit_tasks(tasks):
+            async for item in self.as_iter_completed(tasks):
                 yield item
 
 
@@ -78,21 +77,20 @@ class AgeFansDetailParser(AnimeDetailParser):
         play_list_blocks = body.xpath('.//div[@class="movurl"]')  # 播放列表所在的区域, 可能有多个播放列表
         idx = 1  # 播放列表编号
         for block in play_list_blocks:
-            playlist = PlayList()
+            playlist = AnimePlayList()
             playlist.name = "播放列表 " + str(idx)
             for video_block in block.xpath('.//li'):
-                video = Video()
-                video.name = video_block.xpath("a/@title")[0]
-                video.raw_url = video_block.xpath("a/@href")[0]  # /play/20170172?playid=1_1
-                video.handler = "AgeFansHandler"  # 绑定直链解析器
-                playlist.append(video)
+                anime = Anime()
+                anime.name = video_block.xpath("a/@title")[0]
+                anime.raw_url = video_block.xpath("a/@href")[0]  # /play/20170172?playid=1_1
+                playlist.append(anime)
             if not playlist.is_empty():
-                detail.append(playlist)
+                detail.append_playlist(playlist)
                 idx += 1
         return detail
 
 
-class AgeFansHandler(AnimeHandler):
+class AgeFansUrlParser(AnimeUrlParser):
 
     def set_cookie(self):
         # 计算 k2 的值, 算法需解析以下 js, 混淆方式 sojson.v5

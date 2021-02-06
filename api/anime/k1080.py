@@ -4,14 +4,22 @@ from base64 import b64decode
 from urllib.parse import unquote
 
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, PlayList, Video
 from api.utils.logger import logger
 
 
 class K1080(AnimeSearcher):
 
+    async def search(self, keyword: str):
+        html = await self.fetch_html(keyword, 1)
+        for item in self.parse_anime_metas(html):
+            yield item
+        pages = self.parse_last_page_index(html)
+        if pages > 1:
+            tasks = [self.parse_one_page(keyword, p) for p in range(2, pages + 1)]
+            async for item in self.as_iter_completed(tasks):
+                yield item
+
     async def fetch_html(self, keyword: str, page: int):
-        logger.info(f"Searching for {keyword}, page {page}")
         url = f"https://www.k1080.net/vodsearch/{keyword}----------{page}---.html"
         resp = await self.get(url)
         if not resp or resp.status != 200:
@@ -37,7 +45,7 @@ class K1080(AnimeSearcher):
             anime = AnimeMeta()
             cover_url = meta.xpath("./div[@class='thumb']/a/@data-original")[0]
             if not cover_url.startswith("http"):
-                cover_url = self._base_url + cover_url
+                cover_url = "https://www.k1080.net" + cover_url
             anime.cover_url = cover_url
             anime.title = meta.xpath("./div[@class='detail']/h3/a/text()")[0]
             anime.detail_url = meta.xpath("./div[@class='detail']/h3/a/@href")[0]  # /voddetail/414362.html
@@ -50,16 +58,6 @@ class K1080(AnimeSearcher):
     async def parse_one_page(self, keyword: str, page: int):
         html = await self.fetch_html(keyword, page)
         return self.parse_anime_metas(html)
-
-    async def search(self, keyword: str):
-        html = await self.fetch_html(keyword, 1)
-        for item in self.parse_anime_metas(html):
-            yield item
-        pages = self.parse_last_page_index(html)
-        if pages > 1:
-            tasks = [self.parse_one_page(keyword, p) for p in range(2, pages + 1)]
-            async for item in self.submit_tasks(tasks):
-                yield item
 
 
 class K1080DetailParser(AnimeDetailParser):
@@ -82,20 +80,19 @@ class K1080DetailParser(AnimeDetailParser):
         detail.category = detail.xpath(".//span[contains(text(), '类型')]/parent::p/a[1]/text()")[0]
         play_list_blocks = self.xpath(html, "//div[@class='stui-pannel-box b playlist mb']")  # 播放列表所在的区域
         for block in play_list_blocks:
-            playlist = PlayList()
+            playlist = AnimePlayList()
             playlist.name = block.xpath("div/div/h3/font/text()")[0].strip()
             for video_block in block.xpath('.//li'):
-                video = Video()
+                video = Anime()
                 video.name = video_block.xpath("a/text()")[0]
                 video.raw_url = video_block.xpath("a/@href")[0]
-                video.handler = "K1080Handler"
                 playlist.append(video)
             if not playlist.is_empty():
-                detail.append(playlist)
+                detail.append_playlist(playlist)
         return detail
 
 
-class K1080Handler(AnimeHandler):
+class K1080UrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
         domain = "https://www.k1080.net"

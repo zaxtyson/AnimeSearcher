@@ -13,6 +13,7 @@ class Statistics(HtmlParseHelper):
         self._hm_status_url = "https://hm.baidu.com/hm.gif"
 
     async def get_hm_js(self, localhost: str, cookies: dict) -> str:
+        await self.init_session()
         cookies_str = ""
         for key, value in cookies.items():
             cookies_str += f"{key}={value};"

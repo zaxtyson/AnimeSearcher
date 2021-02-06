@@ -1,26 +1,23 @@
-import base64
-import hashlib
 import json
 import re
 import time
-from typing import List
+from base64 import b64encode
+from hashlib import md5
 
-from api.core.danmaku import DanmakuEngine
-from api.core.models import DanmakuMeta, DanmakuCollection, Danmaku
+from api.core.danmaku import *
 from api.utils.logger import logger
 
 
-class DanmukuYouku(DanmakuEngine):
-    """抓取优酷的弹幕"""
+class Youku(DanmakuSearcher):
 
-    def search(self, keyword: str) -> List[DanmakuMeta]:
-        """搜索视频"""
-        logger.info(f"Searching for danmaku: {keyword}")
-        search_api = "https://search.youku.com/search_video"
-        resp = self.get(search_api, params={"keyword": keyword})
-        if resp.status_code != 200:
+    async def search(self, keyword: str):
+        api = "https://search.youku.com/search_video"
+        resp = await self.get(api, params={"keyword": keyword})
+        if not resp or resp.status != 200:
             return
-        data = re.search(r"__INITIAL_DATA__\s*?=\s*?({.+?});\s*?window._SSRERR_", resp.text)
+
+        html = await resp.text()
+        data = re.search(r"__INITIAL_DATA__\s*?=\s*?({.+?});\s*?window._SSRERR_", html)
         data = json.loads(data.group(1))  # 这是我见过最恶心的 json
         data = data["pageComponentList"]
         for item in data:
@@ -29,25 +26,33 @@ class DanmukuYouku(DanmakuEngine):
                 continue
             meta = DanmakuMeta()
             meta.title = info["titleDTO"]["displayName"].replace("\t", "")
-            meta.play_page_url = info["leftButtonDTO"]["action"]["value"]
-            if meta.play_page_url and ("youku.com" not in meta.play_page_url):
-                continue  # 有时候返回 qq 的播放链接, 有时候该字段为 null
+            meta.play_url = info["leftButtonDTO"]["action"]["value"]
+            if meta.play_url and ("youku.com" not in meta.play_url):
+                continue  # 有时候返回 qq 的播放链接, 有时候该字段为 null, 我的老天爷
             num = re.search(r"(\d+?)集", info.get("stripeBottom", ""))  # 该字段可能不存在
             meta.num = int(num.group(1)) if num else 0
             yield meta
 
-    def get_detail(self, play_page_url: str) -> DanmakuCollection:
+
+class YoukuDanmakuDetailParser(DanmakuDetailParser):
+
+    async def parse(self, play_url: str):
         """获取视频详情"""
-        ret = DanmakuCollection()
-        resp = self.get(play_page_url)
-        if resp.status_code != 200:
-            return ret
-        data = re.search(r"__INITIAL_DATA__\s*?=\s*?({.+?});", resp.text)
+        detail = DanmakuDetail()
+        resp = await self.get(play_url)
+        if not resp or resp.status != 200:
+            return detail
+
+        html = await resp.text()
+        data = re.search(r"__INITIAL_DATA__\s*?=\s*?({.+?});", html)
         if not data:  # 多半是碰到反爬机制了
-            logger.error("We are blocked by youku")
-            return ret
+            logger.warning("We are blocked by youku")
+            return detail
+
+        # 下面是 data 和 node 结点的疯狂套娃, 我们需要的数据在第 13 层
+        # 我的圣母玛利亚, 这是一坨何其冗余庞杂的 shit
+        # 写出这个代码的程序员应该被送上绞刑架, 然后用文火慢炖
         data = json.loads(data.group(1))
-        # 我们需要的数据在第 13 层! 写出这种代码的程序员应该被绑到绞刑架上
         data = data["data"]["data"]["nodes"][0]["nodes"]
         # nodes 是一个列表, 其中 type == 10013 的元素才是视频播放列表的数据
         data = list(filter(lambda x: x["type"] == 10013, data))[0]
@@ -57,71 +62,83 @@ class DanmukuYouku(DanmakuEngine):
             info = item["data"]
             if info["videoType"] != "正片":
                 continue  # 可能混入预告片什么的
-            dmk = Danmaku()
-            dmk.name = info["title"]
-            dmk.cid = info["action"]["value"]  # 视频id  "XMzk4NDE2Njc4OA=="
-            ret.append(dmk)
-        return ret
+            danmaku = Danmaku()
+            danmaku.name = info["title"]
+            danmaku.cid = info["action"]["value"]  # 视频id  "XMzk4NDE2Njc4OA=="
+            detail.append(danmaku)
+        return detail
 
-    def get_danmaku(self, video_id: str):
-        """提供视频 url 获取对应弹幕库"""
-        video_url = f"https://v.youku.com/v_show/id_{video_id}.html"
+
+class YoukuDanmakuDataParser(DanmakuDataParser):
+
+    async def parse(self, cid: str):
+        video_url = f"https://v.youku.com/v_show/id_{cid}.html"
         vid, title, duration = self.get_video_info(video_url)
-        token = self.get_token()
+        token = await self.get_token()
         minutes = int(duration) // 60  # 视频分钟数
-        tasks = self.submit_tasks([
-            (self.get_one_min_danmu, (vid, token, m), {}) for m in range(minutes + 1)
+        tasks = self.as_iter_completed([
+            (self.get_one_min_bullets, (vid, token, m), {}) for m in range(minutes + 1)
         ])
         result = [i for ret in tasks for i in ret]
         result.sort(key=lambda x: x[0])
         return result
 
-    def get_token(self):
+    async def get_token(self):
         """获取 cookie 中的必要参数"""
         cna_api = "https://log.mmstat.com/eg.js"
         cookie_api = "https://acs.youku.com/h5/mtop.com.youku.aplatform.weakget/1.0/?jsv=2.5.1&appKey=24679788"
 
         no_results = {"_m_h5_tk": "", "_m_h5_tk_enc": "", "cna": ""}
-        resp = self.head(cna_api)
-        if resp.status_code != 200:
+        resp = await self.head(cna_api)
+        if not resp or resp.status != 200:
             return no_results
-        cna = resp.cookies.get("cna")
+        cna = resp.cookies.get("cna").value
 
-        resp = self.get(cookie_api)
-        if resp.status_code != 200:
+        resp = await self.get(cookie_api)
+        if not resp or resp.status != 200:
             return no_results
+
         result = dict(resp.cookies)
         result["cna"] = cna
         return result
 
-    def get_video_info(self, url: str):
+    async def get_video_info(self, url: str):
         """获取视频 vid, 标题, 时长信息"""
-        vid = re.search(r"video/id_(/+?)\.html", url) or \
-              re.search(r"v_show/id_(.+?)\.html", url)
+        vid = re.search(r"video/id_(/+?)\.html|v_show/id_(.+?)\.html", url)
         vid = vid.group(1) if vid else ""  # 视频id "XNDg5MDY0MDA3Ng=="
-        api = f"https://openapi.youku.com/v2/videos/show.json"
+        api = "https://openapi.youku.com/v2/videos/show.json"
         params = {"client_id": "53e6cc67237fc59a", "package": "com.huawei.hwvplayer.youku", "video_id": vid}
-        resp = self.get(api, params=params)
-        if resp.status_code != 200:
+        resp = await self.get(api, params=params)
+        if not resp or resp.status != 200:
             return vid, "", 0
-        data = resp.json()
+        data = await resp.json(content_type=None)
         duration = float(data.get("duration", 0))  # 视频时长(s)
         title = data.get("title", "")  # 视频标题
         return vid, title, duration
 
-    def get_one_min_danmu(self, vid: str, token: dict, min_at: int):
-        """获取一分钟的弹幕
+    async def get_one_min_bullets(self, vid: str, token: dict, min_at: int):
+        """
+        获取一分钟的弹幕
         :param min_at: 弹幕开始的分钟数
         """
         app_key = "24679788"
         api = "https://acs.youku.com/h5/mopen.youku.danmu.list/1.0/"
         timestamp = str(int(time.time() * 1000))
-        msg = {"ctime": timestamp, "ctype": 10004, "cver": "v1.0", "guid": token["cna"], "mat": min_at, "mcount": 1,
-               "pid": 0,
-               "sver": "3.1.0", "type": 1, "vid": vid}
-        msg_b64 = base64.b64encode(json.dumps(msg, separators=(',', ':')).encode("utf-8")).decode(
-            "utf-8")  # 将 msg 转换为 base64 后作为 msg 的一个键值对
-        sign = hashlib.md5(bytes(msg_b64 + "MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr", "utf-8")).hexdigest()  # 计算签名
+        msg = {
+            "ctime": timestamp,
+            "ctype": 10004,
+            "cver": "v1.0",
+            "guid": token["cna"],
+            "mat": min_at,
+            "mcount": 1,
+            "pid": 0,
+            "sver": "3.1.0",
+            "type": 1,
+            "vid": vid
+        }
+        # 将 msg 转换为 base64 后作为 msg 的一个键值对
+        msg_b64 = b64encode(json.dumps(msg, separators=(',', ':')).encode("utf-8")).decode("utf-8")
+        sign = md5(bytes(msg_b64 + "MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr", "utf-8")).hexdigest()  # 计算签名
         msg.update({"msg": msg_b64, "sign": sign})
         # 只要 Cookie 的 _m_h5_tk 和 _m_h5_tk_enc 就行
         cookie = ";".join([f"{k}={v}" for k, v in token.items()])
@@ -132,7 +149,7 @@ class DanmukuYouku(DanmakuEngine):
         timestamp = str(int(time.time() * 1000))
         data = json.dumps(msg, separators=(',', ':'))
         token = f"{token['_m_h5_tk'][:32]}&{timestamp}&{app_key}&{data}"
-        token = hashlib.md5(bytes(token, "utf-8")).hexdigest()
+        token = md5(bytes(token, "utf-8")).hexdigest()
 
         params = {
             "jsv": "2.5.6",
@@ -147,17 +164,21 @@ class DanmukuYouku(DanmakuEngine):
             "jsonpIncPrefix": "utility"
         }
 
-        resp = self.post(api, params=params, data={"data": data}, headers=headers)
-        comments = resp.json()["data"]["result"]  # 带转义的 json 串
+        resp = await self.post(api, params=params, data={"data": data}, headers=headers)
+        data = await resp.json(content_type=None)
+        comments = data["data"]["result"]  # 带转义的 json 串
         comments = json.loads(comments)["data"]["result"]  # 返回的数据层层套娃 :(
 
-        result = []
+        result = DanmakuData()
         for comment in comments:
-            content = comment["content"]
-            play_time = comment["playat"] // 1000  # 弹幕出现的时间点(s)
             properties = json.loads(comment["propertis"])  # 弹幕的属性(官方拼写错误)
             color = properties["color"]
             position = properties["pos"]
             # size = properties["size"]
-            result.append([play_time, position, color, "", content])  # Dplayer 格式
+            result.append_bullet(
+                time=comment["playat"] // 1000,
+                pos=position,
+                color=color,
+                message=comment["content"]
+            )
         return result

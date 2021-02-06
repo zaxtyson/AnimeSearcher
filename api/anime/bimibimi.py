@@ -1,7 +1,6 @@
 import re
 
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, Video, PlayList
 from api.utils.logger import logger
 
 
@@ -44,18 +43,18 @@ class BimiDetailParser(AnimeDetailParser):
         detail.desc = data["content"]  # 完整的简介
         detail.category = data["type"]
         for playlist in data["parts"]:
-            pl = PlayList()  # 番剧的视频列表
+            pl = AnimePlayList()  # 番剧的视频列表
             pl.name = playlist["play_zh"]  # 列表名, 线路 I, 线路 II
             for name in playlist["part"]:
                 video_params = f"?id={detail_url}&play={playlist['play']}&part={name}"
-                pl.append(Video(name, video_params, "BimiHandler"))
-            detail.append(pl)
+                pl.append(Anime(name, video_params))
+            detail.append_playlist(pl)
         return detail
 
 
-class BimiHandler(AnimeHandler):
+class BimiUrlParser(AnimeUrlParser):
 
-    async def parse(self, raw_url: str) -> str:
+    async def parse(self, raw_url: str):
         play_url = "https://proxy.app.maoyuncloud.com/app/video/play" + raw_url
         headers = {"User-Agent": "Dart/2.7 (dart:io)", "appid": "4150439554430555"}
         resp = await self.get(play_url, headers=headers)
@@ -79,6 +78,6 @@ class BimiHandler(AnimeHandler):
         # 这种链接还要再重定向之后才是直链
         if "quan.qq.com" in real_url:
             resp = await self.head(real_url, allow_redirects=True)
-            real_url = resp.url
+            real_url = resp.url.human_repr()
 
         return real_url

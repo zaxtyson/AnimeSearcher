@@ -1,14 +1,18 @@
 import json
-from copy import deepcopy
 from os.path import dirname
 from typing import List
 
+from api.core.abc import singleton
 from api.utils.logger import logger
 
-__all__ = ["CONFIG"]
+__all__ = ["Config"]
 
 
+@singleton
 class Config:
+    """
+    配置管理
+    """
 
     def __init__(self):
         self._file = f"{dirname(__file__)}/config.json"
@@ -25,14 +29,23 @@ class Config:
         with open(self._file, "w", encoding="utf-8") as f:
             json.dump(self._dict, f, indent=4, ensure_ascii=False)
 
-    @property
-    def all_configs(self) -> dict:
-        """获全部配置信息"""
-        config = deepcopy(self._dict)  # 替换当前版本链接的 tag
-        tag_name = config["version"]["tag"]
-        cur_url = config["version"]["current"]
-        config["version"]["current"] = cur_url.replace("#tag", tag_name)
-        return config
+    def get_version(self) -> dict:
+        """系统版本信息"""
+        version = self._dict["version"]  # 替换当前版本链接的 tag
+        tag_name = version["tag"]
+        cur_url = version["current"]
+        version["current"] = cur_url.replace("#tag", tag_name)
+        return version
+
+    def get_modules_status(self) -> dict:
+        """获取模块信息"""
+        status = {
+            "anime": self._dict["anime"],
+            "danmaku": self._dict["danmaku"],
+            "comic": self._dict["comic"],
+            "music": self._dict["music"]
+        }
+        return status
 
     def get_all_modules(self) -> List[str]:
         """
@@ -40,7 +53,7 @@ class Config:
         :return: ["api.xxx.foo", "api.xxx.bar"]
         """
         engines = []
-        for e_type in ["anime", "danmaku", "comic"]:
+        for e_type in ["anime", "danmaku", "comic", "music"]:
             for item in self._dict.get(e_type):
                 engines.append(item["module"])
         return engines
@@ -54,11 +67,11 @@ class Config:
                     engines.append(item["module"])
         return engines
 
-    def get(self, part: str, key: str):
-        """获取指定配置项"""
-        if part in self._dict:
-            if key in self._dict[part]:
-                return self._dict[part][key]
+    # def get(self, part: str, key: str):
+    #     """获取指定配置项"""
+    #     if part in self._dict:
+    #         if key in self._dict[part]:
+    #             return self._dict[part][key]
 
     def set_engine_status(self, module: str, enable: bool) -> bool:
         """
@@ -70,7 +83,7 @@ class Config:
         if module not in self.get_all_modules():  # 模块名非法
             return False
 
-        module_types = ["anime", "danmaku", "comic"]
+        module_types = ["anime", "danmaku", "comic", "music"]
         for module_type in module_types:
             for info in self._dict[module_type]:
                 if info["module"] == module and info["enable"] != enable:  # 与目标状态不一致时更新配置文件
@@ -86,7 +99,3 @@ class Config:
     def enable_engine(self, module: str) -> bool:
         """启用某个引擎"""
         return self.set_engine_status(module, True)
-
-
-# 全局配置对象
-CONFIG = Config()

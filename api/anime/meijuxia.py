@@ -1,5 +1,4 @@
 from api.core.anime import *
-from api.core.models import AnimeMeta, AnimeDetail, Video, PlayList
 
 
 def encrypt():
@@ -35,7 +34,7 @@ class Meijuxia(AnimeSearcher):
             anime.title = item["vod_name"]
             anime.category = item["vod_type"]
             anime.cover_url = item["vod_pic"]
-            anime.desc = item["vod_keywords"] + " 豆瓣评分:" + item["vod_douban_score"]
+            anime.desc = item["vod_keywords"]
             anime.detail_url = str(item["vod_id"])  # 详情页id参数
             yield anime
 
@@ -61,12 +60,12 @@ class MeijuxiaDetailParser(AnimeDetailParser):
         detail.desc = self.desc_format(info["vod_content"])
         detail.cover_url = info["vod_pic"]
         for playlist in info["vod_play"]:
-            pl = PlayList()
+            pl = AnimePlayList()
             pl.name = playlist["player_name_zh"] + playlist["title"]
             for video in playlist["players"]:
                 url = video["url"].split("=")[-1]
-                pl.append(Video(video["title"], url))
-            detail.append(pl)
+                pl.append(Anime(video["title"], url))
+            detail.append_playlist(pl)
         return detail
 
     @staticmethod
