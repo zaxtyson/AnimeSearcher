@@ -104,7 +104,7 @@ class APIRouter:
         async def search_anime(keyword):
             """番剧搜索, 该方法回阻塞直到所有引擎数据返回"""
             result: List[AnimeMeta] = []
-            await self._agent.get_anime_metas(keyword, callback=lambda m: result.append(m))
+            await self._agent.get_anime_metas(keyword.strip(), callback=lambda m: result.append(m))
             ret = []
             for meta in result:
                 ret.append({
@@ -133,7 +133,7 @@ class APIRouter:
 
             # route path 不能有中文, 客户端 send 关键字
             keyword = await websocket.receive()
-            await self._agent.get_anime_metas(keyword, co_callback=push)
+            await self._agent.get_anime_metas(keyword.strip(), co_callback=push)
 
         @self._app.route("/anime/<token>")
         async def get_anime_detail(token):
@@ -188,7 +188,7 @@ class APIRouter:
         async def search_danmaku(keyword):
             """搜索番剧弹幕库"""
             result: List[DanmakuMeta] = []
-            await self._agent.get_danmaku_metas(keyword, callback=lambda m: result.append(m))
+            await self._agent.get_danmaku_metas(keyword.strip(), callback=lambda m: result.append(m))
             data = []
             for meta in result:
                 data.append({
@@ -214,7 +214,7 @@ class APIRouter:
                 })
 
             keyword = await websocket.receive()
-            await self._agent.get_danmaku_metas(keyword, co_callback=push)
+            await self._agent.get_danmaku_metas(keyword.strip(), co_callback=push)
 
         @self._app.route("/danmaku/<token>")
         async def get_danmaku_detail(token):

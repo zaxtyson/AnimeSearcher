@@ -63,6 +63,7 @@ class Agent:
             co_callback: Callable[[AnimeMeta], Coroutine] = None
     ) -> None:
         """搜索番剧, 返回摘要信息, 过滤相似度低的数据"""
+        # 番剧搜索不缓存, 异步推送
         return await self._scheduler.search_anime(keyword, callback=callback, co_callback=co_callback)
 
     async def get_danmaku_metas(
@@ -74,7 +75,32 @@ class Agent:
     ) -> None:
         """搜索弹幕库, 返回摘要信息, 过滤相似度低的数据"""
         # TODO: Implement data filter
-        return await self._scheduler.search_danmaku(keyword, callback=callback, co_callback=co_callback)
+
+        # 番剧搜索结果是相似的, 对应的弹幕搜索结果相对固定, 缓存备用
+        if metas := self._danmaku_db.fetch(keyword):
+            if callback is not None:
+                for meta in metas:
+                    callback(meta)
+                return
+            if co_callback is not None:
+                for meta in metas:
+                    await co_callback(meta)
+                return
+
+        # 没有缓存, 搜索一次
+        metas = []
+
+        def _callback(_meta):
+            metas.append(_meta)  # 缓存一份
+            callback(_meta)
+
+        async def _co_callback(_meta):
+            metas.append(_meta)
+            await co_callback(_meta)
+
+        await self._scheduler.search_danmaku(keyword, callback=_callback, co_callback=_co_callback)
+        if metas:
+            self._danmaku_db.store(metas, keyword)
 
     async def get_anime_detail(self, token: str) -> Optional[AnimeDetail]:
         """获取番剧详情信息, 如果有缓存, 使用缓存的值"""

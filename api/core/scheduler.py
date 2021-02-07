@@ -30,7 +30,7 @@ class Scheduler:
         :param callback: 处理搜索结果的回调函数
         :param co_callback: 处理搜索结果的协程函数
         """
-        if not keyword.strip():
+        if not keyword:
             return
 
         async def run(searcher: AnimeSearcher):
