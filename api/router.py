@@ -76,14 +76,9 @@ class APIRouter:
             js_text = await self._statistics.get_hm_js(self._domain, request.cookies)
             return Response(js_text, mimetype="application/javascript")
 
-        @self._app.route("/proxy/<path:raw_url>")
-        async def request_proxy(raw_url):
-            """对跨域资源进行代理访问, 返回数据"""
-            return await self._proxy.make_response(raw_url)
-
         # ======================== Anime Interface ===============================
 
-        @self._app.route("/update/timeline")
+        @self._app.route("/anime/bangumi/updates")
         async def get_bangumi_updates():
             """获取番剧更新时间表"""
             bangumi_list = await self._agent.get_bangumi_updates()
@@ -98,7 +93,7 @@ class APIRouter:
                 for info in bangumi:
                     one_day["updates"].append({
                         "title": info.title,
-                        "cover_url": f"{self._domain}/proxy/{info.cover_url}",  # 图片一律走代理, 防止浏览器跨域拦截
+                        "cover_url": f"{self._domain}/proxy/image/{info.cover_url}",  # 图片一律走代理, 防止浏览器跨域拦截
                         "update_time": info.update_time,
                         "update_to": info.update_to
                     })
@@ -114,7 +109,7 @@ class APIRouter:
             for meta in result:
                 ret.append({
                     "title": meta.title,
-                    "cover_url": f"{self._domain}/proxy/{meta.cover_url}",
+                    "cover_url": f"{self._domain}/proxy/image/{meta.cover_url}",
                     "category": meta.category,
                     "description": meta.desc,
                     "score": 80,  # TODO: 番剧质量评分机制
@@ -128,7 +123,7 @@ class APIRouter:
             async def push(meta: AnimeMeta):
                 await websocket.send_json({
                     "title": meta.title,
-                    "cover_url": f"{self._domain}/proxy/{meta.cover_url}",
+                    "cover_url": f"{self._domain}/proxy/image/{meta.cover_url}",
                     "category": meta.category,
                     "description": meta.desc,
                     "score": 80,
@@ -149,7 +144,7 @@ class APIRouter:
 
             ret = {
                 "title": detail.title,
-                "cover_url": f"{self._domain}/proxy/{detail.cover_url}",
+                "cover_url": f"{self._domain}/proxy/image/{detail.cover_url}",
                 "description": detail.desc,
                 "category": detail.category,
                 "module": detail.module,
@@ -165,15 +160,15 @@ class APIRouter:
                     video_path = f"{token}/{idx}/{episode}"
                     lst["video_list"].append({
                         "name": video.name,
-                        "raw_url": f"{self._domain}/anime/{video_path}/raw",
-                        "proxy_url": f"{self._domain}/anime/{video_path}/proxy",
-                        "player": f"{self._domain}/anime/player/{video_path}/raw",
-                        "proxy_player": f"{self._domain}/anime/player/{video_path}/proxy"
+                        "raw_url": f"{self._domain}/anime/{video_path}",
+                        "proxy_url": f"{self._domain}/proxy/anime/{video_path}",
+                        "player": f"{self._domain}/anime/{video_path}/player",
+                        "proxy_player": f"{self._domain}/proxy/stream/{video_path}/player"
                     })
                 ret["play_lists"].append(lst)
             return jsonify(ret)
 
-        @self._app.route("/anime/<token>/<playlist>/<episode>/raw")
+        @self._app.route("/anime/<token>/<playlist>/<episode>")
         async def redirect_to_video_real_url(token, playlist, episode):
             """通过 302 重定向到视频直链"""
             url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
@@ -181,26 +176,11 @@ class APIRouter:
                 return Response(f"Parse video real url failed", status=404)
             return redirect(url.real_url)
 
-        @self._app.route("/anime/<token>/<playlist>/<episode>/proxy")
-        async def get_video_stream(token, playlist, episode):
-            """通过API代理访问, 获取视频数据流"""
-            range_field = request.headers.get("range")
-            proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
-            if not proxy:
-                return Response("proxy error", status=404)
-            return await proxy.make_response(range_field)
-
-        @self._app.route("/anime/player/<token>/<playlist>/<episode>/raw")
+        @self._app.route("/anime/<token>/<playlist>/<episode>/player")
         async def player_without_proxy(token, playlist, episode):
             """视频直链播放测试"""
-            url = f"{self._domain}/anime/{token}/{playlist}/{episode}/raw"
+            url = f"{self._domain}/anime/{token}/{playlist}/{episode}"
             return await render_template("player.html", video_url=url, title="DUrl")
-
-        @self._app.route("/anime/player/<token>/<playlist>/<episode>/proxy")
-        async def player_with_proxy(token, playlist, episode):
-            """视频代理播放测试"""
-            url = f"{self._domain}/anime/{token}/{playlist}/{episode}/proxy"
-            return await render_template("player.html", video_url=url, title="Proxy")
 
         # ======================== Danmaku Interface ===============================
 
@@ -273,6 +253,34 @@ class APIRouter:
                 })
             return jsonify(data)
 
+        # ======================== Proxy Interface ===============================
+
+        @self._app.route("/proxy/image/<path:raw_url>")
+        async def image_proxy(raw_url):
+            """对跨域图片进行代理访问, 返回数据"""
+            return await self._proxy.make_response(raw_url)
+
+        @self._app.route("/proxy/stream/<token>/<playlist>/<episode>")
+        async def video_stream_proxy(token, playlist, episode):
+            """代理访问普通的视频数据流"""
+            range_field = request.headers.get("range")
+            proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
+            if not proxy:
+                return Response("stream proxy error", status=404)
+            return await proxy.make_response(range_field)
+
+        @self._app.route("/proxy/stream/<token>/<playlist>/<episode>/player")
+        async def player_with_proxy(token, playlist, episode):
+            """视频代理播放测试"""
+            url = f"{self._domain}/proxy/stream/{token}/{playlist}/{episode}"
+            return await render_template("player.html", video_url=url, title="Proxy")
+
+        @self._app.route("/proxy/hls/<token>/<playlist>/<episode>")
+        async def hls_stream_proxy(token, playlist, episode):
+            """代理访问 HLS 视频数据流"""
+            # TODO : implement hls stream proxy
+            return Response("HLS stream proxy not supported yet", status=500)
+
         # ======================== System Interface ===============================
 
         @self._app.route("/system/logs")
@@ -286,14 +294,24 @@ class APIRouter:
         async def show_system_version():
             return jsonify(self._config.get_version())
 
-        @self._app.route("/system/modules", methods=["GET", "PUT"])
+        @self._app.route("/system/clear")
+        async def clear_system_cache():
+            """清空 API 的临时缓存数据"""
+            mem_free = self._agent.cache_clear()
+            return jsonify({"clear": "success", "free": mem_free})
+
+        @self._app.route("/system/modules", methods=["GET", "POST"])
         async def show_global_settings():
             if request.method == "GET":
                 return jsonify(self._config.get_modules_status())
-            if request.method == "PUT":
-                data = await request.json
+            if request.method == "POST":
+                options = await request.json
                 ret = {}
-                for module, enable in data.items():
-                    ok = self._agent.set_module_status(module, enable)
+                for option in options:
+                    module = option.get("module")
+                    enable = option.get("enable")
+                    if not module:
+                        continue
+                    ok = self._agent.change_module_state(module, enable)
                     ret[module] = "success" if ok else "failed"
                 return jsonify(ret)

@@ -1,5 +1,4 @@
 from api.core.anime import *
-from api.update.models import AnimeMeta, AnimeDetail, AnimePlayList, Anime
 
 
 class SakuraAnime(AnimeSearcher):

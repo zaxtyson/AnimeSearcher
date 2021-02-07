@@ -67,13 +67,7 @@ class Config:
                     engines.append(item["module"])
         return engines
 
-    # def get(self, part: str, key: str):
-    #     """获取指定配置项"""
-    #     if part in self._dict:
-    #         if key in self._dict[part]:
-    #             return self._dict[part][key]
-
-    def set_engine_status(self, module: str, enable: bool) -> bool:
+    def update_module_state(self, module: str, enable: bool) -> bool:
         """
         启用或禁用指定引擎模块
         :param module: 模块名, 如 api.anime.xxx
@@ -94,8 +88,8 @@ class Config:
 
     def disable_engine(self, module: str) -> bool:
         """禁用某个引擎"""
-        return self.set_engine_status(module, False)
+        return self.update_module_state(module, False)
 
     def enable_engine(self, module: str) -> bool:
         """启用某个引擎"""
-        return self.set_engine_status(module, True)
+        return self.update_module_state(module, True)

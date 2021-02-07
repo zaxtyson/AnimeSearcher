@@ -1,6 +1,8 @@
 from hashlib import md5
 from typing import Any
 
+import pympler.asizeof as asizeof
+
 from api.utils.logger import logger
 
 __all__ = ["CacheDB"]
@@ -46,7 +48,13 @@ class CacheDB(object):
             self._db[key] = value
         return key
 
-    def clear(self):
-        """清空数据"""
+    def size(self) -> float:
+        """获取缓存对象的大小(KB)"""
+        return asizeof.asizeof(self._db) / 1024
+
+    def clear(self) -> float:
+        """清空数据, 返回清理的内存大小(KB)"""
         logger.warning(f"CacheDB has been cleared, object in total: {len(self._db)}")
+        size = self.size()
         self._db.clear()
+        return size

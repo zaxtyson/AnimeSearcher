@@ -17,11 +17,9 @@
     WS  /anime/search                                       异步视频搜索接口, 通过 Websocket 即时推送搜索结果
     GET /anime/search/<keyword>                             视频搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
     GET /anime/<token>                                      剧集详情接口, 返回播放列表等信息
-    GET /anime/<token>/<playlist>/<episode>/raw             直链解析接口, 通过 302 重定向到视频直链
-    GET /anime/<token>/<playlist>/<episode>/proxy           代理访问接口, 返回视频数据流, 用于解决防盗链和跨域问题
+    GET /anime/<token>/<playlist>/<episode>                 直链解析接口, 通过 302 重定向到视频直链
     GET /anime/bangumi/updates                              番组表接口, 获取最近更新的番剧信息
-    GET /anime/player/<token>/<playlist>/<episode>/raw      视频播放测试(直链)
-    GET /anime/player/<token>/<playlist>/<episode>/proxy    视频播放测试(代理)
+    GET /anime/<token>/<playlist>/<episode>/player          视频播放测试(直链)
 
 
     =====================
@@ -54,18 +52,22 @@
     GET /iptv/list                                          获取 IPTV 源列表
 
 
+    ===============
+    Proxy Interface
+    ===============
+
+    GET /proxy/image/<url>                                  代理访问跨域的图片资源
+    GET /proxy/stream/<token>/<playlist>/<episode>          代理普通视频数据流, 用于解决防盗链和跨域问题
+    GET /proxy/stream/<token>/<playlist>/<episode>/player   视频播放测试(代理)
+    GET /proxy/hls/<token>/<playlist>/<episode>             代理 HLS 视频数据流, 用于解决防盗链和跨域问题
+
     ================
     System Interface
     ================
 
     GET /system/logs                                        API 运行日志
     GET /system/version                                     获取系统版本信息
+    GET /system/clear                                       清空 API 缓存, 返回释放内存大小(KB)
     GET /system/modules                                     获取引擎模块信息
-    PUT /system/modules                                     启用/停用指定的引擎模块
-
-
-    ===============
-    Utils interface
-    ===============
-
-    GET /proxy/<url>                                        代理访问 url, 解决浏览器跨域问题
+    POST /system/modules                                    启用/停用指定的引擎模块
+        <= Json [{"module": "api.xxx.xxx", "enable": true}, ...]

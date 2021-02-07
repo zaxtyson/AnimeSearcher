@@ -3,7 +3,7 @@ __all__ = ["Tokenizable", "singleton"]
 
 def singleton(cls):
     """
-    单利模式装饰器, 不考虑线程安全
+    单例模式装饰器, 不考虑线程安全
     """
     instance = cls()
     cls.__new__ = cls.__call__ = lambda cls: instance

@@ -30,13 +30,13 @@ class Meijuxia(AnimeSearcher):
         data = await resp.json(content_type=None)
         data = list(filter(lambda x: x["type"] == "vod", data["data"]))[0]
         for item in data["videos"]:
-            anime = AnimeMeta()
-            anime.title = item["vod_name"]
-            anime.category = item["vod_type"]
-            anime.cover_url = item["vod_pic"]
-            anime.desc = item["vod_keywords"]
-            anime.detail_url = str(item["vod_id"])  # 详情页id参数
-            yield anime
+            meta = AnimeMeta()
+            meta.title = item["vod_name"]
+            meta.category = item["vod_type"]
+            meta.cover_url = item["vod_pic"]
+            meta.desc = item["vod_keywords"]
+            meta.detail_url = str(item["vod_id"])  # 详情页id参数
+            yield meta
 
 
 class MeijuxiaDetailParser(AnimeDetailParser):
@@ -62,6 +62,8 @@ class MeijuxiaDetailParser(AnimeDetailParser):
         for playlist in info["vod_play"]:
             pl = AnimePlayList()
             pl.name = playlist["player_name_zh"] + playlist["title"]
+            if pl.name in ["畅播", "酷播"]:
+                continue  # 垃圾资源
             for video in playlist["players"]:
                 url = video["url"].split("=")[-1]
                 pl.append(Anime(video["title"], url))

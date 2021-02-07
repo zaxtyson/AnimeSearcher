@@ -17,7 +17,7 @@ class WebUI(object):
 
     def run(self):
         self._init_routers()
-        self._app.run(host=self._host, port=self._port, debug=True)
+        self._app.run(host=self._host, port=self._port, debug=False, use_reloader=False)
 
     def _init_routers(self):
         @self._app.after_request

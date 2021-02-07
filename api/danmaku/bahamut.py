@@ -1,5 +1,5 @@
 from api.core.danmaku import *
-from api.utils.translate import convert_to_zh, convert_to_tw
+from api.utils.tool import convert_to_zh, convert_to_tw
 
 
 class Bahamut(DanmakuSearcher):

@@ -48,7 +48,7 @@ class HtmlParseHelper:
     @staticmethod
     def set_headers(kwargs: dict):
         """为请求设置 headers, 使用随机 User-Agent"""
-        kwargs.setdefault("timeout", ClientTimeout(total=5, sock_connect=3))  # 连接超时
+        kwargs.setdefault("timeout", ClientTimeout(total=30, sock_connect=5))  # 连接超时
 
         if "headers" not in kwargs:  # 没有设置 Headers
             kwargs["headers"] = {"User-Agent": get_random_ua()}

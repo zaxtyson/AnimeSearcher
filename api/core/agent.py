@@ -4,6 +4,7 @@ from api.config import Config
 from api.core.anime import *
 from api.core.cache import CacheDB
 from api.core.danmaku import *
+from api.core.proxy import StreamProxy
 from api.core.scheduler import Scheduler
 from api.iptv.iptv import TVSource, get_sources
 from api.update.bangumi import Bangumi
@@ -23,19 +24,32 @@ class Agent:
         self._anime_db = CacheDB()
         self._danmaku_db = CacheDB()
         self._proxy_db = CacheDB()
-        self._bangumi_cache = None
+        self._others_db = CacheDB()
+
+    def cache_clear(self) -> float:
+        """清空缓存, 返回释放的内存(KB)"""
+        mem_free = 0
+        mem_free += self._anime_db.clear()
+        mem_free += self._danmaku_db.clear()
+        mem_free += self._proxy_db.clear()
+        mem_free += self._others_db.clear()
+        return mem_free
 
     def get_global_config(self):
+        """获取全局配置"""
         return self._config.all_configs
 
-    def set_module_status(self, module: str, enable: bool):
-        pass
+    def change_module_state(self, module: str, enable: bool):
+        """设置模块启用状态"""
+        return self._scheduler.change_module_state(module, enable)
 
     async def get_bangumi_updates(self):
         """获取番组表信息"""
-        if not self._bangumi_cache:  # 缓存起来
-            self._bangumi_cache = await self._bangumi.get_bangumi_updates()
-        return self._bangumi_cache
+        bangumi = self._others_db.fetch("bangumi")
+        if not bangumi:  # 缓存起来
+            bangumi = await self._bangumi.get_bangumi_updates()
+            self._others_db.store(bangumi, "bangumi")
+        return bangumi
 
     def get_iptv_sources(self) -> List[TVSource]:
         """获取 IPTV 源列表"""
@@ -97,17 +111,18 @@ class Agent:
         # 其它各种情况, 解析失败
         return DirectUrl()
 
-    async def get_anime_proxy(self, token: str, playlist: int, episode: int) -> Optional[AnimeStreamProxy]:
+    async def get_anime_proxy(self, token: str, playlist: int, episode: int) -> Optional[StreamProxy]:
+        """获取视频数据流代理器对象"""
         proxy_token = f"{token}|{playlist}|{episode}"
-        proxy: AnimeStreamProxy = self._proxy_db.fetch(proxy_token)
+        proxy: StreamProxy = self._proxy_db.fetch(proxy_token)
         if proxy is not None:
             return proxy
-        url = await self.get_anime_real_url(token, playlist, episode)
+        url = await self.get_anime_real_url(token, int(playlist), int(episode))
         if not url.is_available():
             return
         meta = AnimeMeta.build_from(token)
         proxy_cls = self._scheduler.get_anime_proxy_class(meta)
-        proxy: AnimeStreamProxy = proxy_cls(url)
+        proxy: StreamProxy = proxy_cls(url)
         self._proxy_db.store(proxy, proxy_token)
         return proxy
 

@@ -13,7 +13,7 @@
         "动漫"
       ],
       "enable": false,
-      "quality": 8
+      "quality": 6
     },
     {
       "name": "ZzzFun",
@@ -22,7 +22,7 @@
       "type": [
         "动漫"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {
@@ -36,7 +36,7 @@
         "韩剧",
         "港剧"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {
@@ -46,12 +46,12 @@
       "type": [
         "动漫"
       ],
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {
       "name": "美剧侠",
-      "notes": "大杂烩，啥都有, 有水印",
+      "notes": "大杂烩，啥都有, 很多无效资源",
       "module": "api.anime.meijuxia",
       "type": [
         "动漫",
@@ -63,8 +63,8 @@
         "泰剧",
         "港剧"
       ],
-      "enable": true,
-      "quality": 7
+      "enable": false,
+      "quality": 6
     },
     {
       "name": "影视全搜索",
@@ -119,7 +119,7 @@
       "name": "优酷",
       "notes": "这世界很酷的那个优酷, 反爬机制较强",
       "module": "api.danmaku.youku",
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {

@@ -1,11 +1,10 @@
 import json
 import re
 import time
-from base64 import b64encode
-from hashlib import md5
 
 from api.core.danmaku import *
 from api.utils.logger import logger
+from api.utils.tool import md5, b64encode
 
 
 class Youku(DanmakuSearcher):
@@ -26,7 +25,8 @@ class Youku(DanmakuSearcher):
                 continue
             meta = DanmakuMeta()
             meta.title = info["titleDTO"]["displayName"].replace("\t", "")
-            meta.play_url = info["leftButtonDTO"]["action"]["value"]
+            play_url = info["leftButtonDTO"]["action"]["value"]
+            meta.play_url = play_url.replace("https://v.youku.com/v_show/", "")  # 缩短一点
             if meta.play_url and ("youku.com" not in meta.play_url):
                 continue  # 有时候返回 qq 的播放链接, 有时候该字段为 null, 我的老天爷
             num = re.search(r"(\d+?)集", info.get("stripeBottom", ""))  # 该字段可能不存在
@@ -39,6 +39,7 @@ class YoukuDanmakuDetailParser(DanmakuDetailParser):
     async def parse(self, play_url: str):
         """获取视频详情"""
         detail = DanmakuDetail()
+        play_url = "https://v.youku.com/v_show/" + play_url
         resp = await self.get(play_url)
         if not resp or resp.status != 200:
             return detail
@@ -72,55 +73,47 @@ class YoukuDanmakuDetailParser(DanmakuDetailParser):
 class YoukuDanmakuDataParser(DanmakuDataParser):
 
     async def parse(self, cid: str):
-        video_url = f"https://v.youku.com/v_show/id_{cid}.html"
-        vid, title, duration = self.get_video_info(video_url)
+        vid = cid
+        title, duration = await self.get_video_info(vid)
         token = await self.get_token()
         minutes = int(duration) // 60  # 视频分钟数
-        tasks = self.as_iter_completed([
-            (self.get_one_min_bullets, (vid, token, m), {}) for m in range(minutes + 1)
-        ])
-        result = [i for ret in tasks for i in ret]
-        result.sort(key=lambda x: x[0])
+        tasks = [self.get_60s_bullets(vid, token, m) for m in range(minutes + 1)]
+        result = DanmakuData()
+        async for ret in self.as_iter_completed(tasks):
+            result.append(ret)
         return result
 
     async def get_token(self):
         """获取 cookie 中的必要参数"""
         cna_api = "https://log.mmstat.com/eg.js"
         cookie_api = "https://acs.youku.com/h5/mtop.com.youku.aplatform.weakget/1.0/?jsv=2.5.1&appKey=24679788"
-
-        no_results = {"_m_h5_tk": "", "_m_h5_tk_enc": "", "cna": ""}
+        tokens = {"_m_h5_tk": "", "_m_h5_tk_enc": "", "cna": ""}
         resp = await self.head(cna_api)
         if not resp or resp.status != 200:
-            return no_results
-        cna = resp.cookies.get("cna").value
-
+            return tokens
+        tokens["cna"] = resp.cookies.get("cna").value
         resp = await self.get(cookie_api)
         if not resp or resp.status != 200:
-            return no_results
+            return tokens
+        # 只要 Cookie 的 _m_h5_tk 和 _m_h5_tk_enc 就行
+        tokens["_m_h5_tk"] = resp.cookies.get("_m_h5_tk").value
+        tokens["_m_h5_tk_enc"] = resp.cookies.get("_m_h5_tk_enc").value
+        return tokens
 
-        result = dict(resp.cookies)
-        result["cna"] = cna
-        return result
-
-    async def get_video_info(self, url: str):
+    async def get_video_info(self, vid: str):
         """获取视频 vid, 标题, 时长信息"""
-        vid = re.search(r"video/id_(/+?)\.html|v_show/id_(.+?)\.html", url)
-        vid = vid.group(1) if vid else ""  # 视频id "XNDg5MDY0MDA3Ng=="
         api = "https://openapi.youku.com/v2/videos/show.json"
         params = {"client_id": "53e6cc67237fc59a", "package": "com.huawei.hwvplayer.youku", "video_id": vid}
         resp = await self.get(api, params=params)
         if not resp or resp.status != 200:
-            return vid, "", 0
+            return "", 0
         data = await resp.json(content_type=None)
         duration = float(data.get("duration", 0))  # 视频时长(s)
         title = data.get("title", "")  # 视频标题
-        return vid, title, duration
+        return title, duration
 
-    async def get_one_min_bullets(self, vid: str, token: dict, min_at: int):
-        """
-        获取一分钟的弹幕
-        :param min_at: 弹幕开始的分钟数
-        """
+    async def get_60s_bullets(self, vid: str, tokens: dict, min_at: int):
+        """获取一分钟的弹幕"""
         app_key = "24679788"
         api = "https://acs.youku.com/h5/mopen.youku.danmu.list/1.0/"
         timestamp = str(int(time.time() * 1000))
@@ -128,7 +121,7 @@ class YoukuDanmakuDataParser(DanmakuDataParser):
             "ctime": timestamp,
             "ctype": 10004,
             "cver": "v1.0",
-            "guid": token["cna"],
+            "guid": tokens["cna"],
             "mat": min_at,
             "mcount": 1,
             "pid": 0,
@@ -137,25 +130,18 @@ class YoukuDanmakuDataParser(DanmakuDataParser):
             "vid": vid
         }
         # 将 msg 转换为 base64 后作为 msg 的一个键值对
-        msg_b64 = b64encode(json.dumps(msg, separators=(',', ':')).encode("utf-8")).decode("utf-8")
-        sign = md5(bytes(msg_b64 + "MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr", "utf-8")).hexdigest()  # 计算签名
+        msg_b64 = b64encode(json.dumps(msg, separators=(',', ':')))
+        sign = md5(msg_b64 + "MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr")  # 计算签名
         msg.update({"msg": msg_b64, "sign": sign})
-        # 只要 Cookie 的 _m_h5_tk 和 _m_h5_tk_enc 就行
-        cookie = ";".join([f"{k}={v}" for k, v in token.items()])
-        headers = {
-            "Cookie": cookie,
-            "Referer": "https://v.youku.com"
-        }
         timestamp = str(int(time.time() * 1000))
         data = json.dumps(msg, separators=(',', ':'))
-        token = f"{token['_m_h5_tk'][:32]}&{timestamp}&{app_key}&{data}"
-        token = md5(bytes(token, "utf-8")).hexdigest()
+        sign = md5(f"{tokens['_m_h5_tk'][:32]}&{timestamp}&{app_key}&{data}")
 
         params = {
             "jsv": "2.5.6",
             "appKey": app_key,
             "t": timestamp,
-            "sign": token,
+            "sign": sign,
             "api": "mopen.youku.danmu.list",
             "v": "1.0",
             "type": "originaljson",
@@ -163,7 +149,8 @@ class YoukuDanmakuDataParser(DanmakuDataParser):
             "timeout": "20000",
             "jsonpIncPrefix": "utility"
         }
-
+        self.session.cookie_jar.update_cookies(tokens)
+        headers = {"Referer": "https://v.youku.com"}
         resp = await self.post(api, params=params, data={"data": data}, headers=headers)
         data = await resp.json(content_type=None)
         comments = data["data"]["result"]  # 带转义的 json 串

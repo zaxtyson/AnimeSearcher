@@ -3,7 +3,7 @@ from typing import List
 
 from api.core.danmaku import HtmlParseHelper
 from api.update.models import AnimeUpdateInfo, BangumiOneDay
-from api.utils.translate import convert_to_zh
+from api.utils.tool import convert_to_zh
 
 __all__ = ["Bangumi"]
 
