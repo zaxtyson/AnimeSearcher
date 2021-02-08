@@ -302,3 +302,5 @@ class APIRouter:
                     ok = self._agent.change_module_state(module, enable)
                     ret[module] = "success" if ok else "failed"
                 return jsonify(ret)
+            if request.method == "OPTIONS":
+                return Response("")
