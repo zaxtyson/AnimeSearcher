@@ -1,8 +1,9 @@
 {
   "version": {
     "tag": "1.1.8-fixed",
-    "current": "https://api.github.com/repos/zaxtyson/AnimeSearcher/releases/tags/#tag",
-    "latest": "https://api.github.com/repos/zaxtyson/AnimeSearcher/releases/latest"
+    "time": "2021-02-08",
+    "desc": "巴拉巴拉",
+    "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
   },
   "anime": [
     {
@@ -46,7 +47,7 @@
       "type": [
         "动漫"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {
@@ -89,7 +90,7 @@
         "韩剧",
         "美剧"
       ],
-      "enable": false,
+      "enable": true,
       "quality": 8
     }
   ],

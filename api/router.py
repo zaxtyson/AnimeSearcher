@@ -9,7 +9,6 @@ from api.core.agent import Agent
 from api.core.anime import *
 from api.core.danmaku import *
 from api.core.proxy import RequestProxy
-from api.utils.statistic import Statistics
 
 
 class APIRouter:
@@ -23,7 +22,6 @@ class APIRouter:
         self._domain = f"http://{host}:{port}"
         self._agent = Agent()
         self._config = Config()
-        self._statistics = Statistics()
         self._proxy = RequestProxy()
 
     def set_domain(self, domain: str):
@@ -36,7 +34,7 @@ class APIRouter:
     def run(self):
         """启动 API 解析服务"""
 
-        def exception_handler(loop, context):
+        def exception_handler(_loop, context):
             logger.debug(context)
 
         self._init_routers()
@@ -64,17 +62,6 @@ class APIRouter:
             with open(file, encoding="utf-8") as f:
                 text = f.read()
             return Response(text, mimetype="text/plain")
-
-        @self._app.route("/statistics")
-        async def statistics():
-            """百度统计转发, 用户体验计划"""
-            data = await self._statistics.transmit(request)
-            return Response(data, mimetype="image/gif")
-
-        @self._app.route("/statistics/<js_url>")
-        async def get_statistics_js(js_url):
-            js_text = await self._statistics.get_hm_js(self._domain, request.cookies)
-            return Response(js_text, mimetype="application/javascript")
 
         # ======================== Anime Interface ===============================
 
@@ -140,7 +127,7 @@ class APIRouter:
             """返回番剧详情页面信息"""
             detail = await self._agent.get_anime_detail(token)
             if not detail:
-                return Response("Parse detail failed", status=500)
+                return Response("Parse detail failed", status=404)
 
             ret = {
                 "title": detail.title,
@@ -174,7 +161,7 @@ class APIRouter:
             url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
             if not url.is_available():
                 return Response(f"Parse video real url failed", status=404)
-            return redirect(url.real_url)
+            return redirect(url.real_url, code=30)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>/player")
         async def player_without_proxy(token, playlist, episode):
@@ -300,7 +287,7 @@ class APIRouter:
             mem_free = self._agent.cache_clear()
             return jsonify({"clear": "success", "free": mem_free})
 
-        @self._app.route("/system/modules", methods=["GET", "POST"])
+        @self._app.route("/system/modules", methods=["GET", "POST", "OPTIONS"])
         async def show_global_settings():
             if request.method == "GET":
                 return jsonify(self._config.get_modules_status())

@@ -31,11 +31,7 @@ class Config:
 
     def get_version(self) -> dict:
         """系统版本信息"""
-        version = self._dict["version"]  # 替换当前版本链接的 tag
-        tag_name = version["tag"]
-        cur_url = version["current"]
-        version["current"] = cur_url.replace("#tag", tag_name)
-        return version
+        return self._dict["version"]
 
     def get_modules_status(self) -> dict:
         """获取模块信息"""

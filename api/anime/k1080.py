@@ -40,19 +40,16 @@ class K1080(AnimeSearcher):
 
     def parse_anime_metas(self, html: str):
         ret = []
-        meta_list = self.xpath(html, "//ul[@class='stui-vodlist__media col-pd clearfix']//li")
-        for meta in meta_list:
-            anime = AnimeMeta()
-            cover_url = meta.xpath("./div[@class='thumb']/a/@data-original")[0]
-            if not cover_url.startswith("http"):
-                cover_url = "https://www.k1080.net" + cover_url
-            anime.cover_url = cover_url
-            anime.title = meta.xpath("./div[@class='detail']/h3/a/text()")[0]
-            anime.detail_url = meta.xpath("./div[@class='detail']/h3/a/@href")[0]  # /voddetail/414362.html
-            desc = meta.xpath("./div[@class='detail']//span[contains(text(),'简介')]/parent::p/text()")
-            anime.desc = desc[0] if desc else "无简介"
-            anime.category = meta.xpath("./div[@class='detail']//span[contains(text(),'类型')]/parent::p/text()")[0]
-            ret.append(anime)
+        meta_list = self.xpath(html, "//ul[@id='searchList']/li")
+        for item in meta_list:
+            meta = AnimeMeta()
+            meta.cover_url = item.xpath("div/a/@data-original")[0]
+            meta.title = item.xpath("div/a/@title")[0]
+            meta.detail_url = item.xpath("div/a[1]/@href")[0]  # /voddetail/414362.html
+            desc = item.xpath("div[@class='detail']/p[4]/text()")[0]
+            meta.desc = desc if desc else "无简介"
+            meta.category = item.xpath("//p[3]/text()")[0]
+            ret.append(meta)
         return ret
 
     async def parse_one_page(self, keyword: str, page: int):
@@ -70,23 +67,22 @@ class K1080DetailParser(AnimeDetailParser):
             return detail
 
         html = await resp.text()
-        detail = self.xpath(html, "//div[@class='stui-pannel-box']")[0]
-        cover_url = detail.xpath("div/a/img/@data-original")[0]
-        if not cover_url.startswith("http"):
-            cover_url = domain + cover_url
-        detail.cover_url = cover_url
-        detail.title = detail.xpath("div/a/@title")[0]
-        detail.desc = detail.xpath(".//span[@class='detail-content']/text()")[0]
-        detail.category = detail.xpath(".//span[contains(text(), '类型')]/parent::p/a[1]/text()")[0]
-        play_list_blocks = self.xpath(html, "//div[@class='stui-pannel-box b playlist mb']")  # 播放列表所在的区域
-        for block in play_list_blocks:
+        detail.cover_url = self.xpath(html, "//img[@class='lazyload']/@src")[0]
+        detail.title = self.xpath(html, "//h1[@class='title']/text()")[0]
+        detail.desc = self.xpath(html, "//a[@href='#desc']/parent::p/text()")[1]
+        detail.category = self.xpath(html, "//p[@class='data'][1]/a/text()")[0]
+        playlist_blocks = self.xpath(html, "//div[@class='tab-content myui-panel_bd']/div")  # 播放列表所在的区域
+        playlist_names = self.xpath(html, "//a[@data-toggle='tab']/text()")
+        for idx, block in enumerate(playlist_blocks):
+            if playlist_names[idx] == "超清备用":
+                continue  # m3u8 图片隐写传输数据流, 太麻烦了, 丢弃
             playlist = AnimePlayList()
-            playlist.name = block.xpath("div/div/h3/font/text()")[0].strip()
-            for video_block in block.xpath('.//li'):
-                video = Anime()
-                video.name = video_block.xpath("a/text()")[0]
-                video.raw_url = video_block.xpath("a/@href")[0]
-                playlist.append(video)
+            playlist.name = playlist_names[idx]
+            for anime_block in block.xpath('ul/li'):
+                anime = Anime()
+                anime.name = anime_block.xpath("a/text()")[0]
+                anime.raw_url = anime_block.xpath("a/@href")[0]
+                playlist.append(anime)
             if not playlist.is_empty():
                 detail.append_playlist(playlist)
         return detail
@@ -105,8 +101,23 @@ class K1080UrlParser(AnimeUrlParser):
         video_url = unquote(b64decode(player_data.get("url")).decode("utf8"))
         if video_url.endswith(".mp4") or video_url.endswith(".m3u8"):
             return video_url
-        if video_url.endswith(".html"):
-            return ""
-        # 需要再重定向一次
+        if "app.yiranleng.top" in video_url:
+            return video_url
+        if "v.qq.com" in video_url:
+            return await self.parse_qq_video(video_url)
+        # 其它需要再重定向一次
         resp = await self.head(video_url, allow_redirects=True)
-        return resp.url
+        if not resp or resp.status != 200:
+            return ""
+        return resp.url.human_repr()
+
+    async def parse_qq_video(self, url: str):
+        api = f"https://jx.k1080.net/analysis.php?v={url}"
+        headers = {"Referer": "https://www.k1080.net/"}
+        resp = await self.get(api, headers=headers)
+        if not resp or resp.status != 200:
+            return ""
+        html = await resp.text()
+        url = re.search(r'var url\s*=\s*"(https?://.+?)";', html)
+        url = url.group(1) if url else ""
+        return url
