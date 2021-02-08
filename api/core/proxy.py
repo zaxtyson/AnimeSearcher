@@ -53,7 +53,12 @@ class StreamProxy(HtmlParseHelper):
             headers["User-Agent"] = get_random_ua()
         return headers
 
-    async def make_response(self, range_field: str = None):
+    # async def get_m3u8_response(self) -> Response:
+    #     hls_type = "application/vnd.apple.mpegURL"
+    #     headers = {"Location": self._url}
+    #     return Response(headers=headers, content_type=hls_type)
+
+    async def get_stream_response(self, range_field: str = None):
         """
         读取远程的视频流，并伪装成本地的响应返回给客户端
         206 连续请求会导致连接中断, asyncio 库在 Windows 平台触发 ConnectionAbortedError
@@ -86,3 +91,9 @@ class StreamProxy(HtmlParseHelper):
             "Content-Range": resp.headers.get("Content-Range")
         }
         return Response(stream_iter(), headers=resp_headers, status=status)
+
+    # async def make_response(self, range_field: str = None):
+    #     await self.init_session()
+    #     if self._url.endswith("m3u8"):
+    #         return await self.get_m3u8_response()
+    #     return await self.get_stream_response(range_field)

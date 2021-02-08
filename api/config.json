@@ -23,7 +23,7 @@
       "type": [
         "动漫"
       ],
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {
@@ -37,7 +37,7 @@
         "韩剧",
         "港剧"
       ],
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {
@@ -47,7 +47,7 @@
       "type": [
         "动漫"
       ],
-      "enable": false,
+      "enable": true,
       "quality": 8
     },
     {

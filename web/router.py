@@ -31,10 +31,6 @@ class WebUI(object):
         async def index():
             return await render_template("index.html")
 
-        @self._app.route("/statistic_test", methods=["GET"])
-        async def statistic_test():
-            return await render_template("player.html")
-
         @self._app.route("/favicon.ico", methods=["GET"])
         async def favicon():
             return await send_from_directory(self._path, f"favicon.ico", as_attachment=True)

@@ -148,7 +148,7 @@ class APIRouter:
                     lst["video_list"].append({
                         "name": video.name,
                         "raw_url": f"{self._domain}/anime/{video_path}",
-                        "proxy_url": f"{self._domain}/proxy/anime/{video_path}",
+                        "proxy_url": f"{self._domain}/proxy/stream/{video_path}",
                         "player": f"{self._domain}/anime/{video_path}/player",
                         "proxy_player": f"{self._domain}/proxy/stream/{video_path}/player"
                     })
@@ -156,12 +156,12 @@ class APIRouter:
             return jsonify(ret)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>")
-        async def redirect_to_video_real_url(token, playlist, episode):
+        async def redirect_to_video_real_url(token: str, playlist: int, episode: str):
             """通过 302 重定向到视频直链"""
             url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
             if not url.is_available():
                 return Response(f"Parse video real url failed", status=404)
-            return redirect(url.real_url, code=30)
+            return redirect(url.real_url)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>/player")
         async def player_without_proxy(token, playlist, episode):
