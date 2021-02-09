@@ -15,7 +15,7 @@ formatter = logging.Formatter(
 # 输出日志到控制台
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
-console_handler.setLevel(logging.DEBUG)
+console_handler.setLevel(logging.INFO)
 logger.addHandler(console_handler)
 
 # 输出日志到文件 保存最近 3 小时的日志

@@ -90,4 +90,4 @@ class SakuraUrlParser(AnimeUrlParser):
         if not video_url.startswith("http"):  # 偶尔出现一些无效视频
             return ""
         resp = await self.head(video_url, allow_redirects=True)  # 获取直链时会重定向 2 次
-        return resp.url  # 重定向之后的视频直链
+        return resp.url.human_repr()  # 重定向之后的视频直链

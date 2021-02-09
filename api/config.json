@@ -1,8 +1,8 @@
 {
   "version": {
-    "tag": "1.1.8-fixed",
+    "tag": "1.2.0",
     "time": "2021-02-08",
-    "desc": "巴拉巴拉",
+    "desc": "API框架重构,处理速度大幅加快;修复了几个资源引擎;弹幕库搜索结果增加;UI改进,用户体验更加",
     "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
   },
   "anime": [
@@ -64,7 +64,7 @@
         "泰剧",
         "港剧"
       ],
-      "enable": false,
+      "enable": true,
       "quality": 6
     },
     {

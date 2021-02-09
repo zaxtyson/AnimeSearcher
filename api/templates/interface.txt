@@ -17,9 +17,9 @@
     WS  /anime/search                                       异步视频搜索接口, 通过 Websocket 即时推送搜索结果
     GET /anime/search/<keyword>                             视频搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
     GET /anime/<token>                                      剧集详情接口, 返回播放列表等信息
-    GET /anime/<token>/<playlist>/<episode>                 直链解析接口, 通过 302 重定向到视频直链
+    GET /anime/<token>/<playlist>/<episode>                 获取视频直链等信息
     GET /anime/bangumi/updates                              番组表接口, 获取最近更新的番剧信息
-    GET /anime/<token>/<playlist>/<episode>/player          视频播放测试(直链)
+    GET /anime/<token>/<playlist>/<episode>/player          视频播放测试
 
 
     =====================
@@ -58,7 +58,6 @@
 
     GET /proxy/image/<url>                                  代理访问跨域的图片资源
     GET /proxy/stream/<token>/<playlist>/<episode>          代理普通视频数据流, 用于解决防盗链和跨域问题
-    GET /proxy/stream/<token>/<playlist>/<episode>/player   视频播放测试(代理)
     GET /proxy/hls/<token>/<playlist>/<episode>             代理 HLS 视频数据流, 用于解决防盗链和跨域问题
 
     ================

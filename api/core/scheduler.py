@@ -34,7 +34,7 @@ class Scheduler:
             return
 
         async def run(searcher: AnimeSearcher):
-            logger.debug(f"{searcher.__class__.__name__} is searching for [{keyword}]")
+            logger.info(f"{searcher.__class__.__name__} is searching for [{keyword}]")
             if callback is not None:
                 async for item in searcher._search(keyword):
                     callback(item)  # 每产生一个搜索结果, 通过回调函数处理
@@ -66,7 +66,7 @@ class Scheduler:
         """
 
         async def run(searcher: DanmakuSearcher):
-            logger.debug(f"{searcher.__class__.__name__} is searching for [{keyword}]")
+            logger.info(f"{searcher.__class__.__name__} is searching for [{keyword}]")
             if callback is not None:
                 async for item in searcher._search(keyword):
                     callback(item)
@@ -92,7 +92,7 @@ class Scheduler:
         if not detail_parser:  # 直接访问直链, 且配置文件已关闭模块, 把工具类加载起来完成解析
             self._loader.load_utils_module(meta.module)
             detail_parser = self._loader.get_anime_detail_parser(meta.module)
-        logger.debug(f"{detail_parser.__class__.__name__} parsing {meta.detail_url}")
+        logger.info(f"{detail_parser.__class__.__name__} parsing {meta.detail_url}")
         if detail_parser is not None:
             return await detail_parser._parse(meta.detail_url)
         return AnimeDetail()
@@ -100,7 +100,7 @@ class Scheduler:
     async def parse_anime_real_url(self, anime: Anime) -> DirectUrl:
         """解析一集视频的直链"""
         url_parser = self._loader.get_anime_url_parser(anime.module)
-        logger.debug(f"{url_parser.__class__.__name__} parsing {anime.raw_url}")
+        logger.info(f"{url_parser.__class__.__name__} parsing {anime.raw_url}")
         for _ in range(3):  # 3 次解析机会, 再不行就真的不行了
             url = await url_parser._parse(anime.raw_url)
             if url.is_available():
@@ -119,7 +119,7 @@ class Scheduler:
         if not detail_parser:
             self._loader.load_utils_module(meta.module)
             detail_parser = self._loader.get_danmaku_detail_parser(meta.module)
-        logger.debug(f"{detail_parser.__class__.__name__} parsing {meta.play_url}")
+        logger.info(f"{detail_parser.__class__.__name__} parsing {meta.play_url}")
         if detail_parser is not None:
             return await detail_parser._parse(meta.play_url)
         return DanmakuDetail()

@@ -2,7 +2,7 @@ import asyncio
 from os.path import dirname
 
 from quart import Quart, jsonify, request, render_template, \
-    Response, redirect, websocket
+    Response, websocket
 
 from api.config import Config
 from api.core.agent import Agent
@@ -80,7 +80,7 @@ class APIRouter:
                 for info in bangumi:
                     one_day["updates"].append({
                         "title": info.title,
-                        "cover_url": f"{self._domain}/proxy/image/{info.cover_url}",  # 图片一律走代理, 防止浏览器跨域拦截
+                        "cover_url": f"{info.cover_url}",  # 图片一律走代理, 防止浏览器跨域拦截
                         "update_time": info.update_time,
                         "update_to": info.update_to
                     })
@@ -96,7 +96,7 @@ class APIRouter:
             for meta in result:
                 ret.append({
                     "title": meta.title,
-                    "cover_url": f"{self._domain}/proxy/image/{meta.cover_url}",
+                    "cover_url": f"{meta.cover_url}",
                     "category": meta.category,
                     "description": meta.desc,
                     "score": 80,  # TODO: 番剧质量评分机制
@@ -110,7 +110,7 @@ class APIRouter:
             async def push(meta: AnimeMeta):
                 await websocket.send_json({
                     "title": meta.title,
-                    "cover_url": f"{self._domain}/proxy/image/{meta.cover_url}",
+                    "cover_url": f"{meta.cover_url}",
                     "category": meta.category,
                     "description": meta.desc,
                     "score": 80,
@@ -131,7 +131,7 @@ class APIRouter:
 
             ret = {
                 "title": detail.title,
-                "cover_url": f"{self._domain}/proxy/image/{detail.cover_url}",
+                "cover_url": f"{detail.cover_url}",
                 "description": detail.desc,
                 "category": detail.category,
                 "module": detail.module,
@@ -147,27 +147,30 @@ class APIRouter:
                     video_path = f"{token}/{idx}/{episode}"
                     lst["video_list"].append({
                         "name": video.name,
-                        "raw_url": f"{self._domain}/anime/{video_path}",
-                        "proxy_url": f"{self._domain}/proxy/stream/{video_path}",
+                        "info": f"{self._domain}/anime/{video_path}",
                         "player": f"{self._domain}/anime/{video_path}/player",
-                        "proxy_player": f"{self._domain}/proxy/stream/{video_path}/player"
                     })
                 ret["play_lists"].append(lst)
             return jsonify(ret)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>")
-        async def redirect_to_video_real_url(token: str, playlist: int, episode: str):
-            """通过 302 重定向到视频直链"""
+        async def parse_anime_info(token: str, playlist: int, episode: str):
+            """获取视频信息"""
             url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
-            if not url.is_available():
-                return Response(f"Parse video real url failed", status=404)
-            return redirect(url.real_url)
+            info = {
+                "raw_url": url.real_url,
+                "proxy_url": f"{self._domain}/proxy/stream/{token}/{playlist}/{episode}",
+                "format": url.format,
+                "size": url.size,
+                "lifetime": url.left_lifetime
+            }
+            return jsonify(info)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>/player")
         async def player_without_proxy(token, playlist, episode):
             """视频直链播放测试"""
             url = f"{self._domain}/anime/{token}/{playlist}/{episode}"
-            return await render_template("player.html", video_url=url, title="DUrl")
+            return await render_template("player.html", info_url=url)
 
         # ======================== Danmaku Interface ===============================
 
@@ -255,12 +258,6 @@ class APIRouter:
             if not proxy:
                 return Response("stream proxy error", status=404)
             return await proxy.make_response(range_field)
-
-        @self._app.route("/proxy/stream/<token>/<playlist>/<episode>/player")
-        async def player_with_proxy(token, playlist, episode):
-            """视频代理播放测试"""
-            url = f"{self._domain}/proxy/stream/{token}/{playlist}/{episode}"
-            return await render_template("player.html", video_url=url, title="Proxy")
 
         @self._app.route("/proxy/hls/<token>/<playlist>/<episode>")
         async def hls_stream_proxy(token, playlist, episode):

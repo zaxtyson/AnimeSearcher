@@ -126,19 +126,21 @@ class AnimeDetail(object):
         return f"<AnimeDetail {self.title} [{len(self._playlists)}]>"
 
 
-class DirectUrl(object):
+class DirectUrl(HtmlParseHelper):
     """
     直链对象, 保存了链接和有效时间
     """
 
     def __init__(self, url: str = "", lifetime: int = 86400):
+        super().__init__()
         self._url = unquote(url)  # 直链
         self._parse_time = time()  # 解析出直链的时刻
-        self._lifetime = lifetime  # 直链剩余寿命, 单位秒
-        self._extract_lifetime_from_url()
+        self._format = ""  # 视频格式
+        self._lifetime = lifetime
+        self._size = 0.0  # MB
 
     @property
-    def real_url(self):
+    def real_url(self) -> str:
         return self._url
 
     @property
@@ -147,11 +149,32 @@ class DirectUrl(object):
         seconds = int(self._parse_time + self._lifetime - time())
         return seconds if seconds > 0 else 0
 
+    @property
+    def format(self) -> str:
+        """获取视频格式"""
+        return self._format
+
+    @property
+    def size(self) -> float:
+        return self._size
+
     def is_available(self) -> bool:
         """视频直链是有效"""
         return self._url.startswith("http") and self.left_lifetime > 0
 
-    def _extract_lifetime_from_url(self):
+    async def detect_more_info(self):
+        await self.init_session()
+        self._lifetime = await self._detect_lifetime()
+        for _ in range(3):
+            resp = await self.head(self._url, allow_redirects=True)
+            if not resp or resp.status != 200:
+                continue
+            self._format = self._detect_format(resp.content_type)
+            self._size = resp.content_length
+            break
+        await self.close_session()
+
+    async def _detect_lifetime(self):
         """尝试从直链中找到资源失效时间戳, 计算直链寿命"""
         ts_start = int(time() / 1e5)  # 当前时间戳的前5位
         stamps = re.findall(rf"{ts_start}\d{{5}}", self._url)
@@ -159,10 +182,27 @@ class DirectUrl(object):
             lifetime = int(stamp) - int(time())
             if lifetime > 60:  # 有效期大于 1 分钟的算有效
                 logger.info(f"Found timestamp in real url, resource left lifetime: {lifetime}s")
-                self._lifetime = lifetime
+                return lifetime
+        return self._lifetime
+
+    def _detect_format(self, c_type: str):
+        if "m3u8" in self._url:
+            return "hls"
+        if ".flv" in self._url:
+            return "flv"
+        if ".mpd" in self._url:
+            return "dash"
+        # URL 无法判断, 尝试通过 HEAD 读取 Content-Type
+        if not c_type:
+            return "unknown"
+        if c_type in ["application/vnd.apple.mpegurl", "application/x-mpegurl"]:
+            return "hls"
+        if c_type in ["video/mp4", "application/octet-stream"]:
+            return "mp4"
+        return "unknown"
 
     def __repr__(self):
-        return f"<DirectUrl ({self.left_lifetime}s) {self._url}>"
+        return f"<DirectUrl {self._format}|{self._size}|{self.left_lifetime}s {self._url[:30]}...>"
 
 
 class AnimeSearcher(HtmlParseHelper):
@@ -237,6 +277,7 @@ class AnimeUrlParser(HtmlParseHelper):
             if not isinstance(url, DirectUrl):
                 url = DirectUrl(url)  # 方便 parse 直接返回字符串链接
             if url.is_available():  # 解析成功
+                await url.detect_more_info()
                 logger.info(f"Parse success: {url}")
                 return url
             logger.error(f"Parse failed: {url}")

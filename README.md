@@ -6,7 +6,7 @@
 
 ## 简介
 
-通过整合第三方网站的视频和弹幕资源, 提供最舒适的看番体验~
+整合第三方网站的视频和弹幕资源, 提供最舒适的看番追剧体验
 
 番剧、国漫、电影、美剧、日剧、韩剧、泰剧，应有尽有，甚至还可以看 CCTV 和地方卫视台~
 
@@ -14,8 +14,11 @@
 
 自动匹配第三方网站的弹幕, 看番怎能少了弹幕, 就算是白嫖我们也要嫖出 VIP 一般的体验( •̀ ω •́ )✧
 
+我们致力于成为全功能的资源检索工具， 接下来会加入漫画和音乐搜索功能， 敬请期待...
 
 ## 界面
+
+*可能不是最新界面, 请以实物为准（笑）
 
 ![1.png](https://s1.ax1x.com/2020/10/25/BmtcfP.png)
 ![2.png](https://s1.ax1x.com/2020/10/25/BmtBeH.png)
@@ -24,20 +27,63 @@
 ![5.png](https://s1.ax1x.com/2020/10/25/Bmt6Yt.png)
 ![6.png](https://s1.ax1x.com/2020/10/25/BmtDwd.png)
 
+## 下载
+
+> Windows
+
+[蓝奏云下载](https://zaxtyson.lanzous.com/b0f1ukafc)  
+[Gitee国内镜像](https://gitee.com/zaxtyson/AnimeSearcher/releases/1.1.8-fixed)
+
+> Linux/MacOS
+
+```
+git clone https://github.com/zaxtyson/AnimeSearcher.git
+pip3 install requirements.txt
+python3 ui.pyw
+```
+
+## 自建服务器
+
+按注释提示修改 `config.py`
+
+```
+git clone https://github.com/zaxtyson/AnimeSearcher.git
+pip3 install requirements.txt
+nohup python3 app.py &
+```
+
+- 本程序仅为本地运行设计, 在服务器端运行可能存在某些安全隐患, 请留意
+- 如果视频存在防盗链或者存在跨域问题, 会切换至 API 代理, 此时服务器需要从远程读取数据流返回给用户, 
+可能给服务器的带宽造成压力, 请不要公开您的 IP 或者域名
+- API 使用 6001 端口， WebUI 使用 6002 端口， 请确保防火墙或者ECS安全组规则放行这两个端口
+- UI暂未适配移动端， 界面将目前需要等待下一个版本的重构
+
+## 模块扩展
+
+程序目前包括视频、弹幕解析模块, 后面会加入音乐、漫画等解析模块
+
+在 API 的支持下， 您可以很容易的编写一个资源解析模块， 扩展程序的功能
+
+欢迎提交 PR, 但是请提交稳定优质的资源哦 :)
+
+[详情](https://github.com/zaxtyson/Anime-API)
+
+
 ## 维护
+
 - [lozyue](https://github.com/Cangqifeng) : 前端 UI 界面
 - [zaxtyson](https://github.com/zaxtyson) : 后端 API 框架
 
-## 下载
-
-- Linux 用户 clone 后运行 `run.py` 即可
-- Windows 用户[点这里下载](https://zaxtyson.lanzous.com/b0f1ukafc)
-
-## 扩展
-
-如果你有好康的网站, 可以编写资源引擎添加到本项目, [详情](https://github.com/zaxtyson/Anime-API)
+如果有建议或者吐槽, 请找对人哦~~
 
 ## 更新日志
+
+### `v1.2.0`
+
+- API 完全改用异步框架重构, 效率大幅提升
+- UI 改进, 用户体验更佳
+- 修复了几个番剧模块出现的问题, 与源网站保持同步更新
+- 修复了弹幕库的一些问题, 结果更多更准, 过滤了弹幕中无关的内容
 
 ### `v1.1.8`
 

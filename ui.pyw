@@ -4,7 +4,7 @@ import webbrowser
 from threading import Thread
 from tkinter import Tk, Label, CENTER, Button
 
-from app import App
+from api.router import APIRouter
 from config import *
 
 PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -33,14 +33,15 @@ class SimpleUI:
     @staticmethod
     def open_browser():
         """打开一个浏览器窗口"""
-        webbrowser.open(f"{domain}:{web_port}")
+        webbrowser.open(f"{PATH}/web/index.html")
 
     def run(self):
         self.ui.mainloop()
 
 
 if __name__ == '__main__':
-    app = App()
+    app = APIRouter(host, port)
+    app.set_domain(domain)
     ui = SimpleUI()
     Thread(target=app.run, daemon=True).start()
     ui.run()

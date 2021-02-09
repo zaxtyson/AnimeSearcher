@@ -1,7 +1,6 @@
 import re
 
 from api.core.anime import *
-from api.utils.logger import logger
 
 
 class Bimibimi(AnimeSearcher):
@@ -65,11 +64,12 @@ class BimiUrlParser(AnimeUrlParser):
 
         if "parse" in data["data"][0]:  # 如果存在此字段, 说明上面不是最后的直链
             parse_js = data["data"][0]["parse"]  # 这里会有一段 js 用于进一步解析
-            logger.debug(parse_js)
             parse_apis = re.findall(r'"(https?://.+?)"', parse_js)  # 可能存在多个解析接口
             for api in parse_apis:
                 url = api + real_url
-                resp = await self.get(url)
+                resp = await self.get(url, allow_redirects=True)
+                if not resp or resp.status != 200:
+                    return ""
                 json = await resp.json(content_type=None)
                 real_url = json.get("url", "")
                 if real_url:
@@ -79,5 +79,4 @@ class BimiUrlParser(AnimeUrlParser):
         if "quan.qq.com" in real_url:
             resp = await self.head(real_url, allow_redirects=True)
             real_url = resp.url.human_repr()
-
         return real_url
