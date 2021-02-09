@@ -32,7 +32,7 @@
 > Windows
 
 [蓝奏云下载](https://zaxtyson.lanzous.com/b0f1ukafc)  
-[Gitee国内镜像](https://gitee.com/zaxtyson/AnimeSearcher/releases/1.1.8-fixed)
+[Gitee国内镜像](https://gitee.com/zaxtyson/AnimeSearcher/releases)
 
 > Linux/MacOS
 
@@ -48,15 +48,17 @@ python3 ui.pyw
 
 ```
 git clone https://github.com/zaxtyson/AnimeSearcher.git
-pip3 install requirements.txt
+python3.8 -m pip install requirements.txt
 nohup python3 app.py &
 ```
 
+- 请使用 Python3.8+ 运行
 - 本程序仅为本地运行设计, 在服务器端运行可能存在某些安全隐患, 请留意
 - 如果视频存在防盗链或者存在跨域问题, 会切换至 API 代理, 此时服务器需要从远程读取数据流返回给用户, 
 可能给服务器的带宽造成压力, 请不要公开您的 IP 或者域名
-- API 使用 6001 端口， WebUI 使用 6002 端口， 请确保防火墙或者ECS安全组规则放行这两个端口
-- UI暂未适配移动端， 界面将目前需要等待下一个版本的重构
+- API 使用 6001 端口， 请确保防火墙或者ECS安全组规则放行
+- API 提供了的简易播放器, 但是 WebUI 提供了更好交互性的体验, 使用浏览器打开 `web/index.html`, 在主页设置服务器地址即可使用 
+- WebUI 暂未适配移动端， 界面等待下一个版本的重构, 敬请期待
 
 ## 模块扩展
 
@@ -80,9 +82,9 @@ nohup python3 app.py &
 
 ### `v1.2.0`
 
-- API 完全改用异步框架重构, 效率大幅提升
-- UI 改进, 用户体验更佳
-- 修复了几个番剧模块出现的问题, 与源网站保持同步更新
+- API 完全改用异步框架重构, 效率大幅提升, 支持服务器端部署
+- UI 改进, 用户体验更佳, 支持连接远程服务器
+- 修复了几个番剧模块出现的问题, 与源网站同步更新
 - 修复了弹幕库的一些问题, 结果更多更准, 过滤了弹幕中无关的内容
 
 ### `v1.1.8`
