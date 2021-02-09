@@ -118,10 +118,10 @@ class Agent:
         self._anime_db.store(detail, token)  # 解析成功, 缓存起来
         return detail
 
-    async def get_anime_real_url(self, token: str, playlist: int, episode: int) -> DirectUrl:
+    async def get_anime_real_url(self, token: str, playlist: int, episode: int) -> AnimeInfo:
         """获取资源直链, 如果存在未过期的缓存, 使用缓存的值, 否则重新解析"""
         url_token = f"{token}|{playlist}|{episode}"
-        url: DirectUrl = self._anime_db.fetch(url_token)
+        url: AnimeInfo = self._anime_db.fetch(url_token)
         if url and url.is_available():  # 存在缓存且未过期
             logger.info(f"Using cached real url: {url}")
             return url
@@ -135,20 +135,21 @@ class Agent:
                     self._anime_db.store(url, url_token)
                     return url
         # 其它各种情况, 解析失败
-        return DirectUrl()
+        return AnimeInfo()
 
     async def get_anime_proxy(self, token: str, playlist: int, episode: int) -> Optional[StreamProxy]:
         """获取视频数据流代理器对象"""
         proxy_token = f"{token}|{playlist}|{episode}"
         proxy: StreamProxy = self._proxy_db.fetch(proxy_token)
-        if proxy is not None:
+        if proxy and proxy.is_available():  # 缓存的 proxy 对象可用
             return proxy
+
         url = await self.get_anime_real_url(token, int(playlist), int(episode))
         if not url.is_available():
             return
         meta = AnimeMeta.build_from(token)
         proxy_cls = self._scheduler.get_anime_proxy_class(meta)
-        proxy: StreamProxy = proxy_cls(url)
+        proxy: StreamProxy = proxy_cls(url)  # 重新构建一个
         self._proxy_db.store(proxy, proxy_token)
         return proxy
 

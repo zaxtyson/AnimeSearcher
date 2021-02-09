@@ -1,6 +1,6 @@
 from quart import Response, stream_with_context, redirect
 
-from api.core.anime import DirectUrl
+from api.core.anime import AnimeInfo
 from api.core.helper import HtmlParseHelper
 
 __all__ = ["RequestProxy", "StreamProxy"]
@@ -19,7 +19,8 @@ class RequestProxy(HtmlParseHelper):
             return Response("resource maybe not available", status=404)
         data = await resp.read()
         resp_headers = {
-            "Content-Type": resp.content_type
+            "Content-Type": resp.content_type,
+            "Content-Length": resp.content_length
         }
         return Response(data, headers=resp_headers, status=200)
 
@@ -32,9 +33,12 @@ class StreamProxy(HtmlParseHelper):
     代理访问视频数据流, 以绕过资源服务器的防盗链和本地浏览器跨域策略
     """
 
-    def __init__(self, url: DirectUrl):
+    def __init__(self, url: AnimeInfo):
         super().__init__()
-        self._url = url.real_url  # 直链应该有效
+        self._url = url
+
+    def is_available(self):
+        return self._url.is_available()
 
     def set_proxy_headers(self, real_url: str) -> dict:
         """
@@ -62,29 +66,27 @@ class StreamProxy(HtmlParseHelper):
             https://bugs.python.org/issue26509
             https://gitlab.com/pgjones/quart/-/issues/45
         """
-        if self._url.endswith(".m3u8"):  # m3u8 不用代理
-            return redirect(self._url)
+        if self._url.format == "hls":  # m3u8 不用代理
+            return redirect(self._url.real_url)
 
-        await self.init_session()
-        proxy_headers = self._get_proxy_headers(self._url)
+        url = self._url.real_url
+        proxy_headers = self._get_proxy_headers(url)
         if range_field is not None:
             proxy_headers["range"] = range_field
             logger.debug(f"Client request stream range: {range_field}")
 
-        resp = await self.get(self._url, headers=proxy_headers)
+        await self.init_session()
+        resp = await self.get(url, headers=proxy_headers)
         if not resp:
             return Response(b"", status=404)
 
-        if resp.content_type in ["application/vnd.apple.mpegurl", "application/x-mpegurl"]:
-            return redirect(self._url)  # url 不以 m3u8 结尾的跳过 Content-Type 识别
-
-        status = 200
-        if resp.content_type in ["video/mp4", "application/octet-stream"]:
-            status = 206  # 否则无法拖到进度条
+        if self._url.format == "hls":
+            return redirect(url)  # url 不以 m3u8 结尾的跳过 Content-Type 识别
 
         @stream_with_context
         async def stream_iter():
             while chunk := await resp.content.read(4096):
                 yield chunk
 
+        status = 206 if self._url.format == "mp4" else 200  # 否则无法拖到进度条
         return Response(stream_iter(), headers=dict(resp.headers), status=status)

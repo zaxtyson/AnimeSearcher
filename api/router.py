@@ -9,6 +9,7 @@ from api.core.agent import Agent
 from api.core.anime import *
 from api.core.danmaku import *
 from api.core.proxy import RequestProxy
+from api.utils.statistic import Statistics
 
 
 class APIRouter:
@@ -23,6 +24,7 @@ class APIRouter:
         self._agent = Agent()
         self._config = Config()
         self._proxy = RequestProxy()
+        self._stats = Statistics()
 
     def set_domain(self, domain: str):
         """
@@ -62,6 +64,15 @@ class APIRouter:
             with open(file, encoding="utf-8") as f:
                 text = f.read()
             return Response(text, mimetype="text/plain")
+
+        @self._app.route("/statistics")
+        async def statistics():
+            """百度统计转发, 用户体验计划"""
+            return await self._stats.transmit(request)
+
+        @self._app.route("/statistics/<hm_js>")
+        async def get_statistics_js(hm_js):
+            return await self._stats.get_hm_js(request)
 
         # ======================== Anime Interface ===============================
 
@@ -161,6 +172,7 @@ class APIRouter:
                 "raw_url": url.real_url,
                 "proxy_url": f"{self._domain}/proxy/stream/{token}/{playlist}/{episode}",
                 "format": url.format,
+                "resolution": url.resolution,
                 "size": url.size,
                 "lifetime": url.left_lifetime
             }

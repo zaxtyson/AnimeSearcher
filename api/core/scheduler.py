@@ -97,7 +97,7 @@ class Scheduler:
             return await detail_parser._parse(meta.detail_url)
         return AnimeDetail()
 
-    async def parse_anime_real_url(self, anime: Anime) -> DirectUrl:
+    async def parse_anime_real_url(self, anime: Anime) -> AnimeInfo:
         """解析一集视频的直链"""
         url_parser = self._loader.get_anime_url_parser(anime.module)
         logger.info(f"{url_parser.__class__.__name__} parsing {anime.raw_url}")
@@ -107,7 +107,7 @@ class Scheduler:
                 return url
             logger.warning(f"Parse real url failed, retry...")
         logger.warning(f"Parse real url failed 3 times, maybe this resource is not available")
-        return DirectUrl()
+        return AnimeInfo()
 
     def get_anime_proxy_class(self, meta: AnimeMeta) -> Type[StreamProxy]:
         """获取视频代理器类"""

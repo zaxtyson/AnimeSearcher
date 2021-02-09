@@ -9,7 +9,7 @@ from api.core.abc import Tokenizable
 from api.core.helper import HtmlParseHelper
 from api.utils.logger import logger
 
-__all__ = ["Anime", "AnimeMeta", "AnimeDetail", "AnimePlayList", "DirectUrl",
+__all__ = ["Anime", "AnimeMeta", "AnimeDetail", "AnimePlayList", "AnimeInfo",
            "AnimeSearcher", "AnimeDetailParser", "AnimeUrlParser"]
 
 
@@ -126,9 +126,9 @@ class AnimeDetail(object):
         return f"<AnimeDetail {self.title} [{len(self._playlists)}]>"
 
 
-class DirectUrl(HtmlParseHelper):
+class AnimeInfo(HtmlParseHelper):
     """
-    直链对象, 保存了链接和有效时间
+    解析之后的视频, 保存了链接和有效时间等信息
     """
 
     def __init__(self, url: str = "", lifetime: int = 86400):
@@ -137,7 +137,8 @@ class DirectUrl(HtmlParseHelper):
         self._parse_time = time()  # 解析出直链的时刻
         self._format = ""  # 视频格式
         self._lifetime = lifetime
-        self._size = 0.0  # MB
+        self._size = 0
+        self._resolution = "1280x720"
 
     @property
     def real_url(self) -> str:
@@ -158,6 +159,10 @@ class DirectUrl(HtmlParseHelper):
     def size(self) -> float:
         return self._size
 
+    @property
+    def resolution(self) -> str:
+        return self._resolution
+
     def is_available(self) -> bool:
         """视频直链是有效"""
         return self._url.startswith("http") and self.left_lifetime > 0
@@ -171,6 +176,8 @@ class DirectUrl(HtmlParseHelper):
                 continue
             self._format = self._detect_format(resp.content_type)
             self._size = resp.content_length
+            chunk = await resp.content.read(4096)
+            self._resolution = self._detect_resolution(chunk)
             break
         await self.close_session()
 
@@ -192,6 +199,8 @@ class DirectUrl(HtmlParseHelper):
             return "flv"
         if ".mpd" in self._url:
             return "dash"
+        if ".mp4" in self._url:
+            return "mp4"
         # URL 无法判断, 尝试通过 HEAD 读取 Content-Type
         if not c_type:
             return "unknown"
@@ -201,8 +210,16 @@ class DirectUrl(HtmlParseHelper):
             return "mp4"
         return "unknown"
 
+    def _detect_resolution(self, data: bytes) -> str:
+        # TODO: detect video resolution from meta block, MPEG-TS/MPEG-4
+        if self._format == "hls":
+            text = data.decode("utf-8")
+            if ret := re.search(r"RESOLUTION=(\d+x\d+)", text):
+                return ret.group(1)
+        return self._resolution
+
     def __repr__(self):
-        return f"<DirectUrl {self._format}|{self._size}|{self.left_lifetime}s {self._url[:30]}...>"
+        return f"<DirectUrl ({self._format}|{self._size}|{self.left_lifetime}s) {self._url[:30]}...>"
 
 
 class AnimeSearcher(HtmlParseHelper):
@@ -261,29 +278,29 @@ class AnimeUrlParser(HtmlParseHelper):
     视频直链解析器
     """
 
-    async def parse(self, raw_url: str) -> Union[DirectUrl, str]:
+    async def parse(self, raw_url: str) -> Union[AnimeInfo, str]:
         """
         重写此方法以实现直链的解析和有效期提取工作
         :param raw_url: 原始链接
         :return: 视频直链对象(含直链和有效期)
         """
-        return DirectUrl(raw_url)
+        return AnimeInfo(raw_url)
 
-    async def _parse(self, raw_url: str) -> DirectUrl:
+    async def _parse(self, raw_url: str) -> AnimeInfo:
         """解析直链, 捕获引擎模块未处理的异常"""
         try:
             await self.init_session()
             url = await self.parse(raw_url)
-            if not isinstance(url, DirectUrl):
-                url = DirectUrl(url)  # 方便 parse 直接返回字符串链接
+            if not isinstance(url, AnimeInfo):
+                url = AnimeInfo(url)  # 方便 parse 直接返回字符串链接
             if url.is_available():  # 解析成功
                 await url.detect_more_info()
                 logger.info(f"Parse success: {url}")
                 return url
             logger.error(f"Parse failed: {url}")
-            return DirectUrl()
+            return AnimeInfo()
         except Exception as e:
             logger.exception(e)
-            return DirectUrl()
+            return AnimeInfo()
         finally:
             await self.close_session()
