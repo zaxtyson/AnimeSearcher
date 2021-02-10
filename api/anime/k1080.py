@@ -101,15 +101,15 @@ class K1080UrlParser(AnimeUrlParser):
         video_url = unquote(b64decode(player_data.get("url")).decode("utf8"))
         if video_url.endswith(".mp4") or video_url.endswith(".m3u8"):
             return video_url
-        if "app.yiranleng.top" in video_url:
-            return video_url
         if "v.qq.com" in video_url:
             return await self.parse_qq_video(video_url)
-        # 其它需要再重定向一次
-        resp = await self.head(video_url, allow_redirects=True)
-        if not resp or resp.status != 200:
-            return ""
-        return resp.url.human_repr()
+        # 需要再重定向一次
+        if "app.yiranleng.top" in video_url:
+            resp = await self.get(video_url, allow_redirects=True)
+            if not resp or resp.status != 200:  # CDN 回源失败返回了 564
+                return ""
+            return resp.url.human_repr()
+        return video_url
 
     async def parse_qq_video(self, url: str):
         api = f"https://jx.k1080.net/analysis.php?v={url}"

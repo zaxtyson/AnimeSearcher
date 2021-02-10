@@ -1,8 +1,8 @@
 {
   "version": {
-    "tag": "1.2.0",
-    "time": "2021-02-08",
-    "desc": "API框架重构,处理速度大幅加快;修复了几个资源引擎;弹幕库搜索结果增加;UI改进,用户体验更加",
+    "tag": "1.3.0",
+    "time": "2021-02-10",
+    "desc": "- API 完全改用异步框架重构, 效率大幅提升, 支持服务器端部署\n- 修复了几个番剧模块出现的问题, 与源网站同步更新\n- 修复了弹幕库的一些问题, 结果更多更准, 过滤了弹幕中无关的内容\n- UI部分修改,前UI重构时期",
     "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
   },
   "anime": [
@@ -64,7 +64,7 @@
         "泰剧",
         "港剧"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 6
     },
     {
@@ -113,7 +113,7 @@
       "name": "哔咪动漫",
       "notes": "盗版B站, 弹幕还算可以, 响应速度也很快",
       "module": "api.danmaku.bimibimi",
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {

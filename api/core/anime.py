@@ -169,14 +169,15 @@ class AnimeInfo(HtmlParseHelper):
 
     async def detect_more_info(self):
         await self.init_session()
+        logger.info("Detect information of video...")
         self._lifetime = await self._detect_lifetime()
         for _ in range(3):
-            resp = await self.head(self._url, allow_redirects=True)
+            resp = await self.get(self._url, allow_redirects=True)
             if not resp or resp.status != 200:
                 continue
             self._format = self._detect_format(resp.content_type)
             self._size = resp.content_length
-            chunk = await resp.content.read(4096)
+            chunk = await resp.content.read(512)
             self._resolution = self._detect_resolution(chunk)
             break
         await self.close_session()
@@ -219,7 +220,7 @@ class AnimeInfo(HtmlParseHelper):
         return self._resolution
 
     def __repr__(self):
-        return f"<DirectUrl ({self._format}|{self._size}|{self.left_lifetime}s) {self._url[:30]}...>"
+        return f"<AnimeInfo ({self._format}|{self._size}|{self.left_lifetime}s) {self._url[:40]}...>"
 
 
 class AnimeSearcher(HtmlParseHelper):
@@ -290,14 +291,14 @@ class AnimeUrlParser(HtmlParseHelper):
         """解析直链, 捕获引擎模块未处理的异常"""
         try:
             await self.init_session()
-            url = await self.parse(raw_url)
-            if not isinstance(url, AnimeInfo):
-                url = AnimeInfo(url)  # 方便 parse 直接返回字符串链接
-            if url.is_available():  # 解析成功
-                await url.detect_more_info()
-                logger.info(f"Parse success: {url}")
-                return url
-            logger.error(f"Parse failed: {url}")
+            info = await self.parse(raw_url)
+            if not isinstance(info, AnimeInfo):
+                info = AnimeInfo(info)  # 方便 parse 直接返回字符串链接
+            if info.is_available():  # 解析成功
+                await info.detect_more_info()
+                logger.info(f"Parse success: {info}")
+                return info
+            logger.error(f"Parse failed: {info}")
             return AnimeInfo()
         except Exception as e:
             logger.exception(e)

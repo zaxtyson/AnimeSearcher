@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 from api.core.anime import *
 
 
@@ -27,9 +29,14 @@ class Meijuxia(AnimeSearcher):
         resp = await self.post(api, data=payload)
         if not resp or resp.status != 200:
             return
-        data = await resp.json(content_type=None)
-        data = list(filter(lambda x: x["type"] == "vod", data["data"]))[0]
-        for item in data["videos"]:
+        data = []
+        try:
+            data = await resp.json(content_type=None)
+            data = list(filter(lambda x: x["type"] == "vod", data["data"]))[0]
+            data = data["videos"]
+        except JSONDecodeError:  # 没结果的时候, 返回的json格式错误
+            pass
+        for item in data:
             meta = AnimeMeta()
             meta.title = item["vod_name"]
             meta.category = item["vod_type"]
