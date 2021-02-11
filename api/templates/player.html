@@ -1,0 +1,73 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <title>Play Test</title>
+    <link class="dplayer-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/flv.js/dist/flv.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
+</head>
+<style type="text/css">
+    body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+    }
+</style>
+<body>
+<div id="iframe"></div>
+<script type="text/javascript">
+    let player;
+    let videoRawUrl = '';
+    let videoProxyUrl = '';
+    let videoFormat = 'normal';
+
+    function getVideoInfo() {
+        let http = new XMLHttpRequest();
+        http.onload = function () {
+            let data = JSON.parse(this.response);
+            console.log(data);
+            videoRawUrl = data["raw_url"];
+            videoProxyUrl = data["proxy_url"];
+            videoFormat = data["format"];
+        };
+        http.open("GET", "{{ info_url }}", false);
+        http.send();
+    }
+
+    function initPlayer() {
+        player = new DPlayer({
+            container: document.getElementById('iframe'),
+            video: {
+                quality: [
+                    {
+                        name: 'Raw',
+                        url: videoRawUrl,
+                        type: videoFormat,
+                        autoplay: true,
+                        preload: true
+                    },
+                    {
+                        name: 'Proxy',
+                        url: videoProxyUrl,
+                        type: videoFormat,
+                        autoplay: true,
+                        preload: true
+                    },
+                ],
+                defaultQuality: 0
+            }
+        });
+        player.on('canplay', function () {
+            player.play();
+        });
+    }
+
+    getVideoInfo();
+    initPlayer();
+</script>
+</body>
+</html>
