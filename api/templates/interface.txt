@@ -1,0 +1,72 @@
+    Hello, AnimeSearcher!
+
+    本页面是 API 的接口功能摘要, 以便参考
+    如果有任何问题或者建议, 欢迎到 Github Issue 页面讨论
+    如果需要帮助, 请附上系统运行日志发送至我的邮箱
+
+    Email:  zaxtyson@foxmail.com
+    Github: https://github.com/zaxtyson/AnimeSearcher
+    Issues: https://github.com/zaxtyson/AnimeSearcher/issues
+
+
+
+    ===================
+    Anime API Interface
+    ===================
+
+    WS  /anime/search                                       异步视频搜索接口, 通过 Websocket 即时推送搜索结果
+    GET /anime/search/<keyword>                             视频搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
+    GET /anime/<token>                                      剧集详情接口, 返回播放列表等信息
+    GET /anime/<token>/<playlist>/<episode>                 获取视频直链等信息
+    GET /anime/bangumi/updates                              番组表接口, 获取最近更新的番剧信息
+    GET /anime/<token>/<playlist>/<episode>/player          视频播放测试
+
+
+    =====================
+    Danmaku API Interface
+    =====================
+
+    WS  /danmaku/search                                     异步弹幕搜索接口, 通过 Websocket 即时推送搜索结果
+    GET /danmaku/search/<keyword>                           弹幕搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
+    GET /danmaku/<token>                                    弹幕详情接口, 返回弹幕播放列表
+    GET /danmaku/<token>/<episode>/v3/                      弹幕数据接口, 返回一集视频的弹幕(Dplayer格式)
+
+
+    ===================
+    Comic API Interface
+    ===================
+
+    WS  /comic/search                                       异步漫画搜索接口
+    GET /comic/search/<name>                                漫画搜索接口
+    GET /comic/<token>                                      获取漫画详情页信息
+    GET /comic/<token>/<chapter>                            获取一章漫画的信息
+    GET /comic/<token>/<chapter>/<page>                     重定向到本页图片的直链
+    GET /comic/recommends                                   近期热门漫画推荐
+    GET /comic/reader/<token>/<chapter>                     漫画阅读测试
+
+
+    ==============
+    IPTV Interface
+    ==============
+
+    GET /iptv/list                                          获取 IPTV 源列表
+
+
+    ===============
+    Proxy Interface
+    ===============
+
+    GET /proxy/image/<url>                                  代理访问跨域的图片资源
+    GET /proxy/stream/<token>/<playlist>/<episode>          代理普通视频数据流, 用于解决防盗链和跨域问题
+    GET /proxy/hls/<token>/<playlist>/<episode>             代理 HLS 视频数据流, 用于解决防盗链和跨域问题
+
+    ================
+    System Interface
+    ================
+
+    GET /system/logs                                        API 运行日志
+    GET /system/version                                     获取系统版本信息
+    GET /system/clear                                       清空 API 缓存, 返回释放内存大小(KB)
+    GET /system/modules                                     获取引擎模块信息
+    POST /system/modules                                    启用/停用指定的引擎模块
+        <= Json [{"module": "api.xxx.xxx", "enable": true}, ...]
