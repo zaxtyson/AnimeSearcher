@@ -20,6 +20,7 @@ class CacheDB(object):
     def store(self, obj: Any, key: str = None, overwrite: bool = False) -> str:
         """
         存储一个对象, 返回其 key
+
         :param obj: 待存储的对象
         :param key: 若不指定, 随机生成一个运行期间不会重复的 key
         :param overwrite: 存在相同的 key 时是否覆盖

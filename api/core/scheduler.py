@@ -26,9 +26,12 @@ class Scheduler:
     ) -> None:
         """
         异步搜索动漫
+
         :param keyword: 关键词
         :param callback: 处理搜索结果的回调函数
         :param co_callback: 处理搜索结果的协程函数
+
+        如果设置了 callback, 忽视 co_callback
         """
         if not keyword:
             return
@@ -38,7 +41,7 @@ class Scheduler:
             if callback is not None:
                 async for item in searcher._search(keyword):
                     callback(item)  # 每产生一个搜索结果, 通过回调函数处理
-                return  # 如果设置了 callback, 忽视 co_callback
+                return
             if co_callback is not None:
                 async for item in searcher._search(keyword):
                     await co_callback(item)

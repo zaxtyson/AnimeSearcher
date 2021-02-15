@@ -40,8 +40,10 @@
 git clone https://github.com.cnpmjs.org/zaxtyson/AnimeSearcher.git
 cd AnimeSearcher
 pip install -r requirements.txt
-python ui.pyw
+python app.py
 ```
+
+使用浏览器打开 `web/index.html` 即可
 
 ## 自建服务器
 
@@ -82,6 +84,12 @@ nohup python3.8 app.py &
 如果有建议或者吐槽, 请找对人哦~~
 
 ## 更新日志
+
+### `v1.3.1`
+
+- 过滤了 k1080 部分无效视
+- 修复了[弹幕显示区域]设置项无法保持的问题
+- 使用续命大法修复部分源播放途中直链失效的问题
 
 ### `v1.3.0`
 

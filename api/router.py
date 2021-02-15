@@ -208,7 +208,7 @@ class APIRouter:
                 })
             return jsonify(data)
 
-        @self._app.route("/danmaku/search")
+        @self._app.websocket("/danmaku/search")
         async def ws_search_danmaku():
             """搜索番剧弹幕库"""
 

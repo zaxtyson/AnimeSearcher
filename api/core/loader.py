@@ -104,12 +104,16 @@ class ModuleLoader(object):
 
     def change_module_state(self, module: str, enable: bool) -> bool:
         """动态加载/卸载引擎, 并更新配置文件"""
-        if enable:  # 加载引擎
-            self.load_full_module(module)
-            return self._config.update_module_state(module, True)
-        else:  # 卸载引擎
-            self.unload_full_module(module)
-            return self._config.update_module_state(module, False)
+        try:
+            if enable:  # 加载引擎
+                self.load_full_module(module)
+                return self._config.update_module_state(module, True)
+            else:  # 卸载引擎
+                self.unload_full_module(module)
+                return self._config.update_module_state(module, False)
+        except ModuleNotFoundError:
+            logger.error(f"Module not found: {module}")
+            return False
 
     def get_anime_searchers(self) -> List[AnimeSearcher]:
         return list(self._anime_searchers.values())

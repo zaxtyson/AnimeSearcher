@@ -12,8 +12,10 @@ class Danmaku(object):
     """视频的弹幕库, 包含弹幕的 id 信息, 用于进一步解析出弹幕数据"""
 
     def __init__(self):
-        self.name = ""  # 视频名
-        self.cid = ""  # 弹幕 id, 用于解析出弹幕
+        #: 视频名
+        self.name = ""
+        #: 弹幕 id, 用于解析出弹幕
+        self.cid = ""
         self.module = ""
 
     def __repr__(self):
@@ -24,9 +26,12 @@ class DanmakuMeta(Tokenizable):
     """番剧弹幕的元信息, 包含指向播放页的链接, 用于进一步处理"""
 
     def __init__(self):
-        self.title = ""  # 弹幕库名字(番剧名)
-        self.num = 0  # 视频数量
-        self.play_url = ""  # 播放页的链接或者参数
+        #: 弹幕库名字(番剧名)
+        self.title = ""
+        #: 视频数量
+        self.num = 0
+        #: 播放页的链接或者参数
+        self.play_url = ""
         self.module = currentframe().f_back.f_globals["__name__"]
 
     @property
@@ -52,8 +57,10 @@ class DanmakuDetail(object):
     """一部番剧所有视频的 Danmaku 集合"""
 
     def __init__(self):
-        self.title = ""  # 弹幕库名字(番剧名)
-        self.num = 0  # 视频数量
+        #: 弹幕库名字(番剧名)
+        self.title = ""
+        #: 视频数量
+        self.num = 0
         self.module = currentframe().f_back.f_globals["__name__"]
         self._dmk_list: List[Danmaku] = []  # 弹幕对象列表
 
@@ -81,9 +88,9 @@ class DanmakuDetail(object):
 
 class DanmakuData(object):
     """
-    一集视频的弹幕内容
-    按照 Dplayer v1.26.0 格式设计
-    弹幕格式为: [time, pos, color, user, message]
+    一集视频的弹幕内容,
+    按照 Dplayer v1.26.0 格式设计,
+    弹幕格式为: [time, pos, color, user, message],
     距离视频开头的秒数(float), 位置参数(0右边, 1上边, 2底部), 颜色码 10 进制, 用户名, 弹幕内容
     """
 
@@ -94,6 +101,7 @@ class DanmakuData(object):
     def append_bullet(self, time: float, pos: int, color: int, message: str):
         """
         添加一条弹幕
+
         :param time: 此条弹幕出现的时间点(秒)
         :param pos: 弹幕出现的位置(0右边, 1上边, 2底部)
         :param color: 弹幕颜色码(10进制表示)

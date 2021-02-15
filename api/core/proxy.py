@@ -42,8 +42,8 @@ class StreamProxy(HtmlParseHelper):
 
     def set_proxy_headers(self, real_url: str) -> dict:
         """
-        为特定的直链设置代理 Headers, 如果服务器存在防盗链, 可以尝试重写本方法
-        若本方法返回空则使用默认 Headers
+        为特定的直链设置代理 Headers, 如果服务器存在防盗链, 可以尝试重写本方法,
+        若本方法返回空则使用默认 Headers,
         若设置的 Headers 不包含 User-Agent 则随机生成一个
         """
         return {}
@@ -59,13 +59,17 @@ class StreamProxy(HtmlParseHelper):
 
     async def make_response(self, range_field: str = None):
         """
-        读取远程的视频流，并伪装成本地的响应返回给客户端
-        206 连续请求会导致连接中断, asyncio 库在 Windows 平台触发 ConnectionAbortedError
-        偶尔出现 LocalProtocolError, 是 RFC2616 与 RFC7231 HEAD 请求冲突导致
+        读取远程的视频流，并伪装成本地的响应返回给客户端,
+        206 连续请求会导致连接中断, asyncio 库在 Windows 平台触发 ConnectionAbortedError,
+        偶尔出现 LocalProtocolError, 是 RFC2616 与 RFC7231 HEAD 请求冲突导致,
         See:
+
             https://bugs.python.org/issue26509
             https://gitlab.com/pgjones/quart/-/issues/45
         """
+        if self._url.is_available():
+            return Response("resource not available", status=404)
+
         if self._url.format == "hls":  # m3u8 不用代理
             return redirect(self._url.real_url)
 

@@ -98,7 +98,10 @@ class Agent:
             metas.append(_meta)
             await co_callback(_meta)
 
-        await self._scheduler.search_danmaku(keyword, callback=_callback, co_callback=_co_callback)
+        if callback is not None:
+            await self._scheduler.search_danmaku(keyword, callback=_callback)
+        elif co_callback is not None:
+            await self._scheduler.search_danmaku(keyword, co_callback=_co_callback)
         if metas:
             self._danmaku_db.store(metas, keyword)
 

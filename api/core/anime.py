@@ -17,9 +17,11 @@ class Anime(object):
     """单集视频对象"""
 
     def __init__(self, name: str = "", raw_url: str = ""):
-        self.name = name  # 视频名, 比如 "第1集"
-        self.raw_url = raw_url  # 视频原始 url, 可能需要进一步处理
-        self.module = ""  # 用于解析的模块名
+        #: 视频名, 比如 "第1集"
+        self.name = name
+        #: 视频原始 url, 可能需要进一步处理
+        self.raw_url = raw_url
+        self.module = ""
 
     def __repr__(self):
         return f"<Anime {self.name}>"
@@ -29,16 +31,20 @@ class AnimePlayList(object):
     """播放列表"""
 
     def __init__(self):
-        self.name = ""  # 播放列表名, 比如 "播放线路1"
-        self.num = 0  # 视频集数
+        #: 播放列表名, 比如 "播放线路1"
+        self.name = ""
+        #: 视频集数, 不确定时为  -1
+        self.num = 0
         self.module = ""
         self._anime_list: List[Anime] = []
 
     def append(self, anime: Anime):
+        """添加一集视频"""
         self._anime_list.append(anime)
         self.num += 1
 
     def is_empty(self):
+        """播放列表判空"""
         return not self._anime_list
 
     def __iter__(self):
@@ -57,12 +63,18 @@ class AnimeMeta(Tokenizable):
     """
 
     def __init__(self, ):
-        self.title = ""  # 番剧标题
-        self.cover_url = ""  # 封面图片链接
-        self.category = ""  # 番剧的分类
-        self.desc = ""  # 简介信息
-        self.detail_url = ""  # 详情页面的链接或者参数
-        self.module = currentframe().f_back.f_globals["__name__"]  # 当前模块名(调度器使用)
+        #: 番剧标题
+        self.title = ""
+        #: 封面图片链接
+        self.cover_url = ""
+        #: 番剧的分类
+        self.category = ""
+        #: 简介信息
+        self.desc = ""
+        #: 详情页面的链接或者相关参数
+        self.detail_url = ""
+        #: 当前模块名(调度器使用)
+        self.module = currentframe().f_back.f_globals["__name__"]
 
     @property
     def token(self) -> str:
@@ -90,10 +102,14 @@ class AnimeDetail(object):
     """
 
     def __init__(self):
-        self.title = ""  # 番剧标题
-        self.cover_url = ""  # 封面图片链接
-        self.category = ""  # 番剧的分类
-        self.desc = ""  # 番剧的简介信息
+        #: 番剧标题
+        self.title = ""
+        #: 封面图片链接
+        self.cover_url = ""
+        #: 番剧的分类
+        self.category = ""
+        #: 番剧的简介信息
+        self.desc = ""
         # self.filtered = False  # 播放列表是否经过过滤
         self.module = currentframe().f_back.f_globals["__name__"]  # 自动设置当前模块名
         self._playlists: List[AnimePlayList] = []  # 一部番剧可能有多条播放列表
@@ -135,7 +151,7 @@ class AnimeInfo(HtmlParseHelper):
         super().__init__()
         self._url = unquote(url)  # 直链
         self._parse_time = time()  # 解析出直链的时刻
-        self._format = ""  # 视频格式
+        self._format = "unknown"  # 视频格式
         self._lifetime = lifetime
         self._size = 0
         self._resolution = "1280x720"
@@ -231,6 +247,7 @@ class AnimeSearcher(HtmlParseHelper):
     async def search(self, keyword: str) -> AsyncIterator[AnimeMeta]:
         """
         搜索番剧, 提取关键词对应的全部番剧摘要信息
+
         :param keyword: 搜索关键词
         :return: 元素为番剧摘要信息类 AnimeMeta 的异步生成器
         """
@@ -257,6 +274,7 @@ class AnimeDetailParser(HtmlParseHelper):
     async def parse(self, detail_url: str) -> AnimeDetail:
         """
         解析番剧的详情页面, 提取视频播放列表和其它信息
+
         :param detail_url: 详情页面的 URL(可能并不完整)
         :return: 番剧详情信息类 AnimeDetail
         """
@@ -282,6 +300,7 @@ class AnimeUrlParser(HtmlParseHelper):
     async def parse(self, raw_url: str) -> Union[AnimeInfo, str]:
         """
         重写此方法以实现直链的解析和有效期提取工作
+
         :param raw_url: 原始链接
         :return: 视频直链对象(含直链和有效期)
         """

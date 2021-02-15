@@ -74,7 +74,7 @@ class K1080DetailParser(AnimeDetailParser):
         playlist_blocks = self.xpath(html, "//div[@class='tab-content myui-panel_bd']/div")  # 播放列表所在的区域
         playlist_names = self.xpath(html, "//a[@data-toggle='tab']/text()")
         for idx, block in enumerate(playlist_blocks):
-            if playlist_names[idx] == "超清备用":
+            if playlist_names[idx] in ["超清备用", "Y播"]:
                 continue  # m3u8 图片隐写传输数据流, 太麻烦了, 丢弃
             playlist = AnimePlayList()
             playlist.name = playlist_names[idx]
