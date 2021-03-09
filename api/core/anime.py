@@ -190,7 +190,7 @@ class AnimeInfo(HtmlParseHelper):
         if resp and resp.status == 200:
             self._lifetime = await self._detect_lifetime()
             self._format = self._detect_format(resp.content_type)
-            self._size = resp.content_length
+            self._size = resp.content_length or 0
             chunk = await resp.content.read(512)
             self._resolution = self._detect_resolution(chunk)
         else:
@@ -314,9 +314,10 @@ class AnimeUrlParser(HtmlParseHelper):
             info = await self.parse(raw_url)
             if not isinstance(info, AnimeInfo):
                 info = AnimeInfo(info)  # 方便 parse 直接返回字符串链接
+            await info.detect_more_info()
             if info.is_available():  # 解析成功
-                await info.detect_more_info()
                 logger.info(f"Parse success: {info}")
+                logger.info(f"Real url: {info.real_url}")
                 return info
             logger.error(f"Parse failed: {info}")
             return AnimeInfo()

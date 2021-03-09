@@ -171,10 +171,11 @@ class M3U8Proxy(BaseAnimeProxy):
         else:
             return extract_domain(index_url) + '/' + chunk_url
 
-    def fix_chunk_data(self, chunk: bytes) -> bytes:
+    def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
         """
         修复数 m3u8 数据据块, 用于解除数据混淆(比如常见的图片隐写)
 
+        :param url: 数据块的链接
         :param chunk: 数据块的二进制数据
         :return: 修复完成的二进制数据
         """
@@ -206,8 +207,9 @@ class M3U8Proxy(BaseAnimeProxy):
         proxy_headers = self._get_proxy_headers(url)
         resp = await self.get(url, headers=proxy_headers)
         if not resp:
-            return Response("", status=404)
-        return Response(await resp.read(), headers=dict(resp.headers), status=200)
+            return Response(b"", status=404)
+        chunk = self.fix_chunk_data(url, await resp.read())
+        return Response(chunk, headers=dict(resp.headers), status=200)
 
 
 class AnimeProxy(StreamProxy, M3U8Proxy):

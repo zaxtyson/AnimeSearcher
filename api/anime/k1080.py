@@ -94,5 +94,7 @@ class K1080UrlParser(AnimeUrlParser):
 
 class K1080Proxy(AnimeProxy):
 
-    def fix_chunk_data(self, chunk: bytes) -> bytes:
-        return chunk[0x303:]  # 前面是图片数据
+    def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
+        if "gtimg.com" in url:
+            return chunk[0x303:]  # 前面是图片数据
+        return chunk
