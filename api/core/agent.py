@@ -4,7 +4,7 @@ from api.config import Config
 from api.core.anime import *
 from api.core.cache import CacheDB
 from api.core.danmaku import *
-from api.core.proxy import StreamProxy
+from api.core.proxy import AnimeProxy
 from api.core.scheduler import Scheduler
 from api.iptv.iptv import TVSource, get_sources
 from api.update.bangumi import Bangumi
@@ -140,10 +140,10 @@ class Agent:
         # 其它各种情况, 解析失败
         return AnimeInfo()
 
-    async def get_anime_proxy(self, token: str, playlist: int, episode: int) -> Optional[StreamProxy]:
+    async def get_anime_proxy(self, token: str, playlist: int, episode: int) -> Optional[AnimeProxy]:
         """获取视频数据流代理器对象"""
         proxy_token = f"{token}|{playlist}|{episode}"
-        proxy: StreamProxy = self._proxy_db.fetch(proxy_token)
+        proxy: AnimeProxy = self._proxy_db.fetch(proxy_token)
         if proxy and proxy.is_available():  # 缓存的 proxy 对象可用
             return proxy
 
@@ -152,7 +152,7 @@ class Agent:
             return
         meta = AnimeMeta.build_from(token)
         proxy_cls = self._scheduler.get_anime_proxy_class(meta)
-        proxy: StreamProxy = proxy_cls(url)  # 重新构建一个
+        proxy: AnimeProxy = proxy_cls(url)  # 重新构建一个
         self._proxy_db.store(proxy, proxy_token)
         return proxy
 

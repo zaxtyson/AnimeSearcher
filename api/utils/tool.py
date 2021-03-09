@@ -1,9 +1,10 @@
 from base64 import b64encode as _b64encode
 from hashlib import md5 as _md5
+from urllib.parse import urlparse
 
 from zhconv import convert
 
-__all__ = ["convert_to_zh", "convert_to_tw", "md5", "b64encode"]
+__all__ = ["convert_to_zh", "convert_to_tw", "md5", "b64encode", "extract_domain"]
 
 
 def convert_to_zh(text: str) -> str:
@@ -55,3 +56,19 @@ def b64encode(text: str) -> str:
     '5LuO6Zu25byA5aeL55qE5byC5LiW55WM'
     """
     return _b64encode(text.encode("utf-8")).decode("utf-8")
+
+
+def extract_domain(url: str) -> str:
+    """
+    提取 URL 的域名部分
+
+    :param url: 完整域名
+    :return: 域名
+
+    >>> extract_domain("www.foo.bar:6000/foo/bar?a=b")
+    'http://www.foo.bar:6000'
+    """
+    if not url.startswith("http"):
+        url = "http://" + url
+    url = urlparse(url)
+    return url.scheme + "://" + url.netloc

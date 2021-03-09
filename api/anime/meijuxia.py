@@ -1,6 +1,8 @@
 from json import JSONDecodeError
 
 from api.core.anime import *
+from api.core.proxy import AnimeProxy
+from api.utils.tool import extract_domain
 
 
 def encrypt():
@@ -82,3 +84,13 @@ class MeijuxiaDetailParser(AnimeDetailParser):
         """去除简介中的HTML符号"""
         return text.replace("<p>", "").replace("</p>", ""). \
             replace("&middot;", "·").replace("&ldquo;", "")
+
+
+class MeijuxiaProxy(AnimeProxy):
+
+    async def get_m3u8_text(self, index_url: str) -> str:
+        if "dious.cc" in index_url:  # 需要再跳转一次
+            text = await self.read_text(index_url)
+            index_url = extract_domain(index_url) + text.split()[-1]
+
+        return await self.read_text(index_url)

@@ -5,7 +5,7 @@ from typing import Callable, Coroutine, Type
 from api.core.anime import *
 from api.core.danmaku import *
 from api.core.loader import ModuleLoader
-from api.core.proxy import StreamProxy
+from api.core.proxy import AnimeProxy
 from api.utils.logger import logger
 
 
@@ -112,7 +112,7 @@ class Scheduler:
         logger.warning(f"Parse real url failed 3 times, maybe this resource is not available")
         return AnimeInfo()
 
-    def get_anime_proxy_class(self, meta: AnimeMeta) -> Type[StreamProxy]:
+    def get_anime_proxy_class(self, meta: AnimeMeta) -> Type[AnimeProxy]:
         """获取视频代理器类"""
         return self._loader.get_anime_proxy_class(meta.module)
 

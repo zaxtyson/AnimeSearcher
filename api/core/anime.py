@@ -147,14 +147,14 @@ class AnimeInfo(HtmlParseHelper):
     解析之后的视频, 保存了链接和有效时间等信息
     """
 
-    def __init__(self, url: str = "", lifetime: int = 86400):
+    def __init__(self, url: str = "", lifetime: int = 0):
         super().__init__()
         self._url = unquote(url)  # 直链
         self._parse_time = time()  # 解析出直链的时刻
         self._format = "unknown"  # 视频格式
         self._lifetime = lifetime
         self._size = 0
-        self._resolution = "1280x720"
+        self._resolution = "0x0"
 
     @property
     def real_url(self) -> str:
@@ -186,16 +186,15 @@ class AnimeInfo(HtmlParseHelper):
     async def detect_more_info(self):
         await self.init_session()
         logger.info("Detect information of video...")
-        self._lifetime = await self._detect_lifetime()
-        for _ in range(3):
-            resp = await self.get(self._url, allow_redirects=True)
-            if not resp or resp.status != 200:
-                continue
+        resp = await self.get(self._url, allow_redirects=True)
+        if resp and resp.status == 200:
+            self._lifetime = await self._detect_lifetime()
             self._format = self._detect_format(resp.content_type)
             self._size = resp.content_length
             chunk = await resp.content.read(512)
             self._resolution = self._detect_resolution(chunk)
-            break
+        else:
+            self._lifetime = 0  # 多半是资源失效了
         await self.close_session()
 
     async def _detect_lifetime(self):
@@ -207,20 +206,14 @@ class AnimeInfo(HtmlParseHelper):
             if lifetime > 60:  # 有效期大于 1 分钟的算有效
                 logger.info(f"Found timestamp in real url, resource left lifetime: {lifetime}s")
                 return lifetime
-        return self._lifetime
+        return 86400  # 默认资源有效期为一天
 
     def _detect_format(self, c_type: str):
-        if "m3u8" in self._url:
-            return "hls"
-        if ".flv" in self._url:
-            return "flv"
-        if ".mpd" in self._url:
-            return "dash"
-        if ".mp4" in self._url:
-            return "mp4"
-        # URL 无法判断, 尝试通过 HEAD 读取 Content-Type
-        if not c_type:
-            return "unknown"
+        fmt_table = {".m3u8": "hls", ".flv": "flv", ".mpd": "dash", ".mp4": "mp4"}
+        for k, v in fmt_table.items():
+            if k in self._url:
+                return v
+
         if c_type in ["application/vnd.apple.mpegurl", "application/x-mpegurl"]:
             return "hls"
         if c_type in ["video/mp4", "application/octet-stream"]:
@@ -232,7 +225,15 @@ class AnimeInfo(HtmlParseHelper):
         if self._format == "hls":
             text = data.decode("utf-8")
             if ret := re.search(r"RESOLUTION=(\d+x\d+)", text):
-                return ret.group(1)
+                self._resolution = ret.group(1)
+        elif self._format == "mp4":
+            tkhd_box_pos = data.find(b"\x74\x6B\x68\x64")
+            if tkhd_box_pos != -1:
+                start = tkhd_box_pos + 0x4E
+                width = int(data[start:start + 4].hex(), 16)
+                height = int(data[start + 4:start + 8].hex(), 16)
+                self._resolution = f"{width}x{height}"
+                logger.debug(f"Find video resolution in tkhd box(MPEG-4): {self._resolution}")
         return self._resolution
 
     def __repr__(self):

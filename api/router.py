@@ -170,7 +170,7 @@ class APIRouter:
             url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
             info = {
                 "raw_url": f"{self._domain}/anime/{token}/{playlist}/{episode}/url",
-                "proxy_url": f"{self._domain}/proxy/stream/{token}/{playlist}/{episode}",
+                "proxy_url": f"{self._domain}/proxy/anime/{token}/{playlist}/{episode}",
                 "format": url.format,
                 "resolution": url.resolution,
                 "size": url.size,
@@ -182,7 +182,10 @@ class APIRouter:
         async def redirect_to_real_url(token: str, playlist: str, episode: str):
             """重定向到视频直链, 防止直链过期导致播放器无法播放"""
             url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
-            return redirect(url.real_url)
+            if url.is_available():
+                return redirect(url.real_url)
+            else:
+                return Response(f"Resource not available", status=404)
 
         @self._app.route("/anime/<token>/<playlist>/<episode>/player")
         async def player_without_proxy(token, playlist, episode):
@@ -268,20 +271,27 @@ class APIRouter:
             """对跨域图片进行代理访问, 返回数据"""
             return await self._proxy.make_response(raw_url)
 
-        @self._app.route("/proxy/stream/<token>/<playlist>/<episode>")
-        async def video_stream_proxy(token, playlist, episode):
+        @self._app.route("/proxy/anime/<token>/<playlist>/<episode>")
+        async def anime_stream_proxy(token, playlist, episode):
             """代理访问普通的视频数据流"""
-            range_field = request.headers.get("range")
             proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
             if not proxy:
-                return Response("stream proxy error", status=404)
-            return await proxy.make_response(range_field)
+                return Response("proxy error", status=404)
 
-        @self._app.route("/proxy/hls/<token>/<playlist>/<episode>")
-        async def hls_stream_proxy(token, playlist, episode):
-            """代理访问 HLS 视频数据流"""
-            # TODO : implement hls stream proxy
-            return Response("HLS stream proxy not supported yet", status=500)
+            if proxy.get_stream_format() == "hls":  # m3u8 代理
+                proxy.set_chunk_proxy_router(f"{self._domain}/proxy/hls/{token}/{playlist}/{episode}")
+                return await proxy.make_response_for_m3u8()
+            else:  # mp4 代理
+                range_field = request.headers.get("range")
+                return await proxy.make_response_with_range(range_field)
+
+        @self._app.route("/proxy/hls/<token>/<playlist>/<episode>/<path:url>")
+        async def m3u8_chunk_proxy(token, playlist, episode, url):
+            """代理访问视频的某一块数据"""
+            proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
+            if not proxy:
+                return Response("m3u8 chunk proxy error", status=404)
+            return await proxy.make_response_for_chunk(url)
 
         # ======================== System Interface ===============================
 
