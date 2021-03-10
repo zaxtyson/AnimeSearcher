@@ -154,7 +154,7 @@ class AnimeInfo(HtmlParseHelper):
         self._format = "unknown"  # 视频格式
         self._lifetime = lifetime
         self._size = 0
-        self._resolution = "0x0"
+        # self._resolution = "0x0"
 
     @property
     def real_url(self) -> str:
@@ -175,9 +175,9 @@ class AnimeInfo(HtmlParseHelper):
     def size(self) -> float:
         return self._size
 
-    @property
-    def resolution(self) -> str:
-        return self._resolution
+    # @property
+    # def resolution(self) -> str:
+    #     return self._resolution
 
     def is_available(self) -> bool:
         """视频直链是有效"""
@@ -191,8 +191,8 @@ class AnimeInfo(HtmlParseHelper):
             self._lifetime = await self._detect_lifetime()
             self._format = self._detect_format(resp.content_type)
             self._size = resp.content_length or 0
-            chunk = await resp.content.read(512)
-            self._resolution = self._detect_resolution(chunk)
+            # chunk = await resp.content.read(512)
+            # self._resolution = self._detect_resolution(chunk)
         else:
             self._lifetime = 0  # 多半是资源失效了
         await self.close_session()
@@ -220,21 +220,21 @@ class AnimeInfo(HtmlParseHelper):
             return "mp4"
         return "unknown"
 
-    def _detect_resolution(self, data: bytes) -> str:
-        # TODO: detect video resolution from meta block, MPEG-TS/MPEG-4
-        if self._format == "hls":
-            text = data.decode("utf-8")
-            if ret := re.search(r"RESOLUTION=(\d+x\d+)", text):
-                self._resolution = ret.group(1)
-        elif self._format == "mp4":
-            tkhd_box_pos = data.find(b"\x74\x6B\x68\x64")
-            if tkhd_box_pos != -1:
-                start = tkhd_box_pos + 0x4E
-                width = int(data[start:start + 4].hex(), 16)
-                height = int(data[start + 4:start + 8].hex(), 16)
-                self._resolution = f"{width}x{height}"
-                logger.debug(f"Find video resolution in tkhd box(MPEG-4): {self._resolution}")
-        return self._resolution
+    # def _detect_resolution(self, data: bytes) -> str:
+    #     # TODO: detect video resolution from meta block, MPEG-TS/MPEG-4
+    #     if self._format == "hls":
+    #         text = data.decode("utf-8")
+    #         if ret := re.search(r"RESOLUTION=(\d+x\d+)", text):
+    #             self._resolution = ret.group(1)
+    #     elif self._format == "mp4":
+    #         tkhd_box_pos = data.find(b"\x74\x6B\x68\x64")
+    #         if tkhd_box_pos != -1:
+    #             start = tkhd_box_pos + 0x4E
+    #             width = int(data[start:start + 4].hex(), 16)
+    #             height = int(data[start + 4:start + 8].hex(), 16)
+    #             self._resolution = f"{width}x{height}"
+    #             logger.debug(f"Find video resolution in tkhd box(MPEG-4): {self._resolution}")
+    #     return self._resolution
 
     def __repr__(self):
         return f"<AnimeInfo ({self._format}|{self._size}|{self.left_lifetime}s) {self._url[:40]}...>"

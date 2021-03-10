@@ -1,9 +1,9 @@
 {
   "version": {
-      "tag": "1.3.2",
-      "time": "2021-03-09",
-      "desc": "",
-      "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
+    "tag": "1.3.2",
+    "time": "2021-03-09",
+    "desc": "",
+    "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
   },
   "anime": [
     {
@@ -79,7 +79,7 @@
     },
     {
       "name": "1080影视",
-      "notes": "资源丰富， 但是经常被反爬机制阻断",
+      "notes": "资源丰富, 质量真的不错",
       "module": "api.anime.k1080",
       "type": [
         "动漫",
@@ -91,7 +91,17 @@
         "美剧"
       ],
       "enable": true,
-      "quality": 8
+      "quality": 9
+    },
+    {
+      "name": "哔嘀影视",
+      "notes": "资源十分丰富, 质量也很不错",
+      "module": "api.anime.bde4",
+      "type": [
+        "综合"
+      ],
+      "enable": true,
+      "quality": 9
     }
   ],
   "danmaku": [

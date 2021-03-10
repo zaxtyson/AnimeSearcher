@@ -172,7 +172,7 @@ class APIRouter:
                 "raw_url": f"{self._domain}/anime/{token}/{playlist}/{episode}/url",
                 "proxy_url": f"{self._domain}/proxy/anime/{token}/{playlist}/{episode}",
                 "format": url.format,
-                "resolution": url.resolution,
+                # "resolution": url.resolution,
                 "size": url.size,
                 "lifetime": url.left_lifetime
             }
