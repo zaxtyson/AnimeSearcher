@@ -39,7 +39,7 @@ class BDE4(AnimeSearcher):
 
     async def search(self, keyword: str):
         # 只要前两页就行, 剩下的多半是垃圾数据
-        tasks = [self.parse_one_page(keyword, p) for p in range(1, 2)]
+        tasks = [self.parse_one_page(keyword, p) for p in range(1, 3)]
         async for item in self.as_iter_completed(tasks):
             yield item
 
@@ -56,7 +56,8 @@ class BDE4DetailParser(AnimeDetailParser):
         html = await resp.text()
         info = self.xpath(html, '//div[@class="info0"]')[0]
         detail.title = info.xpath("//h2/text()")[0]
-        detail.desc = info.xpath('div[@class="summary"]/text()')[0]
+        desc = "".join(info.xpath('div[@class="summary"]/text()'))
+        detail.desc = desc.replace("\u3000", "").replace("剧情简介：", "").strip()
         detail.cover_url = info.xpath('img/@src')[0]
         playlist = AnimePlayList()
         playlist.name = "在线播放"
