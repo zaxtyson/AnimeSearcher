@@ -181,11 +181,12 @@ class APIRouter:
         @self._app.route("/anime/<token>/<playlist>/<episode>/url")
         async def redirect_to_real_url(token: str, playlist: str, episode: str):
             """重定向到视频直链, 防止直链过期导致播放器无法播放"""
-            url = await self._agent.get_anime_real_url(token, int(playlist), int(episode))
-            if url.is_available():
-                return redirect(url.real_url)
-            else:
-                return Response(f"Resource not available", status=404)
+            proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
+            if not proxy or not proxy.is_available():
+                return Response("Resource not available", status=404)
+            if proxy.is_enforce_proxy():  # 该资源启用了强制代理
+                return redirect(f"/proxy/anime/{token}/{playlist}/{episode}")
+            return redirect(proxy.get_real_url())
 
         @self._app.route("/anime/<token>/<playlist>/<episode>/player")
         async def player_without_proxy(token, playlist, episode):

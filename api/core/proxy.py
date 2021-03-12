@@ -65,6 +65,31 @@ class BaseAnimeProxy(HttpProxy):
     def get_stream_format(self) -> str:
         return self._info.format
 
+    def get_url_info(self) -> AnimeInfo:
+        """获取资源信息"""
+        return self._info
+
+    def get_real_url(self) -> str:
+        """获取被代理的资源直链"""
+        if self.is_available():
+            return self._info.real_url
+        return ""
+
+    def enforce_proxy(self, url: str) -> bool:
+        """
+        对于某些已知的无法直接访问的资源, 强制代理其流量
+
+        :param url: 资源的链接
+        :return: 是否强制代理
+        """
+        return False
+
+    def is_enforce_proxy(self) -> bool:
+        if self.enforce_proxy(self.get_real_url()):
+            logger.info(f"Forced proxy the video stream: {self.get_real_url()}")
+            return True
+        return False
+
 
 class StreamProxy(BaseAnimeProxy):
     """

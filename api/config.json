@@ -7,16 +7,6 @@
   },
   "anime": [
     {
-      "name": "樱花动漫",
-      "notes": "网站早上和晚上经常宕机, 响应速度慢， 不建议启用",
-      "module": "api.anime.yhdm",
-      "type": [
-        "动漫"
-      ],
-      "enable": false,
-      "quality": 6
-    },
-    {
       "name": "ZzzFun",
       "notes": "资源质量还行， 响应速度快",
       "module": "api.anime.zzzfun",
@@ -51,6 +41,42 @@
       "quality": 8
     },
     {
+      "name": "哔嘀影视",
+      "notes": "资源十分丰富, 质量也很不错",
+      "module": "api.anime.bde4",
+      "type": [
+        "综合"
+      ],
+      "enable": true,
+      "quality": 9
+    },
+    {
+      "name": "1080影视",
+      "notes": "资源丰富, 质量真的不错",
+      "module": "api.anime.k1080",
+      "type": [
+        "动漫",
+        "电影",
+        "综艺",
+        "港剧",
+        "日剧",
+        "韩剧",
+        "美剧"
+      ],
+      "enable": true,
+      "quality": 9
+    },
+    {
+      "name": "樱花动漫",
+      "notes": "网站早上和晚上经常宕机, 响应速度慢， 不建议启用",
+      "module": "api.anime.yhdm",
+      "type": [
+        "动漫"
+      ],
+      "enable": false,
+      "quality": 6
+    },
+    {
       "name": "美剧侠",
       "notes": "大杂烩，啥都有, 很多无效资源",
       "module": "api.anime.meijuxia",
@@ -76,32 +102,6 @@
       ],
       "enable": false,
       "quality": 5
-    },
-    {
-      "name": "1080影视",
-      "notes": "资源丰富, 质量真的不错",
-      "module": "api.anime.k1080",
-      "type": [
-        "动漫",
-        "电影",
-        "综艺",
-        "港剧",
-        "日剧",
-        "韩剧",
-        "美剧"
-      ],
-      "enable": true,
-      "quality": 9
-    },
-    {
-      "name": "哔嘀影视",
-      "notes": "资源十分丰富, 质量也很不错",
-      "module": "api.anime.bde4",
-      "type": [
-        "综合"
-      ],
-      "enable": true,
-      "quality": 9
     }
   ],
   "danmaku": [

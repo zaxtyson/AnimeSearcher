@@ -98,3 +98,8 @@ class K1080Proxy(AnimeProxy):
         if "gtimg.com" in url:
             return chunk[0x303:]  # 前面是图片数据
         return chunk
+
+    def enforce_proxy(self, url: str) -> bool:
+        if "byingtime.com" in url:
+            return True
+        return False

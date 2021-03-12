@@ -7,41 +7,30 @@ from api.core.proxy import AnimeProxy
 
 class BDE4(AnimeSearcher):
 
-    async def fetch_html(self, keyword: str, page: int):
-        api = f"https://bde4.cc/search/{keyword}/{page}"
+    async def search(self, keyword: str):
+        api = f"https://bde4.cc/search/{keyword}/1"  # 只要第一页数据, 垃圾数据太多
         resp = await self.get(api)
         if not resp or resp.status != 200:
-            return ""
-        return await resp.text()
-
-    def parse_anime_metas(self, keyword: str, html: str):
-        ret = []
+            return
+        html = await resp.text()
         meta_list = self.xpath(html, '//div[@class="card"]')
         if not meta_list:
-            return ret
+            return
+
         for meta in meta_list:
-            title = "".join(meta.xpath('div[@class="content"]/a//text()')[1:])
-            if keyword not in title:
-                continue  # 无关结果一大堆
+            content = meta.xpath('div[@class="content"]')[0]
+            title = content.xpath('a[@class="header"]/@title')[0]
+            info = "|".join(content.xpath('div[@class="description"]//text()'))
+            if keyword not in title or "◎" in info:
+                continue  # 无关结果或者无法播放的老旧资源
             anime = AnimeMeta()
-            anime.title = title.replace('《', '').replace('》', '')
+            anime.title = title
+            cat_str = re.search(r'类型:\s?(.+?)\|', info)
+            cat_str = cat_str.group(1) if cat_str else ""
+            anime.category = cat_str.replace("\xa0", "").replace(" / ", "/")
             anime.cover_url = meta.xpath("a/img/@src")[0]
-            info = meta.xpath('//div[@class="description"]/text()')
-            anime.category = info[3].replace("类型:\xa0", "")
-            anime.detail_url = meta.xpath('//a[@class="header"]/@href')[0].split(";")[0]
-            ret.append(anime)
-        return ret
-
-    async def parse_one_page(self, keyword: str, page: int):
-        # 网站搜索的关键词匹配功能有 bug, 搜索结果后面会返回各种无关视频
-        html = await self.fetch_html(keyword, page)
-        return self.parse_anime_metas(keyword, html)
-
-    async def search(self, keyword: str):
-        # 只要前两页就行, 剩下的多半是垃圾数据
-        tasks = [self.parse_one_page(keyword, p) for p in range(1, 3)]
-        async for item in self.as_iter_completed(tasks):
-            yield item
+            anime.detail_url = meta.xpath('a[@class="image"]/@href')[0].split(";")[0]
+            yield anime
 
 
 class BDE4DetailParser(AnimeDetailParser):
@@ -55,7 +44,9 @@ class BDE4DetailParser(AnimeDetailParser):
 
         html = await resp.text()
         info = self.xpath(html, '//div[@class="info0"]')[0]
-        detail.title = info.xpath("//h2/text()")[0]
+        title = info.xpath("//h2/text()")[0]
+        title_ = re.search(r'《(.+?)》', title)
+        detail.title = title_.group(1) if title_ else title
         desc = "".join(info.xpath('div[@class="summary"]/text()'))
         detail.desc = desc.replace("\u3000", "").replace("剧情简介：", "").strip()
         detail.cover_url = info.xpath('img/@src')[0]
@@ -79,12 +70,28 @@ class BDE4UrlParser(AnimeUrlParser):
         if not resp or resp.status != 200:
             return ""
         html = await resp.text()
-        url = re.search(r"(http.+?\.m3u8)", html).group(1)
-        url = url.replace(r"\/", "/")
-        return url
+        m3u8_url = re.search(r"(http.+?\.m3u8)", html)
+        if m3u8_url:
+            return m3u8_url.group(1).replace(r"\/", "/")
+        # 没有 m3u8 视频, 还需要跳转一次
+        token = re.search(r'ptoken\s?=\s?"(\w+?)"', html)
+        if not token:
+            return ""  # 没搞头
+        token = token.group(1)
+        next_url = f"https://bde4.cc/god/{token}?sg="
+        resp = await self.get(next_url, allow_redirects=True)
+        if not resp or resp.status != 200:
+            return ""
+        data = await resp.json(content_type=None)
+        return data.get("url", "")
 
 
 class BDE4Proxy(AnimeProxy):
+
+    def enforce_proxy(self, url: str) -> bool:
+        if url.endswith(".m3u8"):
+            return True  # 正常访问行不通, 强制代理
+        return False
 
     async def get_m3u8_text(self, index_url: str) -> str:
         data = await self.read_data(index_url)
