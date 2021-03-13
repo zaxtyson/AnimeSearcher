@@ -206,6 +206,9 @@ class AnimeInfo(HtmlParseHelper):
             if lifetime > 60:  # 有效期大于 1 分钟的算有效
                 logger.info(f"Found timestamp in real url, resource left lifetime: {lifetime}s")
                 return lifetime
+
+        if self._lifetime != 0:
+            return self._lifetime
         return 86400  # 默认资源有效期为一天
 
     def _detect_format(self, c_type: str):

@@ -83,7 +83,12 @@ class BDE4UrlParser(AnimeUrlParser):
         if not resp or resp.status != 200:
             return ""
         data = await resp.json(content_type=None)
-        return data.get("url", "")
+        url = data.get("url", "")
+        if "?rkey=" in url:
+            # 该链接访问后立刻失效, url会发生细微变化(rkey几个大小变化)
+            # H.265 编码的视频, 可能网页端无法播放
+            return AnimeInfo(url=url, lifetime=10)
+        return AnimeInfo(url=url)
 
 
 class BDE4Proxy(AnimeProxy):

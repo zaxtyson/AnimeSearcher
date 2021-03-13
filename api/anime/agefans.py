@@ -37,7 +37,7 @@ class AgeFans(AnimeSearcher):
             meta.title = item["R动画名称"]
             meta.category = " ".join(item["R剧情类型"])
             meta.desc = item["R简介"]
-            meta.cover_url = "http:" + item["R封面图小"]
+            meta.cover_url = item["R封面图小"]
             meta.detail_url = item["AID"]
             result.append(meta)
         return result

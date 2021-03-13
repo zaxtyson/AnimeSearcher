@@ -71,7 +71,7 @@
 
         player.on("error", function () {
             errorCount++;
-            if (errorCount > 5) {
+            if (errorCount > 3) {
                 console.error('Maybe resource not available');
                 return;
             }
