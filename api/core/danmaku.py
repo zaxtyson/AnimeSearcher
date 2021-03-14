@@ -149,8 +149,6 @@ class DanmakuSearcher(HtmlParseHelper):
         except Exception as e:
             logger.exception(e)
             return
-        finally:
-            await self.close_session()
 
 
 class DanmakuDetailParser(HtmlParseHelper):
@@ -165,8 +163,6 @@ class DanmakuDetailParser(HtmlParseHelper):
         except Exception as e:
             logger.exception(e)
             return DanmakuDetail()
-        finally:
-            await self.close_session()
 
 
 class DanmakuDataParser(HtmlParseHelper):
@@ -185,5 +181,3 @@ class DanmakuDataParser(HtmlParseHelper):
         except Exception as e:
             logger.exception(e)
             return DanmakuData()
-        finally:
-            await self.close_session()

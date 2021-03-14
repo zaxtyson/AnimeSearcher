@@ -12,10 +12,15 @@ class AgeFans(AnimeSearcher):
         pages = first_page["SeaCnt"] // 24 + 1
         if pages == 1:
             return  # 如果存在多页就继续
-        tasks = [self.parse_one_page(await self.fetch_one_page(keyword, p))
-                 for p in range(2, pages + 1)]
+        tasks = [self.process_one_page(keyword, p) for p in range(2, pages + 1)]
         async for meta in self.as_iter_completed(tasks):
             yield meta
+
+    async def process_one_page(self, keyword: str, page: int):
+        data = await self.fetch_one_page(keyword, page)
+        if not data:
+            return []
+        return self.parse_one_page(data)
 
     async def fetch_one_page(self, keyword: str, page: int):
         api = f"https://api.agefans.app/v2/search?page={page}&query={keyword}"

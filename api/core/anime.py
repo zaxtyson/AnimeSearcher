@@ -260,14 +260,13 @@ class AnimeSearcher(HtmlParseHelper):
     async def _search(self, keyword: str) -> AsyncIterator[AnimeMeta]:
         """本方法由引擎管理器负责调用, 创建 session, 捕获异常并记录"""
         try:
+            await self._before_init()
             await self.init_session()
             async for item in self.search(keyword):
                 yield item
         except Exception as e:
             logger.exception(e)
             return
-        finally:
-            await self.close_session()
 
 
 class AnimeDetailParser(HtmlParseHelper):
@@ -287,13 +286,12 @@ class AnimeDetailParser(HtmlParseHelper):
     async def _parse(self, detail_url: str) -> AnimeDetail:
         """本方法由引擎管理器负责调用, 创建 session, 捕获异常并记录"""
         try:
+            await self._before_init()
             await self.init_session()
             return await self.parse(detail_url)
         except Exception as e:
             logger.exception(e)
             return AnimeDetail()
-        finally:
-            await self.close_session()
 
 
 class AnimeUrlParser(HtmlParseHelper):
@@ -313,6 +311,7 @@ class AnimeUrlParser(HtmlParseHelper):
     async def _parse(self, raw_url: str) -> AnimeInfo:
         """解析直链, 捕获引擎模块未处理的异常"""
         try:
+            await self._before_init()
             await self.init_session()
             info = await self.parse(raw_url)
             if not isinstance(info, AnimeInfo):
@@ -327,5 +326,3 @@ class AnimeUrlParser(HtmlParseHelper):
         except Exception as e:
             logger.exception(e)
             return AnimeInfo()
-        finally:
-            await self.close_session()

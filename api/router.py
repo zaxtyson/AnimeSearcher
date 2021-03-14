@@ -1,4 +1,5 @@
 import asyncio
+import os
 from os.path import dirname
 
 from quart import Quart, jsonify, request, render_template, \
@@ -41,6 +42,8 @@ class APIRouter:
 
         self._init_routers()
         # 为了解决事件循环内部出现的异常
+        if os.name == "nt":
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         loop = asyncio.new_event_loop()
         loop.set_exception_handler(exception_handler)
         asyncio.set_event_loop(loop)

@@ -1,6 +1,6 @@
 import json
 from os.path import dirname
-from typing import List
+from typing import List, Any
 
 from api.core.abc import singleton
 from api.utils.logger import logger
@@ -28,6 +28,9 @@ class Config:
         logger.info(f"Save config to {self._file}")
         with open(self._file, "w", encoding="utf-8") as f:
             json.dump(self._dict, f, indent=4, ensure_ascii=False)
+
+    def get(self, key: str) -> Any:
+        return self._dict.get(key)
 
     def get_version(self) -> dict:
         """系统版本信息"""
