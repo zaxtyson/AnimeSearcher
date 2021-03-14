@@ -26,11 +26,9 @@ class Youku(DanmakuSearcher):
             meta = DanmakuMeta()
             meta.title = info["titleDTO"]["displayName"].replace("\t", "")
             play_url = info["leftButtonDTO"]["action"]["value"]
-            if not play_url:
-                continue
-            if meta.play_url and ("youku.com" not in meta.play_url):
+            if "youku.com" not in play_url:
                 continue  # 有时候返回 qq 的播放链接, 有时候该字段为 null, 我的老天爷
-            meta.play_url = play_url.replace("https://v.youku.com/v_show/", "")  # 缩短一点
+            meta.play_url = play_url
             num = re.search(r"(\d+?)集", info.get("stripeBottom", ""))  # 该字段可能不存在
             meta.num = int(num.group(1)) if num else 0
             yield meta
@@ -41,7 +39,6 @@ class YoukuDanmakuDetailParser(DanmakuDetailParser):
     async def parse(self, play_url: str):
         """获取视频详情"""
         detail = DanmakuDetail()
-        play_url = "https://v.youku.com/v_show/" + play_url
         resp = await self.get(play_url)
         if not resp or resp.status != 200:
             return detail

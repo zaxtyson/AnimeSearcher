@@ -88,9 +88,11 @@ nohup python3.8 app.py &
 ### `v1.4.0`
 
 - 支持 HLS 格式视频流量代理, 支持混淆流量解码
-- 新增引擎 `哔嘀影视(bde4)`
-- 修复引擎 `k1080`, `meijuxia`, 与官方保存同步更新
+- 新增视频搜索引擎 `哔嘀影视(bde4)`
+- 新增弹幕搜索引擎 `爱奇艺(iqiyi)`
+- 修复引擎 `k1080`, `meijuxia`, 与官方保存同步
 - 修复 `优酷(youku)` 弹幕搜索无结果的问题
+- 修复 `哔哩哔哩(bilibili)` 120分钟之后无弹幕的问题[#9](https://github.com/zaxtyson/AnimeSearcher/issues/9)
 
 ### `v1.3.1`
 

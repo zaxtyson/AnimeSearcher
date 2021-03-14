@@ -24,7 +24,7 @@ class HtmlParseHelper:
         初始化 ClientSession, 使用 get/post/head 方法之前需要调用一次,
         ClientSession 内部维护了连接池, 因此不建议每一个请求创建一个 session,
         这里默认为每一个类创建一个 persistent session, 或者手动设置一个, 以实现复用,
-        在 __init__ 中初始化 session 会出现 warning, 官方在 aiohttp 4.0 之后将只允许在协程中创建 session,
+        在 __init__.py 中初始化 session 会出现 warning, 官方在 aiohttp 4.0 之后将只允许在协程中创建 session,
         See:
 
             https://github.com/aio-libs/aiohttp/issues/3658
@@ -105,6 +105,17 @@ class HtmlParseHelper:
             return None
         try:
             return etree.HTML(html).xpath(xpath)
+        except Exception as e:
+            logger.exception(e)
+            return None
+
+    @staticmethod
+    def xml_xpath(xml_text: Any, xpath: str) -> Optional[etree.Element]:
+        """支持 XPath 方便处理 Xml"""
+        if not xml_text:
+            return None
+        try:
+            return etree.XML(xml_text).xpath(xpath)
         except Exception as e:
             logger.exception(e)
             return None

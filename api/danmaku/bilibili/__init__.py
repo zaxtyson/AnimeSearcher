@@ -1,7 +1,10 @@
 import re
 from json import loads
 
+from google.protobuf.json_format import MessageToDict
+
 from api.core.danmaku import *
+from . import danmaku_pb2
 
 
 class BiliBili(DanmakuSearcher):
@@ -87,7 +90,7 @@ class BiliDanmakuDetailParser(DanmakuDetailParser):
             for ep in ep_list:
                 danmaku = Danmaku()
                 danmaku.name = ep["titleFormat"] + ep["longTitle"]
-                danmaku.cid = str(ep["cid"])  # cid 号
+                danmaku.cid = f'{ep["cid"]}|{ep["aid"]}'  # 新版api需要两个参数
                 detail.append(danmaku)
             return detail
         # 用户上传的视频
@@ -95,7 +98,7 @@ class BiliDanmakuDetailParser(DanmakuDetailParser):
         for ep in ep_list:  # 用户上传的视频
             danmaku = Danmaku()
             danmaku.name = ep.get("part") or ep.get("from")
-            danmaku.cid = str(ep["cid"])  # cid 号
+            danmaku.cid = f'{ep["cid"]}|{ep["aid"]}'
             detail.append(danmaku)
         return detail
 
@@ -104,18 +107,41 @@ class BiliDanmakuDataParser(DanmakuDataParser):
 
     async def parse(self, cid: str) -> DanmakuData:
         result = DanmakuData()
-        api = "https://api.bilibili.com/x/v1/dm/list.so"
-        params = {"oid": cid}
-        resp = await self.get(api, params)
+        cid, aid = cid.split('|')
+        info_api_v2 = f"https://api.bilibili.com/x/v2/dm/web/view"
+        params = {"oid": cid, "pid": aid, "type": 1}
+        resp = await self.get(info_api_v2, params)
         if not resp or resp.status != 200:
             return result
-        xml_text = await resp.text()
-        bullets = re.findall(r'p="(\d+\.?\d*?),\d,\d\d,(\d+?),\d+,(\d),.+?>(.+?)</d>', xml_text)
-        for bullet in bullets:
+
+        data = await resp.read()
+        pb2 = danmaku_pb2.DanmakuInfo()
+        pb2.ParseFromString(data)
+        data = MessageToDict(pb2)
+        total = int(data["seg"]["total"])
+        tasks = [self.get_one_page_bullet(params, p) for p in range(1, total + 1)]
+        async for ret in self.as_iter_completed(tasks):
+            result.append(ret)
+        result.data.sort(key=lambda x: x[0], reverse=True)
+        return result
+
+    async def get_one_page_bullet(self, params: dict, page: int):
+        result = DanmakuData()
+        data_api_v2 = "https://api.bilibili.com/x/v2/dm/web/seg.so"
+        params = params.copy()
+        params.update({"segment_index": page})
+        resp = await self.get(data_api_v2, params=params)
+        if not resp or resp.status != 200:
+            return result
+        data = await resp.read()
+        pb2 = danmaku_pb2.DanmakuData()
+        pb2.ParseFromString(data)
+        data = MessageToDict(pb2)
+        for bullet in data["bullet"]:
             result.append_bullet(
-                time=float(bullet[0]),
-                pos=int(bullet[2]),
-                color=int(bullet[1]),
-                message=bullet[3]
+                time=bullet.get("progress", 0) / 1000,
+                pos=bullet["mode"],
+                color=bullet["color"],
+                message=bullet["content"]
             )
         return result

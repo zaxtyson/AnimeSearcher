@@ -43,7 +43,7 @@ class DanmakuMeta(Tokenizable):
 
     @classmethod
     def build_from(cls, token: str) -> "DanmakuMeta":
-        name, play_url = b16decode(token.upper()).decode("utf-8").split("|")
+        name, play_url = b16decode(token.upper()).decode("utf-8").split("|", 1)
         meta = DanmakuMeta()
         meta.module = "api.danmaku." + name
         meta.play_url = play_url

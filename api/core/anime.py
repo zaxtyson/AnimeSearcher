@@ -86,7 +86,7 @@ class AnimeMeta(Tokenizable):
     @classmethod
     def build_from(cls, token: str) -> "AnimeMeta":
         """使用 token 构建一个不完整但可以被解析的 AnimeMeta 对象"""
-        name, detail_url = b16decode(token.upper()).decode("utf-8").split("|")
+        name, detail_url = b16decode(token.upper()).decode("utf-8").split("|", 1)
         meta = AnimeMeta()
         meta.module = "api.anime." + name
         meta.detail_url = detail_url

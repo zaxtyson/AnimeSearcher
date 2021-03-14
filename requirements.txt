@@ -25,3 +25,4 @@ Werkzeug==1.0.1
 wsproto==1.0.0
 yarl==1.6.3
 zhconv==1.4.1
+protobuf==3.15.6
