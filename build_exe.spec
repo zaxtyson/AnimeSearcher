@@ -9,7 +9,12 @@ block_cipher = None
 # 繁简体转换库 zhconv 中的 json 路径
 zhconv_data_path = 'zhconv/zhcdict.json'
 
-a = Analysis(['ui.pyw'],
+AnalysisList = [
+    'ui.pyw',
+    'api/danmaku/bilibili/__init__.py'  # 否则找不到模块 google.protobuf
+    ]
+
+a = Analysis(AnalysisList,
              pathex=['.'],
              datas=[
                 ('web','web'),

@@ -6,7 +6,7 @@ class Bahamut(DanmakuSearcher):
     """台湾动漫站巴哈姆特, 返回结果会转换为简体中文"""
 
     async def search(self, keyword: str):
-        api = "http://ani.gamer.com.tw/search.php"
+        api = "https://ani.gamer.com.tw/search.php"
         keyword = convert_to_tw(keyword)  # 使用繁体搜索, 否则没什么结果
         resp = await self.get(api, params={"kw": keyword})
         if not resp or resp.status != 200:
@@ -26,7 +26,7 @@ class Bahamut(DanmakuSearcher):
 class BahamutDetailParser(DanmakuDetailParser):
 
     async def parse(self, play_url: str):
-        api = "http://ani.gamer.com.tw/animeRef.php"
+        api = "https://ani.gamer.com.tw/animeRef.php"
         sn = play_url.split("=")[-1]  # 111487
         detail = DanmakuDetail()
         resp = await self.get(api, params={"sn": sn}, allow_redirects=True)  # 这里有一次重定向
@@ -57,7 +57,7 @@ class BahamutDetailParser(DanmakuDetailParser):
 class BahamutDanmakuDataParser(DanmakuDataParser):
 
     async def parse(self, cid: str):
-        api = "http://ani.gamer.com.tw/ajax/danmuGet.php"
+        api = "https://ani.gamer.com.tw/ajax/danmuGet.php"
         result = DanmakuData()
         resp = await self.post(api, data={"sn": cid})
         if not resp or resp.status != 200:

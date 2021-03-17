@@ -81,7 +81,7 @@ class BiliDanmakuDetailParser(DanmakuDetailParser):
             return detail
 
         html = await resp.text()
-        data_json = re.search(r"window.__INITIAL_STATE__=({.+?\});\(function\(\)", html)
+        data_json = re.search(r"window.__INITIAL_STATE__=({.+?});\(function\(\)", html)
         data_json = loads(data_json.group(1))
         ep_list = data_json.get("epList")  # 官方番剧数据
         if not ep_list and data_json.get("sections"):
@@ -95,10 +95,11 @@ class BiliDanmakuDetailParser(DanmakuDetailParser):
             return detail
         # 用户上传的视频
         ep_list = data_json.get("videoData").get("pages")
+        aid = data_json.get("aid")
         for ep in ep_list:  # 用户上传的视频
             danmaku = Danmaku()
             danmaku.name = ep.get("part") or ep.get("from")
-            danmaku.cid = f'{ep["cid"]}|{ep["aid"]}'
+            danmaku.cid = f'{ep["cid"]}|{aid}'
             detail.append(danmaku)
         return detail
 
@@ -144,7 +145,7 @@ class BiliDanmakuDataParser(DanmakuDataParser):
             result.append_bullet(
                 time=bullet.get("progress", 0) / 1000,
                 pos=pos_fix.get(bullet["mode"], 0),
-                color=bullet["color"],
-                message=bullet["content"]
+                color=bullet.get("color", 16777215),
+                message=bullet.get("content", "")
             )
         return result

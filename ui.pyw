@@ -4,6 +4,7 @@ import webbrowser
 from threading import Thread
 from tkinter import Tk, Label, CENTER, Button
 
+from api.config import Config
 from api.router import APIRouter
 from config import *
 
@@ -26,7 +27,10 @@ class SimpleUI:
         position = '%dx%d+%d+%d' % (width, height, (screen_width - width) / 2, (screen_height - height) / 2)
         self.ui.geometry(position)
         self.ui.resizable(width=False, height=False)
-        Label(self.ui, text="后台服务正在运行, 请不要关闭此窗口", justify=CENTER, pady=50).pack()
+        tag = Config().get("version").get("tag")
+        Label(self.ui, text=f"当前版本: {tag}", justify=CENTER, pady=20).pack()
+        Label(self.ui, text="后台服务正在运行, 请不要关闭此窗口", justify=CENTER).pack()
+        Label(self.ui, text="", pady=10).pack()
         btn = Button(self.ui, text="[ 打开浏览器 ]", relief="groove", command=self.open_browser)
         btn.pack()
 
