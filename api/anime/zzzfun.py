@@ -2,6 +2,7 @@ import time
 from hashlib import md5
 
 from api.core.anime import *
+from api.core.proxy import AnimeProxy
 
 
 class ZZZFun(AnimeSearcher):
@@ -36,8 +37,6 @@ class ZZZFunDetailParser(AnimeDetailParser):
         detail.desc = data["videoDoc"].replace("\r\n", "")  # 完整的简介
         detail.category = data["videoClass"]
         for video_set in data["videoSets"]:
-            if "Ⅰ" in video_set["load"]:
-                continue  # 线路 I 目前播放不了
             playlist = AnimePlayList()  # 番剧的视频列表
             playlist.name = video_set["load"]  # 列表名, 线路 I, 线路 II
             for video in video_set["list"]:
@@ -60,4 +59,20 @@ class ZZZFunUrlParser(AnimeUrlParser):
             return ""
         data = await resp.json(content_type=None)
         real_url = data["data"]["videoplayurl"]
-        return real_url
+        if "alicdn" in real_url:
+            # m3u8 格式, 该资源解析后访问一次立刻失效, 内部视频片段不会立刻失效
+            return AnimeInfo(real_url, volatile=True)
+        return AnimeInfo(real_url)
+
+
+class ZZZFunProxy(AnimeProxy):
+
+    def enforce_proxy(self, url: str) -> bool:
+        if "alicdn" in url:
+            return True  # 图片隐写视频流, 强制代理播放
+        return False
+
+    def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
+        if "pgc-image" in url:
+            return chunk[0xd4:]  # 前面是 gif 文件
+        return chunk

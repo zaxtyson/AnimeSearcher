@@ -94,6 +94,7 @@ nohup python3.8 app.py &
 - 修复引擎 `k1080`, `meijuxia`, 与官方保存同步
 - 修复 `优酷(youku)` 弹幕搜索无结果的问题
 - 修复 `哔哩哔哩(bilibili)` 120分钟之后无弹幕的问题[#9](https://github.com/zaxtyson/AnimeSearcher/issues/9)
+- 修复 `ZZZFun` 播放路线1
 
 ### `v1.3.1`
 

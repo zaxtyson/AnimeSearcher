@@ -87,7 +87,7 @@ class BDE4UrlParser(AnimeUrlParser):
         if "?rkey=" in url:
             # 该链接访问后立刻失效, url会发生细微变化(rkey几个大小变化)
             # H.265 编码的视频, 可能网页端无法播放
-            return AnimeInfo(url=url, lifetime=10)
+            return AnimeInfo(url=url, volatile=True)
         return AnimeInfo(url=url)
 
 

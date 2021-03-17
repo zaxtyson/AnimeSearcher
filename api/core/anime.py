@@ -5,6 +5,8 @@ from time import time
 from typing import AsyncIterator, List, Optional, Union
 from urllib.parse import unquote
 
+from aiohttp import ClientResponse
+
 from api.core.abc import Tokenizable
 from api.core.helper import HtmlParseHelper
 from api.utils.logger import logger
@@ -147,13 +149,14 @@ class AnimeInfo(HtmlParseHelper):
     解析之后的视频, 保存了链接和有效时间等信息
     """
 
-    def __init__(self, url: str = "", lifetime: int = 0):
+    def __init__(self, url: str = "", lifetime: int = 86400, fmt: str = "", volatile: bool = False):
         super().__init__()
         self._url = unquote(url)  # 直链
         self._parse_time = time()  # 解析出直链的时刻
-        self._format = "unknown"  # 视频格式
+        self._format = fmt  # 视频格式
         self._lifetime = lifetime
         self._size = 0
+        self._volatile = volatile  # 直链是否在访问后失效
         # self._resolution = "0x0"
 
     @property
@@ -184,20 +187,23 @@ class AnimeInfo(HtmlParseHelper):
         return self._url.startswith("http") and self.left_lifetime > 0
 
     async def detect_more_info(self):
-        await self.init_session()
+        self._format = self._detect_format_from_url()
+        # 一些资源解析后只能被访问一次, 如果探测文件信息, 会导致直链失效
+        if self._volatile:
+            return
+
         logger.info("Detect information of video...")
-        resp = await self.get(self._url, allow_redirects=True)
+        await self.init_session()
+        self._lifetime = self._detect_lifetime_from_url()
+        resp = await self.head(self._url, allow_redirects=True)
         if resp and resp.status == 200:
-            self._lifetime = await self._detect_lifetime()
-            self._format = self._detect_format(resp.content_type)
-            self._size = resp.content_length or 0
+            self._format = self._format or self._detect_format_from_resp(resp)
+            self._size = self._detect_size_from_resp(resp)
             # chunk = await resp.content.read(512)
             # self._resolution = self._detect_resolution(chunk)
-        else:
-            self._lifetime = 0  # 多半是资源失效了
         await self.close_session()
 
-    async def _detect_lifetime(self):
+    def _detect_lifetime_from_url(self) -> int:
         """尝试从直链中找到资源失效时间戳, 计算直链寿命"""
         ts_start = int(time() / 1e5)  # 当前时间戳的前5位
         stamps = re.findall(rf"{ts_start}\d{{5}}", self._url)
@@ -206,22 +212,26 @@ class AnimeInfo(HtmlParseHelper):
             if lifetime > 60:  # 有效期大于 1 分钟的算有效
                 logger.info(f"Found timestamp in real url, resource left lifetime: {lifetime}s")
                 return lifetime
+        return self._lifetime
 
-        if self._lifetime != 0:
-            return self._lifetime
-        return 86400  # 默认资源有效期为一天
-
-    def _detect_format(self, c_type: str):
+    def _detect_format_from_url(self) -> str:
+        """尝试从直链获取视频的格式信息"""
         fmt_table = {".m3u8": "hls", ".flv": "flv", ".mpd": "dash", ".mp4": "mp4"}
         for k, v in fmt_table.items():
             if k in self._url:
                 return v
+        return ""
 
+    def _detect_format_from_resp(self, resp: ClientResponse) -> str:
+        c_type = resp.content_type
         if c_type in ["application/vnd.apple.mpegurl", "application/x-mpegurl"]:
             return "hls"
         if c_type in ["video/mp4", "application/octet-stream"]:
             return "mp4"
-        return "unknown"
+        return ""
+
+    def _detect_size_from_resp(self, resp: ClientResponse) -> int:
+        return resp.content_length or -1
 
     # def _detect_resolution(self, data: bytes) -> str:
     #     # TODO: detect video resolution from meta block, MPEG-TS/MPEG-4

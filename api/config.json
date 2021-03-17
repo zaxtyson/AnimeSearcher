@@ -32,7 +32,7 @@
         "韩剧",
         "港剧"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {
@@ -78,7 +78,7 @@
       "type": [
         "动漫"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 6
     },
     {
@@ -95,7 +95,7 @@
         "泰剧",
         "港剧"
       ],
-      "enable": true,
+      "enable": false,
       "quality": 6
     },
     {
@@ -121,7 +121,7 @@
       "name": "巴哈姆特",
       "notes": "台湾的弹幕网站, 大陆访问速度一般",
       "module": "api.danmaku.bahamut",
-      "enable": true,
+      "enable": false,
       "quality": 8
     },
     {
