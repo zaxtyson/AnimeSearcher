@@ -1,3 +1,4 @@
+# 本模块已弃用
 from api.core.anime import *
 
 

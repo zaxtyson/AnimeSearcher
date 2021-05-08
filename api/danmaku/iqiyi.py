@@ -24,18 +24,32 @@ class IQIYI(DanmakuSearcher):
             return  # 没有结果
         data = data["docinfos"]
         for item in data:
+            if self.drop_this(item):
+                continue
+
             item = item["albumDocInfo"]
-            if item.get("siteId", "") != "iqiyi":
-                continue  # 其它平台的
-            num = item.get("itemTotalNumber")
-            if not num:
-                continue  # 没有用的视频
             meta = DanmakuMeta()
-            meta.num = int(num)
+            meta.num = int(item["itemTotalNumber"])
             meta.title = item["albumTitle"]
             # 这里可以拿到 albumId 值, 但是对于老旧资源, 下一步无法获取详情数据
             meta.play_url = str(item["albumId"]) + '|' + item["albumLink"]
             yield meta
+
+    def drop_this(self, item: dict) -> bool:
+        if item["score"] < 2:
+            return True  # 相关度太低
+
+        item = item["albumDocInfo"]
+        if item.get("siteId", "") != "iqiyi":
+            return True  # 其它平台的
+        if "生活" in item["channel"]:
+            return True  # 经常出现无关内容
+        if not item.get("itemTotalNumber"):
+            return True  # 没有用的视频
+        title = item["albumTitle"]
+        if "精彩看点" in title or "精彩片段" in title:
+            return True  # 垃圾数据
+        return False
 
 
 class IQIYIDanmakuDetailParser(DanmakuDetailParser):
@@ -87,7 +101,7 @@ class IQIYIDanmakuDetailParser(DanmakuDetailParser):
             return detail
         data = await resp.json(content_type=None)
         data = data["data"]
-        if not data:
+        if not data or data == "参数错误":
             return detail
         danmaku = Danmaku()
         danmaku.name = data["name"]

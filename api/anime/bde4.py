@@ -8,7 +8,7 @@ from api.core.proxy import AnimeProxy
 class BDE4(AnimeSearcher):
 
     async def search(self, keyword: str):
-        api = f"https://bde4.cc/search/{keyword}/1"  # 只要第一页数据, 垃圾数据太多
+        api = f"https://bde4.icu/search/{keyword}/1"  # 只要第一页数据, 垃圾数据太多
         resp = await self.get(api)
         if not resp or resp.status != 200:
             return
@@ -37,7 +37,7 @@ class BDE4DetailParser(AnimeDetailParser):
 
     async def parse(self, detail_url: str):
         detail = AnimeDetail()
-        url = "https://bde4.cc" + detail_url
+        url = "https://bde4.icu" + detail_url
         resp = await self.get(url)
         if not resp or resp.status != 200:
             return detail
@@ -65,7 +65,7 @@ class BDE4DetailParser(AnimeDetailParser):
 class BDE4UrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
-        url = "https://bde4.cc" + raw_url
+        url = "https://bde4.icu" + raw_url
         resp = await self.get(url)
         if not resp or resp.status != 200:
             return ""
@@ -78,7 +78,7 @@ class BDE4UrlParser(AnimeUrlParser):
         if not token:
             return ""  # 没搞头
         token = token.group(1)
-        next_url = f"https://bde4.cc/god/{token}?sg="
+        next_url = f"https://bde4.icu/god/{token}"
         resp = await self.get(next_url, allow_redirects=True)
         if not resp or resp.status != 200:
             return ""
@@ -107,6 +107,6 @@ class BDE4Proxy(AnimeProxy):
         return m3u8_text
 
     def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
-        if "bde4.cc" in url:
+        if "bde4" in url:
             return chunk[120:]
         return chunk

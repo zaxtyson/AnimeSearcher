@@ -4,7 +4,7 @@ from api.core.anime import *
 class SakuraAnime(AnimeSearcher):
 
     async def fetch_html(self, keyword: str, page: int):
-        api = f"http://www.yhdm.io/search/{keyword}"
+        api = f"http://www.yhdm.so/search/{keyword}"
         resp = await self.get(api, params={"page": page})
         if not resp or resp.status != 200:
             return ""
@@ -54,7 +54,7 @@ class SakuraDetailParser(AnimeDetailParser):
 
     async def parse(self, detail_url: str):
         detail = AnimeDetail()
-        url = "http://www.yhdm.io" + detail_url
+        url = "http://www.yhdm.so" + detail_url
         resp = await self.get(url)
         if not resp or resp.status != 200:
             return detail
@@ -80,7 +80,7 @@ class SakuraDetailParser(AnimeDetailParser):
 class SakuraUrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
-        url = "http://www.yhdm.io/" + raw_url
+        url = "http://www.yhdm.so/" + raw_url
         resp = await self.get(url)
         if not resp or resp.status != 200:
             return ""
@@ -90,4 +90,6 @@ class SakuraUrlParser(AnimeUrlParser):
         if not video_url.startswith("http"):  # 偶尔出现一些无效视频
             return ""
         resp = await self.head(video_url, allow_redirects=True)  # 获取直链时会重定向 2 次
+        if not resp or resp.status != 200:
+            return ""
         return resp.url.human_repr()  # 重定向之后的视频直链

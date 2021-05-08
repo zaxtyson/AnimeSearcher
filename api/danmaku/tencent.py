@@ -28,9 +28,14 @@ class Tencent(DanmakuSearcher):
         data = data["uiData"]
         results = []
         for item in data:
-            item = item["data"][0]
+            item = item["data"]
+            if not item:  # 有时没有
+                continue
+            item = item[0]
             if not item.get("videoSrcName"):
                 continue  # 没用的视频
+            if "redirect" in item["webPlayUrl"]:
+                continue  # 其它平台的
             title = item["coverTitle"].replace("\u0005", "").replace("\u0006", "")
             if not title:
                 continue
@@ -59,7 +64,10 @@ class TencentDanmakuDetailParser(DanmakuDetailParser):
         text = await resp.text()
         data = text.lstrip("QZOutputJson=").rstrip(";")
         data = json.loads(data)
-        data = data["PlaylistItem"]["videoPlayList"]
+        data = data["PlaylistItem"]
+        if not data:
+            return detail
+        data = data["videoPlayList"]
         for item in data:
             danmaku = Danmaku()
             danmaku.name = item["title"]

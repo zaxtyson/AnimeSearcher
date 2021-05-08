@@ -295,7 +295,7 @@ class APIRouter:
             proxy = await self._agent.get_anime_proxy(token, int(playlist), int(episode))
             if not proxy:
                 return Response("m3u8 chunk proxy error", status=404)
-            return await proxy.make_response_for_chunk(url)
+            return await proxy.make_response_for_chunk(url, request.args.to_dict())
 
         # ======================== System Interface ===============================
 

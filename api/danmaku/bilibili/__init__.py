@@ -141,7 +141,7 @@ class BiliDanmakuDataParser(DanmakuDataParser):
         # 哔哩哔哩: 1 飞行弹幕, 4 底部弹幕, 5 顶部弹幕, 6 逆向飞行弹幕
         # Dplayer: 0 飞行弹幕, 1 顶部弹幕, 2 底部弹幕
         pos_fix = {1: 0, 5: 1, 4: 2, 6: 0}
-        for bullet in data["bullet"]:
+        for bullet in data.get("bullet", []):  # 可能这一页没有数据
             result.append_bullet(
                 time=bullet.get("progress", 0) / 1000,
                 pos=pos_fix.get(bullet["mode"], 0),

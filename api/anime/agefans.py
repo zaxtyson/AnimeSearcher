@@ -50,6 +50,14 @@ class AgeFans(AnimeSearcher):
 
 class AgeFansAppDetailParser(AnimeDetailParser):
 
+    @staticmethod
+    def drop_this(play_id: str) -> bool:
+        key_list = ["接口", "QLIVE"]
+        for key in key_list:
+            if key in play_id:
+                return True
+        return False
+
     async def parse(self, detail_url: str):
         detail = AnimeDetail()
         api = f"https://api.agefans.app/v2/detail/{detail_url}"  # 20120029
@@ -66,23 +74,23 @@ class AgeFansAppDetailParser(AnimeDetailParser):
         detail.cover_url = "http:" + data["R封面图"]
         detail.desc = data["R简介"]
         detail.category = data["R标签"]
-        idx = 1
+
         for playlist in data["R在线播放All"]:
             if not playlist:
                 continue
-            if "PPTV" in playlist[0]["PlayId"]:
-                continue  # 还要解析一次, 不要了
             pl = AnimePlayList()
-            pl.name = f"播放路线 {idx}"
+            play_id = playlist[0]["PlayId"]
+            if self.drop_this(play_id):
+                continue
+            pl.name = play_id.replace("<play>", "").replace("</play>", "").upper()
             for item in playlist:
                 anime = Anime()
                 anime.name = item["Title_l"] or item["Title"]
-                play_id = item["PlayId"]  # <play>web_mp4|QLIVE|tieba|...</play>
+                play_id = item["PlayId"]  # <play>web_mp4|tieba|...</play>
                 play_vid = item["PlayVid"]  # url or token
                 anime.raw_url = play_id + "|" + play_vid
                 pl.append(anime)
             detail.append_playlist(pl)
-            idx += 1
         return detail
 
 
@@ -93,28 +101,28 @@ class AgeFansUrlParser(AnimeUrlParser):
         if play_vid.startswith("http"):
             return play_vid  # 不用处理了
 
-        headers = {
-            "Origin": "https://web.age-spa.com:8443",
-            "Referer": "https://web.age-spa.com:8443/"
-        }
         api = "https://api.agefans.app/v2/_getplay"
-        resp = await self.get(api, headers=headers)
+        resp = await self.get(api)
         if not resp or resp.status != 200:
             return ""
+
         data = await resp.json(content_type=None)
+        next_api = data.get("Location")
+        if not next_api:
+            return ""
+
         # 参数 kp 算法见 https://vip.cqkeb.com/agefans/js/chunk-3a9344fa.3f1985c3.js
         play_key = "agefans3382-getplay-1719"
         timestamp = data["ServerTime"]
         kp = md5(str(timestamp) + "{|}" + play_id + "{|}" + play_vid + "{|}" + play_key)
-        next_api = data["Location"]
         params = {"playid": play_id, "vid": play_vid, "kt": timestamp, "kp": kp}
-        resp = await self.get(next_api, params=params, headers=headers)
+        resp = await self.get(next_api, params=params)
         if not resp or resp.status != 200:
             return ""
         data = await resp.json(content_type=None)
-        v_url, p_url = data["vurl"], data["purlf"]
-        if v_url or p_url:
-            url = p_url + v_url
-            url = url.split("?url=")[-1]
-            return url
-        return ""
+        p_url = data.get("purlf", "")
+        v_url = data.get("vurl", "")
+        url = p_url + v_url
+        if not url:
+            return ""
+        return url.split("?url=")[-1]

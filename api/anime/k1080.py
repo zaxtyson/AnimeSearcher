@@ -97,6 +97,8 @@ class K1080Proxy(AnimeProxy):
     def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
         if "gtimg.com" in url:
             return chunk[0x303:]  # 前面是图片数据
+        if "ydstatic.com" in url:
+            return chunk[0x3BF:]
         return chunk
 
     def enforce_proxy(self, url: str) -> bool:

@@ -228,9 +228,9 @@ class M3U8Proxy(BaseAnimeProxy):
             logger.debug(f"Cache m3u8 text, size: {len(self._cache_m3u8_text) // 1024}kb")
         return Response(self._cache_m3u8_text, mimetype="application/vnd.apple.mpegurl")
 
-    async def make_response_for_chunk(self, url: str) -> Response:
+    async def make_response_for_chunk(self, url: str, params: dict = None) -> Response:
         proxy_headers = self._get_proxy_headers(url)
-        resp = await self.get(url, headers=proxy_headers)
+        resp = await self.get(url, params=params, headers=proxy_headers)
         if not resp:
             return Response(b"", status=404)
         chunk = self.fix_chunk_data(url, await resp.read())

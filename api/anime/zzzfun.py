@@ -1,5 +1,5 @@
 import time
-from hashlib import md5
+from api.utils.tool import md5
 
 from api.core.anime import *
 from api.core.proxy import AnimeProxy
@@ -9,7 +9,7 @@ class ZZZFun(AnimeSearcher):
 
     async def search(self, keyword: str):
         api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/search"
-        resp = await self.post(api, data={"userid": "", "key": keyword})
+        resp = await self.post(api, data={"userid": "", "key": keyword}, headers={"User-Agent": "okhttp/3.12.0"})
         if not resp or resp.status != 200:
             return
         data = await resp.json(content_type=None)
@@ -27,7 +27,8 @@ class ZZZFunDetailParser(AnimeDetailParser):
     async def parse(self, detail_url: str):
         detail = AnimeDetail()
         api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/video/list_ios"
-        resp = await self.get(api, params={"userid": "", "videoId": detail_url})
+        resp = await self.get(api, params={"userid": "", "videoId": detail_url},
+                              headers={"User-Agent": "okhttp/3.12.0"})
         if not resp or resp.status != 200:
             return detail
         data = await resp.json(content_type=None)
@@ -48,18 +49,26 @@ class ZZZFunDetailParser(AnimeDetailParser):
 class ZZZFunUrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
-        play_api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/video/107play"
-        secret_key = "zandroidzz"
+        # 加密算法 Smali 位置
+        # .class final Lorg/daimhim/zzzfun/data/remote/HttpRequestManager$getVideoPlayInfo$2;
+        # .source "HttpRequestManager.kt"
+        # .method public final invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
+        # .line 460 ~ .line 463
+        secret_key = "zan109drdddzz"
         now = int(time.time() * 1000)  # 13 位时间戳
-        sing = secret_key + str(now)
-        sing = md5(sing.encode("utf-8")).hexdigest()
+        sing = md5(secret_key + str(now))
+
+        # 接口随 App 更新变化
+        play_api = "http://service-agbhuggw-1259251677.gz.apigw.tencentcs.com/android/video/112play"
         payload = {"playid": raw_url, "userid": "", "apptoken": "", "sing": sing, "map": now}
-        resp = await self.post(play_api, data=payload)
+        resp = await self.post(play_api, data=payload, headers={"User-Agent": "okhttp/3.12.0"})
         if not resp or resp.status != 200:
             return ""
         data = await resp.json(content_type=None)
+        if not data["data"]:
+            return ""
         real_url = data["data"]["videoplayurl"]
-        if "alicdn" in real_url:
+        if "alicdn" in real_url or "zzzhls" in real_url:
             # m3u8 格式, 该资源解析后访问一次立刻失效, 内部视频片段不会立刻失效
             return AnimeInfo(real_url, volatile=True)
         return AnimeInfo(real_url)
@@ -68,7 +77,7 @@ class ZZZFunUrlParser(AnimeUrlParser):
 class ZZZFunProxy(AnimeProxy):
 
     def enforce_proxy(self, url: str) -> bool:
-        if "alicdn" in url:
+        if "alicdn" in url or "zzzhls" in url:
             return True  # 图片隐写视频流, 强制代理播放
         return False
 

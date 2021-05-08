@@ -1,3 +1,4 @@
+# 官方弹幕已失效
 import re
 
 from api.core.danmaku import *

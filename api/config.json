@@ -1,158 +1,124 @@
 {
-  "version": {
-    "tag": "1.4.0",
-    "time": "2021-03-17",
-    "desc": "- 支持 HLS 格式视频流量代理, 支持混淆流量解码\n- 对经常被墙的网站做了 A 记录, 防止域名失效, 加快 DNS 解析速度\n- 新增视频搜索引擎 `哔嘀影视(bde4)`\n- 新增弹幕搜索引擎 `爱奇艺(iqiyi)`\n- 修复引擎 `k1080`, `meijuxia`, 与官方保存同步\n- 修复 `优酷(youku)` 弹幕搜索无结果的问题\n- 修复 `哔哩哔哩(bilibili)` 120分钟之后无弹幕的问题",
-    "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
-  },
-  "domain_mapping": {
-    "www.yhdm.io": "yhdm.wegather.tk",
-    "api.agefans.app": "agefans.wegather.tk",
-    "app.carrymir.com": "k1080.wegather.tk"
-  },
-  "anime": [
-    {
-      "name": "ZzzFun",
-      "notes": "资源质量还行， 响应速度快",
-      "module": "api.anime.zzzfun",
-      "type": [
-        "动漫"
-      ],
-      "enable": true,
-      "quality": 8
+    "version": {
+        "tag": "1.4.1",
+        "time": "2021-05-08",
+        "desc": "- 修复视频引擎 `ZzzFun` 资源迁移导致无法使用的问题\n- 修复视频引擎 `K1080` 部分视频无法播放的问题\n- 修复视频引擎 `樱花动漫(yhdm)` 域名变更的问题\n- 视频视频引擎 `哔嘀影视(bde4)` 切换备用域名\n- 过滤视频引擎 `AgeFans` 部分无效视频源\n- 过滤弹幕引擎 `爱奇艺(iqiyi)` 和 `腾讯视频(tencent)` 无关搜索结果   \n- 修复弹幕引擎  `哔哩哔哩(bilibili)` 部分番剧弹幕抓取失败的问题\n- 移除失效视频源 `eyunzhu` 和弹幕源 `哔咪哔咪(bimibimi)`",
+        "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
     },
-    {
-      "name": "哔咪动漫",
-      "notes": "资源质量还行， 响应速度快",
-      "module": "api.anime.bimibimi",
-      "type": [
-        "动漫",
-        "美剧",
-        "日剧",
-        "韩剧",
-        "港剧"
-      ],
-      "enable": false,
-      "quality": 8
+    "domain_mapping": {
+        "www.yhdm.so": "yhdm.wegather.tk",
+        "api.agefans.app": "agefans.wegather.tk",
+        "app.carrymir.com": "k1080.wegather.tk"
     },
-    {
-      "name": "AGE动漫",
-      "notes": "少部分资源存在水印，响应速度也不错",
-      "module": "api.anime.agefans",
-      "type": [
-        "动漫"
-      ],
-      "enable": true,
-      "quality": 8
-    },
-    {
-      "name": "哔嘀影视",
-      "notes": "资源十分丰富, 质量也很不错",
-      "module": "api.anime.bde4",
-      "type": [
-        "综合"
-      ],
-      "enable": true,
-      "quality": 9
-    },
-    {
-      "name": "1080影视",
-      "notes": "资源丰富, 质量真的不错",
-      "module": "api.anime.k1080",
-      "type": [
-        "动漫",
-        "电影",
-        "综艺",
-        "港剧",
-        "日剧",
-        "韩剧",
-        "美剧"
-      ],
-      "enable": true,
-      "quality": 9
-    },
-    {
-      "name": "樱花动漫",
-      "notes": "网站早上和晚上经常宕机, 响应速度慢， 不建议启用",
-      "module": "api.anime.yhdm",
-      "type": [
-        "动漫"
-      ],
-      "enable": false,
-      "quality": 6
-    },
-    {
-      "name": "美剧侠",
-      "notes": "大杂烩，啥都有, 很多无效资源",
-      "module": "api.anime.meijuxia",
-      "type": [
-        "动漫",
-        "电影",
-        "国产剧",
-        "美剧",
-        "日剧",
-        "韩剧",
-        "泰剧",
-        "港剧"
-      ],
-      "enable": false,
-      "quality": 6
-    },
-    {
-      "name": "影视全搜索",
-      "notes": "资源巨多但质量不佳, 无效资源和水印多，建议实在找不到资源才启用",
-      "module": "api.anime.eyunzhu",
-      "type": [
-        "综合"
-      ],
-      "enable": false,
-      "quality": 5
-    }
-  ],
-  "danmaku": [
-    {
-      "name": "哔哩哔哩",
-      "notes": "提供B站官方和用户上传番剧的弹幕",
-      "module": "api.danmaku.bilibili",
-      "enable": true,
-      "quality": 10
-    },
-    {
-      "name": "巴哈姆特",
-      "notes": "台湾的弹幕网站, 大陆访问速度一般",
-      "module": "api.danmaku.bahamut",
-      "enable": false,
-      "quality": 8
-    },
-    {
-      "name": "哔咪动漫",
-      "notes": "盗版B站, 弹幕还算可以, 响应速度也很快",
-      "module": "api.danmaku.bimibimi",
-      "enable": false,
-      "quality": 8
-    },
-    {
-      "name": "优酷",
-      "notes": "这世界很酷的那个优酷, 反爬机制较强",
-      "module": "api.danmaku.youku",
-      "enable": true,
-      "quality": 8
-    },
-    {
-      "name": "腾讯视频",
-      "notes": "弹幕中无关紧要的信息已经过滤， 放心食用",
-      "module": "api.danmaku.tencent",
-      "enable": true,
-      "quality": 8
-    },
-    {
-      "name": "爱奇艺",
-      "notes": "悦享品质的那个爱奇艺",
-      "module": "api.danmaku.iqiyi",
-      "enable": true,
-      "quality": 8
-    }
-  ],
-  "comic": [],
-  "music": []
+    "anime": [
+        {
+            "name": "哔嘀影视",
+            "notes": "资源十分丰富, 质量也很不错",
+            "module": "api.anime.bde4",
+            "type": [
+                "综合"
+            ],
+            "enable": true,
+            "quality": 9
+        },
+        {
+            "name": "1080影视",
+            "notes": "资源丰富, 质量真的不错",
+            "module": "api.anime.k1080",
+            "type": [
+                "综合"
+            ],
+            "enable": true,
+            "quality": 9
+        },
+        {
+            "name": "ZzzFun",
+            "notes": "资源质量还行， 响应速度快",
+            "module": "api.anime.zzzfun",
+            "type": [
+                "动漫"
+            ],
+            "enable": true,
+            "quality": 8
+        },
+        {
+            "name": "哔咪动漫",
+            "notes": "资源质量还行， 响应速度快",
+            "module": "api.anime.bimibimi",
+            "type": [
+                "动漫"
+            ],
+            "enable": true,
+            "quality": 8
+        },
+        {
+            "name": "AGE动漫",
+            "notes": "少部分资源存在水印，响应速度也不错",
+            "module": "api.anime.agefans",
+            "type": [
+                "动漫"
+            ],
+            "enable": false,
+            "quality": 8
+        },
+        {
+            "name": "樱花动漫",
+            "notes": "网站早上和晚上经常宕机, 响应速度慢， 不建议启用",
+            "module": "api.anime.yhdm",
+            "type": [
+                "动漫"
+            ],
+            "enable": false,
+            "quality": 6
+        },
+        {
+            "name": "美剧侠",
+            "notes": "大杂烩，啥都有, 很多无效资源",
+            "module": "api.anime.meijuxia",
+            "type": [
+                "综合"
+            ],
+            "enable": false,
+            "quality": 6
+        }
+    ],
+    "danmaku": [
+        {
+            "name": "哔哩哔哩",
+            "notes": "提供B站官方和用户上传番剧的弹幕",
+            "module": "api.danmaku.bilibili",
+            "enable": true,
+            "quality": 10
+        },
+        {
+            "name": "巴哈姆特",
+            "notes": "台湾的弹幕网站, 大陆访问速度一般",
+            "module": "api.danmaku.bahamut",
+            "enable": true,
+            "quality": 8
+        },
+        {
+            "name": "优酷",
+            "notes": "这世界很酷的那个优酷, 反爬机制较强",
+            "module": "api.danmaku.youku",
+            "enable": true,
+            "quality": 8
+        },
+        {
+            "name": "腾讯视频",
+            "notes": "弹幕中无关紧要的信息已经过滤， 放心食用",
+            "module": "api.danmaku.tencent",
+            "enable": true,
+            "quality": 8
+        },
+        {
+            "name": "爱奇艺",
+            "notes": "悦享品质的那个爱奇艺",
+            "module": "api.danmaku.iqiyi",
+            "enable": true,
+            "quality": 8
+        }
+    ],
+    "comic": [],
+    "music": []
 }

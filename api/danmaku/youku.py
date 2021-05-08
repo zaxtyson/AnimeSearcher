@@ -21,12 +21,12 @@ class Youku(DanmakuSearcher):
         data = data["pageComponentList"]
         for item in data:
             info = item.get("commonData")
-            if not info:
+            if not info or not info.get("leftButtonDTO"):
                 continue
             meta = DanmakuMeta()
             meta.title = info["titleDTO"]["displayName"].replace("\t", "")
             play_url = info["leftButtonDTO"]["action"]["value"]
-            if "youku.com" not in play_url:
+            if not play_url or "youku.com" not in play_url:
                 continue  # 有时候返回 qq 的播放链接, 有时候该字段为 null, 我的老天爷
             meta.play_url = play_url
             num = re.search(r"(\d+?)集", info.get("stripeBottom", ""))  # 该字段可能不存在
@@ -151,11 +151,17 @@ class YoukuDanmakuDataParser(DanmakuDataParser):
         self.session.cookie_jar.update_cookies(tokens)
         headers = {"Referer": "https://v.youku.com"}
         resp = await self.post(api, params=params, data={"data": data}, headers=headers)
-        data = await resp.json(content_type=None)
-        comments = data["data"]["result"]  # 带转义的 json 串
-        comments = json.loads(comments)["data"]["result"]  # 返回的数据层层套娃 :(
+        if not resp or resp.status != 200:
+            return DanmakuData()
 
         result = DanmakuData()
+        data = await resp.json(content_type=None)
+        data = data["data"]  # 带转义的 json
+        comments = data.get("result")  # 可能没有
+        if not comments:
+            return result
+        comments = json.loads(comments)["data"]["result"]  # 返回的数据层层套娃 :(
+
         for comment in comments:
             properties = json.loads(comment["propertis"])  # 弹幕的属性(官方拼写错误)
             color = properties["color"]
