@@ -15,7 +15,7 @@ class Bangumi(HtmlParseHelper):
         super().__init__()
         self._bili_mainland = "https://bangumi.bilibili.com/web_api/timeline_cn"
         self._bili_overseas = "https://bangumi.bilibili.com/web_api/timeline_global"
-        self._bimi_update = "https://proxy.app.maoyuncloud.com/app/video/list"
+        # self._bimi_update = "http://api.tianbo17.com/app/video/list"   # 接口变更, 数据已加密
 
     async def get_bangumi_updates(self) -> List[BangumiOneDay]:
         """获取最近一段时间的新番更新时间表"""
@@ -61,32 +61,32 @@ class Bangumi(HtmlParseHelper):
                 result.append(anime)
         return result
 
-    async def _get_bimi_bangumi(self) -> List[AnimeUpdateInfo]:
-        """获取 bimibimi 番剧的更新表"""
-        result = []
-        params = {"channel": "1", "sort": "addtime", "limit": "0", "page": "1"}
-        headers = {"User-Agent": "Dart/2.7 (dart:io)", "appid": "4150439554430555"}
-        resp = await self.get(self._bimi_update, params=params, headers=headers)
-        if not resp or resp.status != 200:
-            return result
-        data = await resp.json(content_type=None)
-        data = data["data"]["items"]
-
-        for item in data:
-            anime = AnimeUpdateInfo()
-            anime.title = item["name"]
-            anime.cover_url = item["pic"]
-            anime.update_time = self._time_format(item["updated_at"])
-            anime.update_to = item["continu"].replace("更新至", "")
-            result.append(anime)
-        return result
+    # async def _get_bimi_bangumi(self) -> List[AnimeUpdateInfo]:
+    #     """获取 bimibimi 番剧的更新表"""
+    #     result = []
+    #     params = {"channel": "1", "sort": "addtime", "limit": "0", "page": "1"}
+    #     headers = {"User-Agent": "Dart/2.7 (dart:io)", "appid": "4150439554430555"}
+    #     resp = await self.get(self._bimi_update, params=params, headers=headers)
+    #     if not resp or resp.status != 200:
+    #         return result
+    #     data = await resp.json(content_type=None)
+    #     data = data["data"]["items"]
+    #
+    #     for item in data:
+    #         anime = AnimeUpdateInfo()
+    #         anime.title = item["name"]
+    #         anime.cover_url = item["pic"]
+    #         anime.update_time = self._time_format(item["updated_at"])
+    #         anime.update_to = item["continu"].replace("更新至", "")
+    #         result.append(anime)
+    #     return result
 
     async def _get_all_bangumi(self) -> List[AnimeUpdateInfo]:
         """获取全部更新的番剧信息"""
         tasks = [
             self._get_bili_bangumi(self._bili_mainland),
             self._get_bili_bangumi(self._bili_overseas),
-            self._get_bimi_bangumi()
+            # self._get_bimi_bangumi()
         ]
 
         task_ret = []
