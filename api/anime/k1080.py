@@ -14,7 +14,7 @@ class K1080(AnimeSearcher):
                 yield item
 
     async def get_one_page(self, keyword: str, page: int) -> (list, int):
-        api = "http://app.carrymir.com/search/result"
+        api = "http://myapp.hanmiys.net/search/result"
         payload = {
             "page_num": str(page),
             "keyword": keyword,
@@ -49,7 +49,7 @@ class K1080DetailParser(AnimeDetailParser):
 
     async def parse(self, detail_url: str):
         detail = AnimeDetail()
-        api = "http://app.carrymir.com/video/info"
+        api = "http://myapp.hanmiys.net/video/info"
         payload = {"video_id": detail_url}
         resp = await self.post(api, json=payload, headers={"User-Agent": "okhttp/4.1.0"})
         if not resp or resp.status != 200:
@@ -78,7 +78,7 @@ class K1080DetailParser(AnimeDetailParser):
 class K1080UrlParser(AnimeUrlParser):
 
     async def parse(self, raw_url: str):
-        api = "http://app.carrymir.com/video/parse"
+        api = "http://myapp.hanmiys.net/video/parse"
         source_id, chapter_id, video_id = raw_url.split('|')
         payload = {
             "source_id": source_id,
@@ -99,9 +99,13 @@ class K1080Proxy(AnimeProxy):
             return chunk[0x303:]  # 前面是图片数据
         if "ydstatic.com" in url:
             return chunk[0x3BF:]
+        if "pstatp.com" in url:
+            return chunk[0x13A:]
         return chunk
 
     def enforce_proxy(self, url: str) -> bool:
         if "byingtime.com" in url:
+            return True
+        if "paofans" in url:
             return True
         return False

@@ -1,14 +1,13 @@
 {
     "version": {
-        "tag": "1.4.1",
-        "time": "2021-05-08",
-        "desc": "- 修复视频引擎 `ZzzFun` 资源迁移导致无法使用的问题\n- 修复视频引擎 `K1080` 部分视频无法播放的问题\n- 修复视频引擎 `樱花动漫(yhdm)` 域名变更的问题\n- 视频视频引擎 `哔嘀影视(bde4)` 切换备用域名\n- 过滤视频引擎 `AgeFans` 部分无效视频源\n- 过滤弹幕引擎 `爱奇艺(iqiyi)` 和 `腾讯视频(tencent)` 无关搜索结果   \n- 修复弹幕引擎  `哔哩哔哩(bilibili)` 部分番剧弹幕抓取失败的问题\n- 移除失效视频源 `eyunzhu` 和弹幕源 `哔咪哔咪(bimibimi)`",
+        "tag": "1.4.2",
+        "time": "2021-06-05",
+        "desc": "- 修复视频引擎 `K1080` 失效的问题",
         "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
     },
     "domain_mapping": {
         "www.yhdm.so": "yhdm.wegather.tk",
-        "api.agefans.app": "agefans.wegather.tk",
-        "app.carrymir.com": "k1080.wegather.tk"
+        "api.agefans.app": "agefans.wegather.tk"
     },
     "anime": [
         {
@@ -28,7 +27,7 @@
             "type": [
                 "综合"
             ],
-            "enable": true,
+            "enable": false,
             "quality": 9
         },
         {
@@ -38,7 +37,7 @@
             "type": [
                 "动漫"
             ],
-            "enable": true,
+            "enable": false,
             "quality": 8
         },
         {
@@ -48,7 +47,7 @@
             "type": [
                 "动漫"
             ],
-            "enable": true,
+            "enable": false,
             "quality": 8
         },
         {
