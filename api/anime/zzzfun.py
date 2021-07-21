@@ -1,8 +1,8 @@
 import time
-from api.utils.tool import md5
 
 from api.core.anime import *
 from api.core.proxy import AnimeProxy
+from api.utils.tool import md5
 
 
 class ZZZFun(AnimeSearcher):
@@ -79,9 +79,17 @@ class ZZZFunProxy(AnimeProxy):
     def enforce_proxy(self, url: str) -> bool:
         if "alicdn" in url or "zzzhls" in url:
             return True  # 图片隐写视频流, 强制代理播放
+        if "chaoxing.com" in url:  # 学习通视频
+            return True
         return False
 
     def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
         if "pgc-image" in url:
             return chunk[0xd4:]  # 前面是 gif 文件
         return chunk
+
+    def set_proxy_headers(self, url: str) -> dict:
+        if "chaoxing.com" in url:  # 视频放在学习通网盘
+            return {
+                "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 6.0.1; Pro 7 Build/V417IR)"
+            }

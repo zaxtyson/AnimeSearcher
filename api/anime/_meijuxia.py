@@ -1,19 +1,12 @@
+"""
+美剧侠的质量越来越差了, 返回点结果没几个能正常解析的, 弃用
+"""
+
 from json import JSONDecodeError
 
 from api.core.anime import *
 from api.core.proxy import AnimeProxy
 from api.utils.tool import extract_domain
-
-
-def encrypt():
-    """加密算法, 以前的时间也可以， 能用就行"""
-    # TODO: APP 待脱壳解密(爱加密V2)
-    data = {
-        "time": "1602494010458",
-        "md5": "586f76b4f969eb715e2949ecd7d7fefa",
-        "sign": "d8a1999ecd07d17c78f4e8c0f57b9f02"
-    }
-    return data
 
 
 class Meijuxia(AnimeSearcher):
@@ -23,12 +16,18 @@ class Meijuxia(AnimeSearcher):
             "service": "App.Vod.Search",
             "search": keyword,
             "page": 1,
-            "perpage": 50,
-            "versionCode": 60,
+            "perpage": 24,
+            "versionCode": 1000,
+            "time": "1626701869178",  # 搜索和详情使用的时间不能相同
+            "md5": "6fb6c8296bb2bacbc7b385f343adf3c6",
+            "sign": "fff4d7b9366d25c42aa8f49dd3433211"
         }
-        payload.update(encrypt())
-        api = "http://api.meijuxia.com/"
-        resp = await self.post(api, data=payload)
+        api = "http://27.124.4.42/"
+        headers = {
+            "Host": "27.124.4.42:8808",
+            "User-Agent": "okhttp/3.12.1"  # 为了伪装的更像
+        }
+        resp = await self.post(api, data=payload, headers=headers)
         if not resp or resp.status != 200:
             return
         data = []
@@ -55,11 +54,17 @@ class MeijuxiaDetailParser(AnimeDetailParser):
         payload = {
             "service": "App.Vod.Video",
             "id": detail_url,
-            "versionCode": 60
+            "versionCode": 1000,
+            "time": "1626701872503",
+            "md5": "3ef146bf72e916b3490dc503b4655bd3",
+            "sign": "5e84d109f2df774b04d85ff08d053e70"
         }
-        payload.update(encrypt())
-        api = "http://api.meijuxia.com/"
-        resp = await self.post(api, data=payload)
+        api = "http://27.124.4.42/"
+        headers = {
+            "Host": "27.124.4.42:8808",
+            "User-Agent": "okhttp/3.12.1"
+        }
+        resp = await self.post(api, data=payload, headers=headers)
         if not resp or resp.status != 200:
             return detail
         data = await resp.json(content_type=None)

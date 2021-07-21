@@ -1,3 +1,17 @@
+"""
+新版本改名 闪电影视: https://www.ak1080.com/
+
+旧版本视频详情接口于 2021/07/20 失效
+
+新版本接口:
+GET http://app.kssp.net/api.php/app/search?pg=1&text=从零开始的异世界&token=
+GET http://app.kssp.net/api.php/app/video_detail?id=606&token=
+
+请求返回的数据使用 Base64 加密后, 还需解密, 由于 APP 使用 flutter 开发,
+具体逻辑在 libapp.so 中, 暂时无法逆向
+Dart version: e4a09dbf2bb120fe4674e0576617a0dc
+"""
+
 from api.core.anime import *
 from api.core.proxy import AnimeProxy
 
@@ -99,7 +113,7 @@ class K1080Proxy(AnimeProxy):
             return chunk[0x303:]  # 前面是图片数据
         if "ydstatic.com" in url:
             return chunk[0x3BF:]
-        if "pstatp.com" in url:
+        if "pstatp.com" in url or "qpic.cn" in url:
             return chunk[0x13A:]
         return chunk
 
@@ -107,5 +121,7 @@ class K1080Proxy(AnimeProxy):
         if "byingtime.com" in url:
             return True
         if "paofans" in url:
+            return True
+        if "hanmiys" in url:
             return True
         return False

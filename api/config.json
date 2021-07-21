@@ -1,35 +1,14 @@
 {
     "version": {
-        "tag": "1.4.2",
-        "time": "2021-06-05",
-        "desc": "- 修复视频引擎 `K1080` 失效的问题",
+        "tag": "1.4.3",
+        "time": "2021-07-21",
+        "desc": "",
         "update": "https://gitee.com/api/v5/repos/zaxtyson/AnimeSearcher/releases/latest"
     },
     "domain_mapping": {
-        "www.yhdm.so": "yhdm.wegather.tk",
-        "api.agefans.app": "agefans.wegather.tk"
+        "www.yhdm.so": "yhdm.wegather.tk"
     },
     "anime": [
-        {
-            "name": "哔嘀影视",
-            "notes": "资源十分丰富, 质量也很不错",
-            "module": "api.anime.bde4",
-            "type": [
-                "综合"
-            ],
-            "enable": true,
-            "quality": 9
-        },
-        {
-            "name": "1080影视",
-            "notes": "资源丰富, 质量真的不错",
-            "module": "api.anime.k1080",
-            "type": [
-                "综合"
-            ],
-            "enable": false,
-            "quality": 9
-        },
         {
             "name": "ZzzFun",
             "notes": "资源质量还行， 响应速度快",
@@ -37,7 +16,7 @@
             "type": [
                 "动漫"
             ],
-            "enable": false,
+            "enable": true,
             "quality": 8
         },
         {
@@ -47,7 +26,7 @@
             "type": [
                 "动漫"
             ],
-            "enable": false,
+            "enable": true,
             "quality": 8
         },
         {
@@ -57,7 +36,7 @@
             "type": [
                 "动漫"
             ],
-            "enable": false,
+            "enable": true,
             "quality": 8
         },
         {
@@ -67,17 +46,7 @@
             "type": [
                 "动漫"
             ],
-            "enable": false,
-            "quality": 6
-        },
-        {
-            "name": "美剧侠",
-            "notes": "大杂烩，啥都有, 很多无效资源",
-            "module": "api.anime.meijuxia",
-            "type": [
-                "综合"
-            ],
-            "enable": false,
+            "enable": true,
             "quality": 6
         }
     ],

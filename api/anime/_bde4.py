@@ -1,3 +1,23 @@
+"""
+哔嘀影视新域名: https://www.mp4er.com/
+网页端加入了验证码, 考虑到验证码形式容易改变, 故未使用机器学习识别
+
+新版本接口:
+GET https://www.mp4er.com/api/v1/search/$(keyword)/1
+token: B92506BB0E76A7A4BDC6581...(需计算)
+
+token := encrypt(timestamp, key)
+timestamp 为时间戳字符串经过 UTF-8 编码的二进制数组
+key 为 { 73, 76, 79, 86, 69, 66, 73, 68, 73, 89, 73, 78, 71, 82, 72, 73 }, 即 "ILOVEBIDIYINGRHI"
+
+Response 返回的 JSON 中 data 段需用 Base64 解码, 再经过 zlib 解压二进制流,
+再经过某个算法解密, 最后得到数据. 该算法来自于 微信 内部使用的加密算法(似乎有所修改):
+
+See: https://github.com/save95/WeChatRE/blob/4b249bce4062e1f338f3e4bbee273b2a88814bf3/src/com/tencent/qqpim/utils/Cryptor.java
+
+反汇编的 Smali 码看吐了, 不管了
+"""
+
 import re
 from gzip import decompress
 
