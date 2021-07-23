@@ -31,7 +31,7 @@
 
 > Windows
 
-[蓝奏云下载](https://zaxtyson.lanzous.com/b0f1ukafc)  
+[蓝奏云下载](https://zaxtyson.lanzoux.com/b0f1ukafc)  
 [Gitee国内镜像](https://gitee.com/zaxtyson/AnimeSearcher/releases)
 
 > Linux/MacOS
