@@ -34,6 +34,13 @@ class APIRouter:
         """
         self._domain = f"{domain}:{self._port}" if domain else self._domain
 
+    def set_proxy_host(self, path_prefix: str):
+        """
+        服务器端反向代理时使用, 设置 API 资源链接的路径前缀,
+        如: http://www.foo.bar/anime-api, 结尾不加 "/"
+        """
+        self._domain = path_prefix if path_prefix else self._domain
+
     def run(self):
         """启动 API 解析服务"""
 
