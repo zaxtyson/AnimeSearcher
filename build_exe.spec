@@ -11,7 +11,8 @@ zhconv_data_path = 'zhconv/zhcdict.json'
 
 AnalysisList = [
     'ui.pyw',
-    'api/danmaku/bilibili/__init__.py'  # 否则找不到模块 google.protobuf
+    'api/danmaku/bilibili/__init__.py',  # 否则找不到模块 google.protobuf
+    'api/anime/bimibimi.py'  # 用于分析 Crypto 的依赖
     ]
 
 a = Analysis(AnalysisList,
@@ -26,7 +27,7 @@ a = Analysis(AnalysisList,
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
-             excludes=['PyInstaller', 'pip', 'setuptools', 'altgraph','future','pefile', 'pywin32-ctypes'],
+             excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
