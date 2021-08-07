@@ -11,6 +11,7 @@ from api.core.anime import *
 from api.core.danmaku import *
 from api.core.proxy import RequestProxy
 from api.utils.statistic import Statistics
+from api.utils.storage import Storage
 
 
 class APIRouter:
@@ -24,6 +25,7 @@ class APIRouter:
         self._domain = f"http://{host}:{port}"
         self._agent = Agent()
         self._config = Config()
+        self._storage = Storage()
         self._proxy = RequestProxy()
         self._stats = Statistics()
 
@@ -327,7 +329,7 @@ class APIRouter:
         async def show_global_settings():
             if request.method == "GET":
                 return jsonify(self._config.get_modules_status())
-            if request.method == "POST":
+            elif request.method == "POST":
                 options = await request.json
                 ret = {}
                 for option in options:
@@ -338,5 +340,44 @@ class APIRouter:
                     ok = self._agent.change_module_state(module, enable)
                     ret[module] = "success" if ok else "failed"
                 return jsonify(ret)
-            if request.method == "OPTIONS":
+            elif request.method == "OPTIONS":
+                return Response("")
+
+        @self._app.route("/system/storage", methods=["GET", "POST", "OPTIONS"])
+        async def web_storage():
+            """给前端持久化配置用"""
+            if request.method == "GET":
+                payload = await request.json
+                key = payload.get("key")
+                if not key or not self._storage.get(key):
+                    return jsonify({
+                        "code": -1,
+                        "msg": "invalid key",
+                        "key": key,
+                        "data": ""
+                    })
+
+                return jsonify({
+                    "code": 0,
+                    "msg": "ok",
+                    "key": key,
+                    "data": self._storage.get(key)
+                })
+
+            elif request.method == "POST":
+                payload = await request.json
+                key = payload.get("key")
+                if not key:
+                    return jsonify({
+                        "code": -1,
+                        "msg": "payload format error"
+                    })
+
+                self._storage.set(key, payload.get("value"))
+                return jsonify({
+                    "code": 0,
+                    "msg": "ok"
+                })
+
+            elif request.method == "OPTIONS":
                 return Response("")
