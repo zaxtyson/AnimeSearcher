@@ -343,41 +343,43 @@ class APIRouter:
             elif request.method == "OPTIONS":
                 return Response("")
 
-        @self._app.route("/system/storage", methods=["GET", "POST", "OPTIONS"])
+        @self._app.route("/system/storage", methods=["POST", "OPTIONS"])
         async def web_storage():
             """给前端持久化配置用"""
-            if request.method == "GET":
-                payload = await request.json
-                key = payload.get("key")
-                if not key or not self._storage.get(key):
-                    return jsonify({
-                        "code": -1,
-                        "msg": "invalid key",
-                        "key": key,
-                        "data": ""
-                    })
-
-                return jsonify({
-                    "code": 0,
-                    "msg": "ok",
-                    "key": key,
-                    "data": self._storage.get(key)
-                })
-
-            elif request.method == "POST":
-                payload = await request.json
-                key = payload.get("key")
-                if not key:
-                    return jsonify({
-                        "code": -1,
-                        "msg": "payload format error"
-                    })
-
-                self._storage.set(key, payload.get("value"))
-                return jsonify({
-                    "code": 0,
-                    "msg": "ok"
-                })
-
-            elif request.method == "OPTIONS":
+            if request.method == "OPTIONS":
                 return Response("")
+            if request.method == "POST":
+                payload = await request.json
+                if not payload:
+                    return jsonify({"msg": "payload format error"})
+
+                action: str = payload.get("action", "")
+                key: str = payload.get("key", "")
+                data: str = payload.get("data", "")
+
+                if not key:
+                    return jsonify({"msg": "key is invalid"})
+
+                if action.lower() == "get":
+                    return jsonify({
+                        "msg": "ok",
+                        "key": key,
+                        "data": self._storage.get(key)
+                    })
+                elif action.lower() == "set":
+                    self._storage.set(key, data)
+                    return jsonify({
+                        "msg": "ok",
+                        "key": key,
+                        "data": data,
+                    })
+                elif action.lower() == "del":
+                    return jsonify({
+                        "msg": "ok" if self._storage.delete(key) else "no data binds this key",
+                        "key": key
+                    })
+                else:
+                    return jsonify({
+                        "msg": "action is not supported",
+                        "action": action
+                    })

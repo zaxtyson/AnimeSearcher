@@ -33,3 +33,10 @@ class Storage:
     def set(self, key: str, value: Any):
         self._dict[key] = value
         self._save_config()
+
+    def delete(self, key: str):
+        if key not in self._dict:
+            return False
+        self._dict.pop(key)
+        self._save_config()
+        return True
