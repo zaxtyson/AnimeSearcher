@@ -1,0 +1,14 @@
+{
+  "name": "Sakura",
+  "description": "樱花风动漫主题",
+  "author": {
+    "nick": "Lozyue",
+    "avatar": "avatar.png",
+    "link": "http://github.com/lozyue"
+  },
+  "home": "http://github.com/lozyue/animesearcherui/#public/themes/fantasy",
+  "thumbs": "/thumbs.jpg" ,
+  "styles": ["/main.css"],
+  "scripts": ["/main.js"],
+  "async_script": false
+}

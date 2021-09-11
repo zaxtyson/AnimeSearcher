@@ -44,50 +44,56 @@ class ModuleLoader(object):
         """
         只加载搜索引擎模块, 用于搜索资源
         """
-        py_module = import_module(module)
-        for name, cls in getmembers(py_module, isclass):
+        try:
+            py_module = import_module(module)
+            for name, cls in getmembers(py_module, isclass):
 
-            if issubclass(cls, AnimeSearcher) and cls != AnimeSearcher \
-                    and module not in self._anime_searchers:
-                self._anime_searchers[module] = cls()  # 创建 Searcher 对象, 程序执行期间一直使用
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, AnimeSearcher) and cls != AnimeSearcher \
+                        and module not in self._anime_searchers:
+                    self._anime_searchers[module] = cls()  # 创建 Searcher 对象, 程序执行期间一直使用
+                    logger.info(f"Loading {name}: {cls}")
 
-            if issubclass(cls, DanmakuSearcher) and cls != DanmakuSearcher \
-                    and module not in self._danmaku_searchers:
-                self._danmaku_searchers[module] = cls()
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, DanmakuSearcher) and cls != DanmakuSearcher \
+                        and module not in self._danmaku_searchers:
+                    self._danmaku_searchers[module] = cls()
+                    logger.info(f"Loading {name}: {cls}")
+        except ModuleNotFoundError as e:
+            logger.error(e)
 
     def load_utils_module(self, module: str):
         """
         只加载工具模块, 用于资源数据的解析
         """
-        py_module = import_module(module)
-        for name, cls in getmembers(py_module, isclass):
+        try:
+            py_module = import_module(module)
+            for name, cls in getmembers(py_module, isclass):
 
-            if issubclass(cls, AnimeDetailParser) and cls != AnimeDetailParser \
-                    and module not in self._anime_detail_parsers:
-                self._anime_detail_parsers[module] = cls()
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, AnimeDetailParser) and cls != AnimeDetailParser \
+                        and module not in self._anime_detail_parsers:
+                    self._anime_detail_parsers[module] = cls()
+                    logger.info(f"Loading {name}: {cls}")
 
-            if issubclass(cls, AnimeUrlParser) and cls != AnimeUrlParser \
-                    and module not in self._anime_url_parsers:
-                self._anime_url_parsers[module] = cls()
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, AnimeUrlParser) and cls != AnimeUrlParser \
+                        and module not in self._anime_url_parsers:
+                    self._anime_url_parsers[module] = cls()
+                    logger.info(f"Loading {name}: {cls}")
 
-            if issubclass(cls, AnimeProxy) and cls != AnimeProxy \
-                    and module not in self._anime_proxy_cls:
-                self._anime_proxy_cls[module] = cls  # 只加载 class, 动态创建
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, AnimeProxy) and cls != AnimeProxy \
+                        and module not in self._anime_proxy_cls:
+                    self._anime_proxy_cls[module] = cls  # 只加载 class, 动态创建
+                    logger.info(f"Loading {name}: {cls}")
 
-            if issubclass(cls, DanmakuDetailParser) and cls != DanmakuDetailParser \
-                    and module not in self._danmaku_detail_parsers:
-                self._danmaku_detail_parsers[module] = cls()
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, DanmakuDetailParser) and cls != DanmakuDetailParser \
+                        and module not in self._danmaku_detail_parsers:
+                    self._danmaku_detail_parsers[module] = cls()
+                    logger.info(f"Loading {name}: {cls}")
 
-            if issubclass(cls, DanmakuDataParser) and cls != DanmakuDataParser \
-                    and module not in self._danmaku_data_parsers:
-                self._danmaku_data_parsers[module] = cls()
-                logger.info(f"Loading {name}: {cls}")
+                if issubclass(cls, DanmakuDataParser) and cls != DanmakuDataParser \
+                        and module not in self._danmaku_data_parsers:
+                    self._danmaku_data_parsers[module] = cls()
+                    logger.info(f"Loading {name}: {cls}")
+        except ModuleNotFoundError as e:
+            logger.error(e)
 
     def unload_full_module(self, module: str) -> None:
         """卸载模块名对应的引擎"""

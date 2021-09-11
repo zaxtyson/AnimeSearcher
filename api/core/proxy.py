@@ -156,7 +156,8 @@ class M3U8Proxy(BaseAnimeProxy):
     async def get_m3u8_text(self, index_url: str) -> str:
         """
         获取 index.m3u8 文件的内容, 如果该文件需要进一步处理,
-        比如需要跳转或者存在数据隐写, 请重写本方法
+        比如需要跳转一次才能得到 m3u8 的内容，
+        或者接口返回的数据经过加密、压缩时, 请重写本方法以获取 m3u8 文件的真实内容
 
         :param index_url: index.m3u8 文件的链接
         :return: index.m3u8 的内容
@@ -198,8 +199,10 @@ class M3U8Proxy(BaseAnimeProxy):
 
     def fix_chunk_data(self, url: str, chunk: bytes) -> bytes:
         """
-        修复数 m3u8 数据据块, 用于解除数据混淆(比如常见的图片隐写)
-
+        修复数 m3u8 数据据块, 用于解除数据混淆
+        比如常见的图片隐写， 每一段视频数据存放于一张图片中， 需要剔除图片的数据
+        可使用 binwalk 等工具对二进制数据进行分析， 以确定图像与视频流的边界位置
+        
         :param url: 数据块的链接
         :param chunk: 数据块的二进制数据
         :return: 修复完成的二进制数据

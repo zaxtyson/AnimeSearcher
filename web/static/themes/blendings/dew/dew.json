@@ -1,0 +1,39 @@
+{
+  "name": "dew",
+  "description": "配色小清新",
+  "author": {
+    "nick": "Lozyue",
+    "avatar": "avatar.png",
+    "link": "http://github.com/lozyue"
+  },
+  "home": "http://github.com/lozyue/animesearcherui/#public/themes/fantasy",
+  "thumbs": "thumb.jpg",
+  "blending": {
+    "background": "#add8e6",
+    "surface": "#fff",
+
+    "pink": "#f294c6",
+    "light-purple": "#dfb7d6",
+    "green": "#d5e751",
+    "blue": "#9bdef5",
+    "light-orange": "#f0917e",
+    "yellow" : "#fbe765",
+    "amber": "#f6c54b",
+    "cyan": "#00BCD4",
+    
+    "primary": "#eb73b9",
+    "secondary": "#9bdef5",
+    "success": "#12ee0f",
+    "warning": "#129fad",
+    "danger": "#f05050",
+    "info": "#58666e",
+
+    "on-primary": "#fff",
+    "on-secondary": "#fff",
+    "on-success": "#fff",
+    "on-warning": "#fff",
+    "on-danger": "#fff",
+    "on-info": "#fff"
+  },
+  "dark": false
+}

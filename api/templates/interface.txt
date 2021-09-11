@@ -7,6 +7,7 @@
     Email:  zaxtyson@foxmail.com
     Github: https://github.com/zaxtyson/AnimeSearcher
     Issues: https://github.com/zaxtyson/AnimeSearcher/issues
+    Docs:   https://anime-api.readthedocs.io/zh_CN/latest
 
 
 
@@ -30,19 +31,6 @@
     GET /danmaku/search/<keyword>                           弹幕搜索接口, 阻塞至所有引擎处理完成, 返回全部结果
     GET /danmaku/<token>                                    弹幕详情接口, 返回弹幕播放列表
     GET /danmaku/<token>/<episode>/v3/                      弹幕数据接口, 返回一集视频的弹幕(Dplayer格式)
-
-
-    ===================
-    Comic API Interface
-    ===================
-
-    WS  /comic/search                                       异步漫画搜索接口
-    GET /comic/search/<name>                                漫画搜索接口
-    GET /comic/<token>                                      获取漫画详情页信息
-    GET /comic/<token>/<chapter>                            获取一章漫画的信息
-    GET /comic/<token>/<chapter>/<page>                     重定向到本页图片的直链
-    GET /comic/recommends                                   近期热门漫画推荐
-    GET /comic/reader/<token>/<chapter>                     漫画阅读测试
 
 
     ==============

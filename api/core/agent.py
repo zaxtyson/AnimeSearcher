@@ -8,6 +8,7 @@ from api.core.proxy import AnimeProxy
 from api.core.scheduler import Scheduler
 from api.iptv.iptv import TVSource, get_sources
 from api.update.bangumi import Bangumi
+from global_config import cache_expire_policy as policy
 
 
 class Agent:
@@ -21,10 +22,10 @@ class Agent:
         self._bangumi = Bangumi()
         self._config = Config()
         # Memory Database for cache
-        self._anime_db = CacheDB()
-        self._danmaku_db = CacheDB()
+        self._anime_db = CacheDB(policy.get("anime", -1))
+        self._danmaku_db = CacheDB(policy.get("danmaku", -1))
         self._proxy_db = CacheDB()
-        self._others_db = CacheDB()
+        self._bangumi_db = CacheDB(policy.get("bangumi", -1))
 
     def cache_clear(self) -> float:
         """清空缓存, 返回释放的内存(KB)"""
@@ -32,7 +33,7 @@ class Agent:
         mem_free += self._anime_db.clear()
         mem_free += self._danmaku_db.clear()
         mem_free += self._proxy_db.clear()
-        mem_free += self._others_db.clear()
+        mem_free += self._bangumi_db.clear()
         return mem_free
 
     def get_global_config(self):
@@ -45,10 +46,10 @@ class Agent:
 
     async def get_bangumi_updates(self):
         """获取番组表信息"""
-        bangumi = self._others_db.fetch("bangumi")
+        bangumi = self._bangumi_db.fetch("bangumi")
         if not bangumi:  # 缓存起来
             bangumi = await self._bangumi.get_bangumi_updates()
-            self._others_db.store(bangumi, "bangumi")
+            self._bangumi_db.store(bangumi, "bangumi")
         return bangumi
 
     def get_iptv_sources(self) -> List[TVSource]:
@@ -61,7 +62,7 @@ class Agent:
             *,
             callback: Callable[[AnimeMeta], None] = None,
             co_callback: Callable[[AnimeMeta], Coroutine] = None
-    ) -> None:
+    ) -> List[AnimeMeta]:
         """搜索番剧, 返回摘要信息, 过滤相似度低的数据"""
         # 番剧搜索不缓存, 异步推送
         return await self._scheduler.search_anime(keyword, callback=callback, co_callback=co_callback)
@@ -72,38 +73,23 @@ class Agent:
             *,
             callback: Callable[[DanmakuMeta], None] = None,
             co_callback: Callable[[DanmakuMeta], Coroutine] = None
-    ) -> None:
+    ) -> List[DanmakuMeta]:
         """搜索弹幕库, 返回摘要信息, 过滤相似度低的数据"""
         # TODO: Implement data filter
 
         # 番剧搜索结果是相似的, 对应的弹幕搜索结果相对固定, 缓存备用
-        if metas := self._danmaku_db.fetch(keyword):
-            if callback is not None:
-                for meta in metas:
-                    callback(meta)
-                return
-            if co_callback is not None:
-                for meta in metas:
-                    await co_callback(meta)
-                return
-
-        # 没有缓存, 搜索一次
-        metas = []
-
-        def _callback(_meta):
-            metas.append(_meta)  # 缓存一份
-            callback(_meta)
-
-        async def _co_callback(_meta):
-            metas.append(_meta)
-            await co_callback(_meta)
-
-        if callback is not None:
-            await self._scheduler.search_danmaku(keyword, callback=_callback)
-        elif co_callback is not None:
-            await self._scheduler.search_danmaku(keyword, co_callback=_co_callback)
-        if metas:
+        metas = self._danmaku_db.fetch(keyword)
+        if not metas:
+            metas = await self._scheduler.search_danmaku(keyword, callback=callback, co_callback=co_callback)
             self._danmaku_db.store(metas, keyword)
+            return metas
+
+        # 有缓存就直接用
+        for item in metas:
+            if callback:
+                callback(item)
+            elif co_callback:
+                co_callback(item)
 
     async def get_anime_detail(self, token: str) -> Optional[AnimeDetail]:
         """获取番剧详情信息, 如果有缓存, 使用缓存的值"""

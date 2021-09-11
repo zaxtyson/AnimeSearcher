@@ -44,6 +44,8 @@ class AgeFans(AnimeSearcher):
             meta.desc = item["R简介"]
             meta.cover_url = item["R封面图小"]
             meta.detail_url = item["AID"]
+            if meta.cover_url.startswith("//"):
+                meta.cover_url = "http:" + meta.cover_url
             result.append(meta)
         return result
 

@@ -1,4 +1,5 @@
 from hashlib import md5
+from time import time
 from typing import Any
 
 import pympler.asizeof as asizeof
@@ -11,11 +12,34 @@ __all__ = ["CacheDB"]
 class CacheDB(object):
     """用于保存临时数据的键值对数据库"""
 
-    def __init__(self):
+    def __init__(self, expire: int = -1):
+        """
+        存储的对象的过期时间, 秒
+        如果 expire 为负数则不过期， 除非手动清空缓存
+        """
         self._db = {}
+        self._expire = expire
 
     def is_empty(self):
         return not self._db
+
+    def _store(self, obj: Any, key: str):
+        store_ts = int(time())  # s
+        self._db[key] = (obj, store_ts)
+
+    def _fetch(self, key: str):
+        data = self._db.get(key)
+        if not data:
+            return None
+
+        now = int(time())
+        obj, store_ts = data
+        if (self._expire >= 0) and (store_ts + self._expire < now):
+            self._db.pop(key)  # 数据已经过期
+            logger.info(f"Resources has expired: {key}")
+            return None
+
+        return obj
 
     def store(self, obj: Any, key: str = None, overwrite: bool = False) -> str:
         """
@@ -33,12 +57,12 @@ class CacheDB(object):
         exist = key in self._db
         if (not exist) or (exist and overwrite):
             logger.debug(f"Store {obj} -> <Key {key}>")
-            self._db[key] = obj
+            self._store(obj, key)
             return key
 
     def fetch(self, key: str) -> Any:
         """从数据库读取一个对象"""
-        ret = self._db.get(key)
+        ret = self._fetch(key)
         logger.debug(f"Fetch <Key {key}> -> {ret if ret else 'Nothing Found'}")
         return ret
 
@@ -46,7 +70,7 @@ class CacheDB(object):
         """更新 key 绑定的对象"""
         if key in self._db:
             logger.debug(f"Update <Key {key}> -> {value}")
-            self._db[key] = value
+            self._store(value, key)
         return key
 
     def size(self) -> float:

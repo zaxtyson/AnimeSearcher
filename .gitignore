@@ -1,0 +1,12 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+
+# Pycharm
+.idea/
+
+# Logs
+logs/
+
+# Environment
+venv/

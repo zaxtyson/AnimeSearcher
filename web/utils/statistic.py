@@ -4,7 +4,10 @@ from typing import Optional
 from aiohttp import ClientSession
 from quart import Response, Request
 
+from api.core.abc import singleton
 
+
+@singleton
 class Statistics(object):
     """
     用户体验计划, 统计用户在各页面的访问次数和驻留时间

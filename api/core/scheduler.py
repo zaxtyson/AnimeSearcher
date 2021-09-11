@@ -23,7 +23,7 @@ class Scheduler:
             *,
             callback: Callable[[AnimeMeta], None] = None,
             co_callback: Callable[[AnimeMeta], Coroutine] = None
-    ) -> None:
+    ) -> List[AnimeMeta]:
         """
         异步搜索动漫
 
@@ -34,28 +34,30 @@ class Scheduler:
         如果设置了 callback, 忽视 co_callback
         """
         if not keyword:
-            return
+            return []
 
         async def run(searcher: AnimeSearcher):
             logger.info(f"{searcher.__class__.__name__} is searching for [{keyword}]")
-            if callback is not None:
-                async for item in searcher._search(keyword):
+            results = []
+            async for item in searcher._search(keyword):
+                if callback:
                     callback(item)  # 每产生一个搜索结果, 通过回调函数处理
-                return
-            if co_callback is not None:
-                async for item in searcher._search(keyword):
+                elif co_callback:
                     await co_callback(item)
+                results.append(item)
+            return results
 
         searchers = self._loader.get_anime_searchers()
         if not searchers:
             logger.warning(f"No anime searcher enabled")
-            return
+            return []
 
         logger.info(f"Searching Anime -> [{keyword}], enabled engines: {len(searchers)}")
         start_time = perf_counter()
-        await asyncio.wait([run(s) for s in searchers])
+        done, pending = await asyncio.wait([run(s) for s in searchers])
         end_time = perf_counter()
         logger.info(f"Searching anime finished in {end_time - start_time:.2f}s")
+        return [meta for task in done for meta in task.result()]
 
     async def search_danmaku(
             self,
@@ -63,31 +65,33 @@ class Scheduler:
             *,
             callback: Callable[[DanmakuMeta], None] = None,
             co_callback: Callable[[DanmakuMeta], Coroutine] = None
-    ) -> None:
+    ) -> List[DanmakuMeta]:
         """
         搜索弹幕库
         """
 
-        async def run(searcher: DanmakuSearcher):
+        async def run(searcher: DanmakuSearcher) -> List[DanmakuMeta]:
             logger.info(f"{searcher.__class__.__name__} is searching for [{keyword}]")
-            if callback is not None:
-                async for item in searcher._search(keyword):
+            results = []
+            async for item in searcher._search(keyword):
+                if callback:
                     callback(item)
-                return
-            if co_callback is not None:
-                async for item in searcher._search(keyword):
-                    await co_callback(item)
+                elif co_callback:
+                    co_callback(item)
+                results.append(item)
+            return results
 
         searchers = self._loader.get_danmaku_searcher()
         if not searchers:
             logger.warning(f"No danmaku searcher enabled")
-            return
+            return []
 
         logger.info(f"Searching Danmaku -> [{keyword}], enabled engines: {len(searchers)}")
         start_time = perf_counter()
-        await asyncio.wait([run(s) for s in searchers])
+        done, pending = await asyncio.wait([run(s) for s in searchers])
         end_time = perf_counter()
         logger.info(f"Searching danmaku finished in {end_time - start_time:.2f}s")
+        return [meta for task in done for meta in task.result()]
 
     async def parse_anime_detail(self, meta: AnimeMeta) -> AnimeDetail:
         """解析番剧详情页信息"""

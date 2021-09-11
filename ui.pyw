@@ -5,8 +5,7 @@ from threading import Thread
 from tkinter import Tk, Label, CENTER, Button
 
 from api.config import Config
-from api.router import APIRouter
-from config import *
+from api.router import app_run
 
 PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 
@@ -20,7 +19,8 @@ class SimpleUI:
 
     def init_ui(self):
         self.ui.title("AnimeSearcher")
-        self.ui.wm_iconbitmap(f"{PATH}/logo.ico")
+        if os.name == "nt":
+            self.ui.wm_iconbitmap(f"{PATH}/logo.ico")
         width, height = 350, 200
         screen_width = self.ui.winfo_screenwidth()
         screen_height = self.ui.winfo_screenheight()
@@ -37,15 +37,13 @@ class SimpleUI:
     @staticmethod
     def open_browser():
         """打开一个浏览器窗口"""
-        webbrowser.open(f"{PATH}/web/index.html")
+        webbrowser.open(f"{PATH}/web/static/index.html")
 
     def run(self):
         self.ui.mainloop()
 
 
 if __name__ == '__main__':
-    app = APIRouter(host, port)
-    app.set_domain(domain)
     ui = SimpleUI()
-    Thread(target=app.run, daemon=True).start()
+    Thread(target=app_run, daemon=True).start()
     ui.run()
