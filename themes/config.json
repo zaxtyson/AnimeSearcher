@@ -1,0 +1,26 @@
+{
+  "styles": {
+    "title":"主题风格配置",
+    "hint":"用于管理主题和默认启用的主题风格(除了LocalStorage外的外置存储)",
+    "enabled": "default",
+    "themes": [
+      "fantasy",
+      "default"
+    ]
+  },
+  "blendings": {
+    "title": "主题配色配置",
+    "hint":"用于管理主题和默认启用的主题配色(除了LocalStorage外的外置存储)",
+    "enabled": "light",
+    "themes": [
+      "dew", "dew-dark",
+      "light",
+      "dark"
+    ]
+  },
+  "internal": {
+    "title": "主题内嵌相关配置",
+    "hint": "默认无需修改",
+    "withCustom": "custom"
+  }
+}

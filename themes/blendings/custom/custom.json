@@ -1,0 +1,16 @@
+{
+  "name": "custom",
+  "description": "自定义子主题配色",
+  "author": {
+    "nick": "God",
+    "link": "http://github.com/"
+  },
+  "home": "http://github.com/lozyue/animesearcherui/",
+  "thumbs": "",
+  "blending": {
+
+  },
+  "colors":{
+
+  }
+}

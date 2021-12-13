@@ -1,0 +1,51 @@
+{
+  "name": "dew",
+  "alias": "小清新",
+  "description": "配色小清新",
+  "author": {
+    "nick": "Lozyue",
+    "avatar": "avatar.png",
+    "link": "http://github.com/lozyue"
+  },
+  "home": "http://github.com/lozyue/animesearcherui/#public/themes/fantasy",
+  "thumbs": "thumb.jpg",
+  "blending": {
+    "background": "#ddd2c1",
+    "surface": "#fff",
+
+    "on-background": "#000",
+    "on-surface": "#000",
+
+    "on-primary": "#fff",
+    "on-secondary": "#fff",
+    "on-success": "#fff",
+    "on-warning": "#fff",
+    "on-error": "#fff",
+    "on-info": "#fff",
+    
+    "primary": "#eb73b9",
+    "secondary": "#9bdef5",
+    "tertiary": "#f0917e",
+    "quaternary": "#dfb7d6",
+
+    "success": "#12ee0f",
+    "warning": "#129fad",
+    "error": "#f05050",
+    "info": "#58666e"
+  },
+  "colors":{
+    "pink": "#f294c6",
+    "purple": "#dfb7d6",
+    "green": "#d5e751",
+    "blue": "#9bdef5",
+    "orange": "#f0917e",
+    "yellow" : "#fbe765",
+    "cream": "#fce2ce",
+    "grey": "#808080",
+    "lightgrey": "#d3d3d3",
+
+    "amber": "#f6c54b",
+    "cyan": "#00BCD4"
+  },
+  "dark": false
+}

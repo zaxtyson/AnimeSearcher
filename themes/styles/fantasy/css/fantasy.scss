@@ -1,0 +1,79 @@
+/**
+ * Style-Sheet of Theme-Style Fantasy
+ * 梦幻主题 Fantasy
+ * @author: Lozyue
+ */
+
+// @import './override.scss';
+
+.fantasy{
+  font-family: 'Noto Serif SC', 'MicroSoft Yahei', '';
+  // 
+  ::selection{
+    background: #444;
+    color: #fff;
+  }
+  .fantasy-bg{
+    // background-image: url(http://api.mtyqx.cn/api/random.php?r=91f275ab);
+    background-image: url(https://tva1.sinaimg.cn/large/005BYqpgly1frn9445odej31hc0u0kjl.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  .main{
+    background-color: rgba(255,255,255, .4);
+    border-radius: var(--v-layer-md-radius);
+  }
+  #preferences .main{
+    background-color: rgba(255, 255, 255, 0.67);
+  }
+  #navigator, #manager {
+    &.main{
+      margin-top: 1.25em;
+      margin-bottom: 1.5em;
+    }
+  }
+}
+
+// .fantasy .v-main__wrap #lzyScroll{
+//     background-image: url(https://m.pixivic.com/img/girl.69e7e390.gif);
+//     width:86px;
+//     height:118px;
+// }
+// .fantasy .v-main__wrap .container{
+// opacity: .9;
+// }
+// .fantasy .v-main__wrap .container .lzytransparent{
+// opacity: 0.86;
+// }
+// .fantasy .episodeVer{
+// background: rgba(53, 46, 46, 0.7);
+// padding:0  0 10px 36px;
+// border-radius: 15px;
+// }
+// .fantasy .episodeVer .lzytitle{color:#fff}
+// .fantasy{background: transparent;}
+// .fantasy::before{
+//     content: '';
+//     position: fixed;
+//     width: 100%;
+//     height: 100%;
+//     top: 0;
+//     left: 0;
+//     will-change: transform;
+//     z-index: -1;
+//     background-repeat: no-repeat;
+//     background-position: top right;
+//     background-size: cover;
+//     -moz-filter: blur(10px) brightness(.88);
+//     -webkit-filter: blur(10px) brightness(.88);
+//     -o-filter: blur(10px) brightness(.88);
+//     -ms-filter: blur(10px) brightness(.88);
+//     filter: blur(10px) brightness(.88);
+// }
+
+    // background-image: url('https://tva1.sinaimg.cn/large/0072Vf1pgy1foxkf2ckn5j31hc0u0nkl.jpg');
+    // background-image: url('https://tva2.sinaimg.cn/large/87c01ec7gy1frkicqzcjtj21id0xz1kz.jpg');
+    // background-image: url('https://tva4.sinaimg.cn/large/0072Vf1pgy1foxkfcikvsj31hc0u0ar1.jpg');
+    
+    // https://5200.pro/wp-content/uploads/2020/03/50793245_p0.png
+    // background-image: url('http://api.mtyqx.cn/api/random.php?91f275ab');

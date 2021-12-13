@@ -1,0 +1,29 @@
+@charset "UTF-8";
+/**
+ * Style-Sheet of Theme-Style Fantasy
+ * 梦幻主题 Fantasy
+ * @author: Lozyue
+ */
+.fantasy {
+  font-family: "Noto Serif SC", "MicroSoft Yahei", "";
+}
+.fantasy ::selection {
+  background: #444;
+  color: #fff;
+}
+.fantasy .fantasy-bg {
+  background-image: url(https://tva1.sinaimg.cn/large/005BYqpgly1frn9445odej31hc0u0kjl.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.fantasy .main {
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: var(--v-layer-md-radius);
+}
+.fantasy #preferences .main {
+  background-color: rgba(255, 255, 255, 0.67);
+}
+.fantasy #navigator.main, .fantasy #manager.main {
+  margin-top: 1.25em;
+  margin-bottom: 1.5em;
+}
