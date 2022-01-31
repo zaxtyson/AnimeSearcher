@@ -28,18 +28,23 @@
     "info": "#58666e"
   },
   "colors":{
-    "pink": "#f294c6",
-    "purple": "#dfb7d6",
+    "red": "#ff3838",
     "green": "#d5e751",
     "blue": "#9bdef5",
-    "orange": "#f0917e",
     "yellow" : "#fbe765",
+    "pink": "#f294c6",
+    "purple": "#dfb7d6",
+    "orange": "#f0917e",
     "cream": "#fce2ce",
-    "grey": "808080",
-    "lightgrey": "#d3d3d3",
+    "brown": "#b84b4b",
+
+    "grey": "#d3d3d3",
+    "lightgrey": "#808080",
 
     "amber": "#f6c54b",
-    "cyan": "#00BCD4"
+    "cyan": "#00BCD4",
+    
+    "table-separator": "#828282"
   },
   "dark": true
 }

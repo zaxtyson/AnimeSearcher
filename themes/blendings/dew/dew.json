@@ -10,14 +10,17 @@
   "home": "http://github.com/lozyue/animesearcherui/#public/themes/fantasy",
   "thumbs": "thumb.jpg",
   "blending": {
-    "background": "#ddd2c1",
+    "background": "#e0d7cc",
     "surface": "#fff",
 
     "on-background": "#000",
     "on-surface": "#000",
 
     "on-primary": "#fff",
-    "on-secondary": "#fff",
+    "on-secondary": "#129bff",
+    "on-tertiary": "#fff",
+    "on-quaternary": "#fff",
+    "on-senary": "#ff7d83",
     "on-success": "#fff",
     "on-warning": "#fff",
     "on-error": "#fff",
@@ -27,6 +30,7 @@
     "secondary": "#9bdef5",
     "tertiary": "#f0917e",
     "quaternary": "#dfb7d6",
+    "senary": "#edeb68",
 
     "success": "#12ee0f",
     "warning": "#129fad",
@@ -34,18 +38,23 @@
     "info": "#58666e"
   },
   "colors":{
-    "pink": "#f294c6",
-    "purple": "#dfb7d6",
+    "red": "#ff3838",
     "green": "#d5e751",
     "blue": "#9bdef5",
-    "orange": "#f0917e",
     "yellow" : "#fbe765",
+    "pink": "#f294c6",
+    "purple": "#dfb7d6",
+    "orange": "#f0917e",
     "cream": "#fce2ce",
-    "grey": "#808080",
-    "lightgrey": "#d3d3d3",
+    "brown": "#b84b4b",
+
+    "grey": "#666666",
+    "lightgrey": "#cccccc",
 
     "amber": "#f6c54b",
-    "cyan": "#00BCD4"
+    "cyan": "#00BCD4",
+
+    "table-separator": "#dee2e6"
   },
   "dark": false
 }

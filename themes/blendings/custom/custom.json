@@ -1,5 +1,6 @@
 {
   "name": "custom",
+  "alias": "全局子主题",
   "description": "自定义子主题配色",
   "author": {
     "nick": "God",

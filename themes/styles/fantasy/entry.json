@@ -8,7 +8,8 @@
     "link": "https://github.com/lozyue/"
   },
   "home": "https://github.com/lozyue/animesearcherui/#public/themes/fantasy",
-  "thumbs": "/thumbs.jpg" ,
+  "thumbs": "/images/thumb.jpg" ,
+  "introduce": "/intro.md",
   "blending": {
     "onLight": "dew",
     "onDark": "dew-dark"

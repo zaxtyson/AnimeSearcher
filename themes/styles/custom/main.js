@@ -1,1 +1,11 @@
-$theme(((e,h,{revoke:k})=>{}),((e,h)=>{}));
+// custom main
+(function(){
+  $theme((utility, utils, {revoke})=>{
+  // Invoke
+
+  }, (utility, utils)=>{
+  // Revoke
+
+  });
+
+})()
