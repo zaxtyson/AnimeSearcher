@@ -49,6 +49,11 @@
 .fantasy #anime .main {
   margin-top: 1.5em;
 }
+.fantasy #aui-player .main {
+  margin-bottom: 1.5em;
+  padding-top: 2em;
+  padding-bottom: 3em;
+}
 .fantasy #theme .main {
   padding-top: 2em;
   padding-bottom: 3em;

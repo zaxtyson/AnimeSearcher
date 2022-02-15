@@ -71,5 +71,25 @@ $theme(function(utility){
   path: '/navigator', // only take effect on navigator page.
 });
 
+$theme(function(utility, utils){
+  const toBottom = {
+    name: "toBottom",
+    descriptions: "快速向下滚到见底！",
+    commonKey: 'B',
+    statuKey: 'ctrl',
+    invoke(eve){
+      utils.lyscrollTo({
+        top: 9999,
+      });
+    }
+  };
+  utility.registerShortcut(toBottom);
+}, function(utility){
+  // Remove the impact by the register name.
+  utility.unregisterShortcut("toBottom");
+}, {
+  path: '/anime',
+});
+
 // All jobs Done!
 })();

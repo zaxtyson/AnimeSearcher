@@ -54,7 +54,7 @@
     background-color: rgba(255, 255, 255, 0.67);
   }
   // For Navigator, Manager Partition
-  #navigator, #manager {
+  #navigator, #manager{
     &.main{
       margin-top: 1.25em;
       margin-bottom: 1.5em;
@@ -68,6 +68,15 @@
     }
     .main{
       margin-top: 1.5em;
+    }
+  }
+  // For AuiPlayer
+  #aui-player{
+    .main{
+      // margin-top: -1.5em;
+      margin-bottom: 1.5em;
+      padding-top: 2em;
+      padding-bottom: 3em;
     }
   }
   // For Theme Partition
