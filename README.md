@@ -43,3 +43,12 @@ AnimeSearcher 是一个基于python的多引擎管理配合聚合弹幕播放的
 对Web单页应用的易用性与可定制性间的最佳平衡关系探索的一次自我实践。
 
 详见: [AnimeSearcher](https://github.com/zaxtyson/AnimeSearcher/)
+
+
+## 旧版AnimeSearcher WebUI
+
+v1.x版本于很久前停止维护，但目前可能在一些方面有更完善和稳定的表现。
+
+你可以在这里找到它：
+- [WebUI编译版 v1.31](https://github.com/zaxtyson/AnimeSearcher/tree/4e32cbe7233eb26957040b66b9cdaecc95d9e154)
+- [WebUI源码](https://github.com/lozyue/AnimeSearcherUI/tree/master)

@@ -48,14 +48,17 @@
     //     // scale: 1.2,
     //   }
     // });
+    const randomHeight = utils.randomItem([86,136,256,486, 672,]);
     const handle3 = utility.addAdorement({
       // Use `resolvePath` to support relative path.
       image: utility.resolvePath("/images/cloud.png" ),
       width: 72, height: 48,
       // If none of the left/top/bottom/right is assigned, it will be auto generated randomly  
       right: -46,
+      top: randomHeight,
       over: {
-        right: -467,
+        right: 367,
+        top: randomHeight,
       }
     });
     removeHandle.push(handle3);
