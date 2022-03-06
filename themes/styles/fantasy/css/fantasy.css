@@ -49,7 +49,7 @@
 .fantasy #anime .main {
   margin-top: 1.5em;
 }
-.fantasy #aui-player .main {
+.fantasy #aui-player .main, .fantasy #tvlive .main {
   margin-bottom: 1.5em;
   padding-top: 2em;
   padding-bottom: 3em;
