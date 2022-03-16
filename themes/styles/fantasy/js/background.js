@@ -89,5 +89,22 @@
     // 
   }, {});
 
+  /**
+   * Custom auiplayer background
+   */
+  $theme(({resolvePath}, utils)=>{
+    const AssetPath = resolvePath("/images/bilibili.jpg");
+    console.log({AssetPath});
+
+    const Lzyplayer = document.body.querySelector("#lzyplayer");
+      
+    Lzyplayer.setAttribute("style", `background-image:url(${AssetPath});background-size:cover`);
+    // Transparent player
+    Lzyplayer.querySelector(".dlp-video-wrap").style = "background: transparent";
+    Lzyplayer.querySelector(".player-controller").style = "background: rgba(var(--v-theme-surface), .3)";
+  }, ()=>{
+    ;
+  }, {path: "/aui-player"});
+
   // END
 })();

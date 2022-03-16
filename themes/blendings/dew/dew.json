@@ -4,10 +4,10 @@
   "description": "配色小清新",
   "author": {
     "nick": "Lozyue",
-    "avatar": "avatar.png",
+    "avatar": "https://avatars.githubusercontent.com/u/54498636?v=4",
     "link": "http://github.com/lozyue"
   },
-  "home": "http://github.com/lozyue/animesearcherui/#public/themes/fantasy",
+  "home": "https://github.com/lozyue/AnimeSearcherUI/tree/main/AnimeUI/themes/blendings/dew",
   "thumbs": "thumb.jpg",
   "blending": {
     "background": "#e0d7cc",

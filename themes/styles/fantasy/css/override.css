@@ -19,3 +19,9 @@
   background-color: rgba(255, 255, 255, 0.6);
   border-radius: var(--v-layer-md-radius);
 }
+.fantasy #lzyplayer #dlplayer.dlp-fulled .dlp-video-wrap {
+  background: #000 !important;
+}
+.fantasy .mobile-token #preferences .back-home {
+  background: rgba(var(--v-theme-secondary), var(--v-activated-opacity));
+}

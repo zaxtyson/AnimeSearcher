@@ -4,12 +4,12 @@
   "description": "磨砂风梦幻主题",
   "author": {
     "nick": "Lozyue",
-    "avatar": "avatar.png",
+    "avatar": "https://avatars.githubusercontent.com/u/54498636?v=4",
     "link": "https://github.com/lozyue/"
   },
-  "home": "https://github.com/lozyue/animesearcherui/#public/themes/fantasy",
+  "home": "https://github.com/lozyue/AnimeSearcherUI/tree/main/AnimeUI/themes/styles/fantasy",
   "thumbs": "/images/thumb.jpg" ,
-  "introduce": "/intro.md",
+  "introduce": "/Readme.md",
   "blending": {
     "onLight": "dew",
     "onDark": "dew-dark"

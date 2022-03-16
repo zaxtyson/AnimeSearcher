@@ -12,9 +12,12 @@
 并支持背景选项，可自定义高斯模糊度以及背景图像或API的链接。
 
 
+同时为AuiPlayer播放器增加了背景图。
+
+
 ### 播放器增强
 
-基于番剧片头片尾长度严格接近 01:30 的统计规律，
+基于番剧片头片尾时长严格正态集中于 01:30s 的统计规律，
 增加按A快速空降前进 90s 支持。 
 
 
@@ -32,4 +35,4 @@
 
 ## Links
 
-Home: [Git仓库](https://github.com/lozyue/animesearcherui/#public/themes/fantasy")
+Home: [Git仓库](https://github.com/lozyue/AnimeSearcherUI/tree/main/AnimeUI/themes/styles/fantasy)
