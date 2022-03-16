@@ -9,7 +9,6 @@
   }
   // Preference page.
   #preferences{
-    // with
     // Make headline transparent.
     .back-home:hover {
       background: rgba(var(--v-theme-secondary), var(--v-activated-opacity));
@@ -27,6 +26,24 @@
         padding: 0.125em 0.5em;
         background-color: rgba(#fff, 0.6);
         border-radius: var(--v-layer-md-radius);
+      }
+    }
+  }
+  // Fix custom player background unexpected transparent on webfull.
+  #lzyplayer{
+    #dlplayer{
+      &.dlp-fulled{
+        .dlp-video-wrap{
+          background: #000!important;
+        }
+      }
+    }
+  }
+  .mobile-token{
+    #preferences{
+    // Make headline transparent.
+      .back-home{
+        background: rgba(var(--v-theme-secondary), var(--v-activated-opacity));
       }
     }
   }
