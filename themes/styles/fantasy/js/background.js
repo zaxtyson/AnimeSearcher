@@ -97,13 +97,19 @@
     console.log({AssetPath});
 
     const Lzyplayer = document.body.querySelector("#lzyplayer");
+    if(!Lzyplayer) return false;
       
     Lzyplayer.setAttribute("style", `background-image:url(${AssetPath});background-size:cover`);
     // Transparent player
     Lzyplayer.querySelector(".dlp-video-wrap").style = "background: transparent";
     Lzyplayer.querySelector(".player-controller").style = "background: rgba(var(--v-theme-surface), .3)";
   }, ()=>{
-    ;
+    const Lzyplayer = document.body.querySelector("#lzyplayer");
+    if(!Lzyplayer) return false;
+    Lzyplayer.setAttribute("style", "");
+    // Transparent player
+    Lzyplayer.querySelector(".dlp-video-wrap").style = "";
+    Lzyplayer.querySelector(".player-controller").style = "";
   }, {path: "/aui-player"});
 
   // END
