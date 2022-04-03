@@ -9,7 +9,8 @@
   $theme(
     // Invoke. The this points to the parsered options.
     function(utility, utils, context){
-      console.log("%c 主题风格:[Fantasy] %c 应用成功！\n", "color:#fadfa3;background:#030307;padding:5px 0;","color:#000;background:#fadfa3;padding:5px 0;", {utility, utils, context, this: this});
+      console.log("%c 主题风格:[Fantasy] %c 应用成功！\n", "color:#fadfa3;background:#030307;padding:5px 0;","color:#000;background:#fadfa3;padding:5px 0;");
+      // console.log({utility, utils, context, this: this});
       const { revoke } = context;
 
       // Add shortcut of AuiPlayer locatted in /anime/details/:

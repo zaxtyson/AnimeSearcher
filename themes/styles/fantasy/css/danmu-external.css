@@ -1,0 +1,32 @@
+.fantasy #aui-player .main #fantasy-danmu, .fantasy #details .main #fantasy-danmu {
+  border: 1px dashed rgb(var(--v-theme-primary));
+}
+.fantasy #aui-player .main #fantasy-danmu .link-head, .fantasy #details .main #fantasy-danmu .link-head {
+  margin-top: 1em;
+}
+.fantasy #aui-player .main #fantasy-danmu .link-input, .fantasy #details .main #fantasy-danmu .link-input {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.fantasy #aui-player .main #fantasy-danmu .link-input input, .fantasy #details .main #fantasy-danmu .link-input input {
+  flex: 1 1 auto;
+  border-bottom: 1px solid rgb(var(--v-theme-on-background));
+}
+.fantasy #aui-player .main #fantasy-danmu .link-action, .fantasy #details .main #fantasy-danmu .link-action {
+  text-align: center;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.fantasy #aui-player .main #fantasy-danmu .link-action button, .fantasy #details .main #fantasy-danmu .link-action button {
+  display: inline-block;
+  margin: 0.75em auto 0.5em;
+  border: 2px solid rgb(var(--v-theme-primary));
+  border-radius: 4px;
+  padding: 0.25em 0.5em;
+  transition: all 0.3s ease-out;
+}
+.fantasy #aui-player .main #fantasy-danmu .link-action button:active, .fantasy #details .main #fantasy-danmu .link-action button:active {
+  background-color: rgba(var(--v-theme-secondary));
+}

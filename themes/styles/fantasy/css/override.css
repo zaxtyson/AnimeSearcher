@@ -22,6 +22,3 @@
 .fantasy #lzyplayer #dlplayer.dlp-fulled .dlp-video-wrap {
   background: #000 !important;
 }
-.fantasy .mobile-token #preferences .back-home {
-  background: rgba(var(--v-theme-secondary), var(--v-activated-opacity));
-}
