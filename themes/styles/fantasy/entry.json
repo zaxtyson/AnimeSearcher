@@ -1,6 +1,7 @@
 {
   "name": "fantasy",
   "alias": "次元梦幻",
+  "version": "0.0.2",
   "description": "磨砂风梦幻主题",
   "author": {
     "nick": "Lozyue",
@@ -14,7 +15,18 @@
     "onLight": "dew",
     "onDark": "dew-dark"
   },
-  "styles": ["/css/fantasy.css", "/css/override.css"],
-  "scripts": ["/js/main.js", "/js/quotation.js", "/js/background.js", "/js/decorations.js"],
+  "styles": [
+    "/css/fantasy.css", 
+    "./css/danmu-external.css",
+    "/css/override.css"
+  ],
+  "scripts": [
+    "./js/utils.js",
+    "/js/main.js",
+    "/js/background.js",
+    "./js/danmu-external.js", 
+    "/js/quotation.js",
+    "/js/decorations.js"
+  ],
   "async_script": false
 }

@@ -1,0 +1,43 @@
+// 始终以主题名为类名起头
+.fantasy{
+  // 匹配页面 /aui-player, /anime/details
+  #aui-player, #details{
+    // 主体内容节点
+    .main{
+      #fantasy-danmu{
+        border: 1px dashed rgb(var(--v-theme-primary));
+        .link-head{
+          margin-top: 1em;
+        }
+        .link-input{
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          input{
+            flex: 1 1 auto;
+            border-bottom: 1px solid rgb(var(--v-theme-on-background));
+          }
+        }
+        .link-action{
+          text-align: center;
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          button{
+            display: inline-block;
+            margin: 0.75em auto 0.5em;
+            // Border.
+            border: 2px solid rgb(var(--v-theme-primary));
+            border-radius: 4px;
+            padding: 0.25em 0.5em;
+            // Active
+            transition: all 0.3s ease-out;
+            &:active{
+              background-color: rgba(var(--v-theme-secondary));
+            }
+          }
+        }
+      }
+    }
+  }
+}
