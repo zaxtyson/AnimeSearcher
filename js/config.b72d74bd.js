@@ -18,7 +18,7 @@
             return c;
           },
           BlendingDefaultLight: function () {
-            return h;
+            return m;
           },
           BlendingDefaultDark: function () {
             return b;
@@ -50,9 +50,12 @@
         },
         o = {
           DEFAULTSYNC: !0,
-          AuiPlayer: { hls: !0, flv: !1, webtorrent: !1, dash: !1 },
+          AuiPlayer: {
+            MSE: { hls: !0, flv: !1, webtorrent: !1, dash: !1 },
+            metalistCache: !0,
+          },
           AuiTheme: { ThemeStyle: { StrictScriptLoad: !0 } },
-          Modules: { Stats: !0, ServiceWorker: !0 },
+          Modules: { Stats: !0, ServiceWorker: !0, UpdateCheck: !0 },
         },
         n = [
           "高度定制的主题系统支持，配色和风格双重加成，分离亮暗模式，全新视觉，全新体验！",
@@ -90,8 +93,8 @@
           "layer-lg-radius": "10px",
         },
         y = { "layer-darken": 1 },
-        m = { "layer-darken": 0.75 },
-        h = {
+        h = { "layer-darken": 0.75 },
+        m = {
           name: "light",
           alias: "亮色",
           description: "默认亮色主题配色",
@@ -166,7 +169,7 @@
             }
           ),
           colors: (0, t.Z)(
-            (0, t.Z)((0, t.Z)((0, t.Z)((0, t.Z)({}, d), l), p), m),
+            (0, t.Z)((0, t.Z)((0, t.Z)((0, t.Z)({}, d), l), p), h),
             {},
             {
               "border-color": "#FFFFFF",

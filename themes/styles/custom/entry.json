@@ -9,7 +9,7 @@
   "home": "http://github.com/lozyue/animesearcherui/",
   "thumbs": "",
   "styles": [],
-  "scripts": ["main.js"],
+  "scripts": ["main.js", "aui-export.js"],
   "privilege_scripts": "/privilege.js",
   "async_script": true
 }

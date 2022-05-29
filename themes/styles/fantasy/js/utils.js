@@ -2,7 +2,7 @@
  * To add some public function to share with others
  *   via utils Object.
  */
- (function(){
+(function(){
   
   $theme((utility, utils)=>{
     // Share the function by the name of "XML_toObj"

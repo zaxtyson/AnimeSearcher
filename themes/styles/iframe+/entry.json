@@ -1,0 +1,15 @@
+{
+  "name": "iframe+",
+  "alias": "iframe+",
+  "description": "播放器增强当被用于iframe嵌套时",
+  "author": {
+    "nick": "lozyue",
+    "link": "http://github.com/lozyue/"
+  },
+  "home": "http://github.com/lozyue/animesearcherui/",
+  "thumbs": "",
+  "styles": [],
+  "scripts": ["aui-export.js"],
+  "introduce": "/Readme.md",
+  "async_script": true
+}
