@@ -1,0 +1,35 @@
+{
+  "server_info": {
+    "bind": "0.0.0.0",
+    "port": 6001,
+    "host": "localhost",
+    "https": false,
+    "debug": false,
+    "access_log": true
+  },
+  "remote_repo": "http://127.0.0.1:8081",
+  "engine_status": [
+    {
+      "module": "anime.agefans",
+      "enable": true
+    }
+  ],
+  "http_client": {
+    "timeout": {
+      "total": 3600,
+      "connect": 30
+    },
+    "proxy": "",
+    "dns": [
+      "223.5.5.5",
+      "8.8.8.8"
+    ]
+  },
+  "cache_policy": {
+    "anime_detail": 1800,
+    "anime_bangumi": 3600,
+    "danmaku_meta": 7200,
+    "danmaku_detail": 7200,
+    "danmaku_data": 7200
+  }
+}
