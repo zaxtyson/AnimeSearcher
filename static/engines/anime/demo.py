@@ -25,7 +25,7 @@ class DemoEngine(AnimeEngine):
     async def parse_detail(self, **parse_args) -> AnimeDetail:
         aid = parse_args.get("aid")
         detail = AnimeDetail()
-        detail.title = "视频标题"
+        detail.title = "剧集标题"
         detail.cover_url = "https://tvax3.sinaimg.cn/large/008kBpBlgy1gw1s5tewhnj307409wgm4.jpg"
         detail.description = "简介信息"
         detail.categories = ["测试"]

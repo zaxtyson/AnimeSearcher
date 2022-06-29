@@ -1,0 +1,32 @@
+// Thanks: https://github.com/Passkou/bilibili-protobuf
+
+syntax = "proto3";
+
+package bilibili.danmaku;
+
+// 弹幕分段数据的信息
+message SegmentConfig {
+    optional int64 duration = 1;     // 每段时长(ms)
+    optional int64 total = 2;        // 共有几段
+}
+
+// 弹幕库信息
+message DanmakuInfo {
+    optional int32 state = 1;           // 状态, 为 1 时视频弹幕被关闭
+    optional SegmentConfig seg = 4;     // 弹幕分段设置
+    optional int64 count = 8;           // 当前弹幕数量
+}
+
+message Bullet {
+    int64 id = 1;
+    int32 progress = 2;             // 弹幕出现的时间点(ms)
+    int32 mode = 3;
+    //  int32 font_size = 4;
+    uint32 color = 5;               // 弹幕颜色
+    //  string mid_hash = 6;
+    string content = 7;             // 弹幕内容
+}
+
+message DanmakuData {
+    repeated Bullet bullet = 1;
+}

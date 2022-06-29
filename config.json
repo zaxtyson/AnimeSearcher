@@ -12,6 +12,10 @@
     {
       "module": "anime.agefans",
       "enable": true
+    },
+    {
+      "module": "danmaku.bilibili",
+      "enable": true
     }
   ],
   "http_client": {

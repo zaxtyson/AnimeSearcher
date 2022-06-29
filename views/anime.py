@@ -6,8 +6,8 @@ from sanic.server.websockets.impl import WebsocketImplProtocol
 from core.agent import agent
 from core.config import config
 from models.resp import GenericResp
-from utils.encode import *
-from views import template
+from utils.views import check_token
+from utils.views import template
 
 __all__ = ["bp_anime"]
 
@@ -29,22 +29,18 @@ async def search(request: Request, keyword: str):
     return json(GenericResp(data=ret).to_dict())
 
 
+@check_token
 @bp_anime.get("/detail/<token:str>")
 async def get_detail(request: Request, token: str):
-    if not validate_token(token):
-        return json(GenericResp(code=1, msg="Url token invalid").to_dict())
-
     detail = await agent.get_anime_detail(token)
     if not detail:
         return json(GenericResp(code=2, msg="Parse anime detail failed").to_dict())
     return json(GenericResp(data=detail).to_dict())
 
 
+@check_token
 @bp_anime.get("/info/<token:str>/<route_idx:int>/<ep_idx:int>")
 async def get_info(request: Request, token: str, route_idx: int, ep_idx: int):
-    if not validate_token(token):
-        return json(GenericResp(code=1, msg="Url token invalid").to_dict())
-
     info = await agent.get_video_info(token, route_idx, ep_idx)
     if not info:
         return json(GenericResp(code=2, msg="Parse video info failed").to_dict())

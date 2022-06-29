@@ -145,7 +145,7 @@ class DanmakuEngine(BaseEngine):
         """
         pass
 
-    async def parse_bullets(self, **parse_args) -> DanmakuData:
+    async def parse_data(self, **parse_args) -> DanmakuData:
         """
         Override this method to parse danmaku data
         :param parse_args: the args related to the danmaku page
@@ -154,25 +154,30 @@ class DanmakuEngine(BaseEngine):
         pass
 
     # called by agent, don't override the following methods
-    async def safe_search(self, keyword: str) -> AsyncIterator[DanmakuMeta]:
+    async def do_search(self, keyword: str) -> AsyncIterator[DanmakuMeta]:
         try:
             logger.info(f"DanmakuEngine [{self.module}] is searching, {keyword=}")
-            async for item in self.search(keyword):
-                yield item
+            async for meta in self.search(keyword):
+                meta.module = self.module  # set producer info
+                meta.engine_name = self.name
+                yield meta
         except Exception as e:
             logger.error(e)
 
-    async def safe_parse_detail(self, **parse_args) -> Optional[DanmakuDetail]:
+    async def do_parse_detail(self, **parse_args) -> Optional[DanmakuDetail]:
         try:
             logger.info(f"DanmakuEngine [{self.module}] is parsing the detail page, {parse_args=}")
-            return await self.parse_detail(**parse_args)
+            detail = await self.parse_detail(**parse_args)
+            detail.engine_name = self.name
+            detail.module = self.module
+            return detail
         except Exception as e:
             logger.error(e)
 
-    async def safe_parse_bullets(self, **parse_args) -> DanmakuData:
+    async def do_parse_data(self, **parse_args) -> DanmakuData:
         try:
             logger.info(f"DanmakuEngine [{self.module}] is parsing the bullets, {parse_args=}")
-            return await self.parse_bullets(**parse_args)
+            return await self.parse_data(**parse_args)
         except Exception as e:
             logger.error(e)
 

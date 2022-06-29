@@ -1,3 +1,4 @@
+import importlib
 from inspect import getmembers, isclass
 from types import ModuleType
 from typing import List, Type, Tuple
@@ -18,21 +19,20 @@ class RemoteEngineLoader:
     repo_url = config.get_remote_repo()
     assert repo_url != ""
 
-    def _load_remote_mods(self, pack_name: str) -> List[ModuleType]:
+    def _load_remote_mods(self, pkg_name: str) -> List[ModuleType]:
         mods = []
         try:
-            logger.info(f"Loading the package [{pack_name}] from {self.repo_url}")
-            pack = httpimport.load(pack_name, self.repo_url)
-            # `__all__` defined in `__init__.py`
-            if not hasattr(pack, "__all__"):
-                logger.error(f"Attribute '__all__' is not defined in package [{pack_name}]")
+            logger.info(f"Loading the package [{pkg_name}] from {self.repo_url}")
+            with httpimport.remote_repo(pkg_name, self.repo_url):
+                pkg = importlib.import_module(pkg_name)
+                for mod in pkg.__all__:
+                    m = importlib.import_module(f"{pkg_name}.{mod}")
+                    mods.append(m)
                 return mods
-            for mod_name in pack.__all__:
-                mod = httpimport.load(mod_name, self.repo_url + "/" + pack_name)
-                mods.append(mod)
         except ImportError as e:
             logger.error(e)
-        logger.info(f"Loaded {len(mods)} module(s) from [{pack_name}]: {mods}")
+
+        logger.info(f"Loaded {len(mods)} module(s) from [{pkg_name}]: {mods}")
         return mods
 
     @staticmethod
@@ -54,16 +54,16 @@ class RemoteEngineLoader:
         for mod in self._load_remote_mods("anime"):
             for cls in self._get_classes_of_mod(mod):
                 if issubclass(cls, AnimeEngine) and cls != AnimeEngine and not cls.deprecated:
-                    setattr(cls, "module", "anime." + cls.__module__)
+                    setattr(cls, "module", cls.__module__)
                     engines.append(cls())  # create an instance of engine
                 if issubclass(cls, VideoProxy) and cls != VideoProxy:
-                    setattr(cls, "module", "anime." + cls.__module__)
+                    setattr(cls, "module", cls.__module__)
                     proxies.append(cls)
         if engines:
             engines = sorted(engines, key=lambda e: e.quality, reverse=True)  # sort by quality
             logger.info(f"Create {len(engines)} instance(s) of anime engine: {engines}")
         if proxies:
-            logger.info(f"Create {len(proxies)} instance(s) of anime proxy: {proxies}")
+            logger.info(f"Found {len(proxies)} type(s) of anime proxy: {proxies}")
         return engines, proxies
 
     def pull_danmaku_engines(self) -> List[DanmakuEngine]:
@@ -77,7 +77,7 @@ class RemoteEngineLoader:
         for mod in self._load_remote_mods("danmaku"):
             for cls in self._get_classes_of_mod(mod):
                 if issubclass(cls, DanmakuEngine) and cls != DanmakuEngine and not cls.deprecated:
-                    setattr(cls, "module", "danmaku." + cls.__module__)
+                    setattr(cls, "module", cls.__module__)
                     engines.append(cls())
         if engines:
             engines = sorted(engines, key=lambda e: e.quality, reverse=True)

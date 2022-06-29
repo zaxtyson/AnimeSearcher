@@ -18,7 +18,7 @@ def clean_resp_headers(resp_headers: Header) -> Header:
                    "access-control-allow-origin", "content-length", "content-type", "content-range"]
     headers = Header()
     for k, v in resp_headers.items():
-        if k.lower() in allow_filed:
+        if k in allow_filed:
             headers[k] = v
     return headers
 
