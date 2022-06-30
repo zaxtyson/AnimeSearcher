@@ -1,4 +1,3 @@
-import traceback
 from typing import AsyncIterator, Optional
 
 from models.anime import *
@@ -96,8 +95,8 @@ class AnimeEngine(BaseEngine):
                 meta.engine_name = self.name
                 self.normalize_meta(meta)
                 yield meta
-        except Exception:
-            logger.error(traceback.format_exc())
+        except Exception as e:
+            logger.exception(e)
 
     async def do_parse_detail(self, **parse_args) -> Optional[AnimeDetail]:
         try:
@@ -107,8 +106,8 @@ class AnimeEngine(BaseEngine):
             detail.module = self.module
             self.normalize_detail(detail)
             return detail
-        except Exception:
-            logger.error(traceback.format_exc())
+        except Exception as e:
+            logger.exception(e)
 
     async def do_parse_video_info(self, **parse_args) -> Optional[VideoInfo]:
         try:
@@ -120,8 +119,8 @@ class AnimeEngine(BaseEngine):
             info = await self.parse_video_info(direct_link)
             info.raw_url = direct_link  # direct_link is attach to video info
             return info
-        except Exception:
-            logger.error(traceback.format_exc())
+        except Exception as e:
+            logger.exception(e)
 
 
 class DanmakuEngine(BaseEngine):
@@ -162,7 +161,7 @@ class DanmakuEngine(BaseEngine):
                 meta.engine_name = self.name
                 yield meta
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
     async def do_parse_detail(self, **parse_args) -> Optional[DanmakuDetail]:
         try:
@@ -172,18 +171,18 @@ class DanmakuEngine(BaseEngine):
             detail.module = self.module
             return detail
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
     async def do_parse_data(self, **parse_args) -> DanmakuData:
         try:
             logger.info(f"DanmakuEngine [{self.module}] is parsing the bullets, {parse_args=}")
             return await self.parse_data(**parse_args)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
 
 
 if __name__ == "__main__":
     base = BaseEngine()
     anime = AnimeEngine()
-    print(base.info())
-    print(anime.info())
+    print(base.to_json())
+    print(anime.to_json())

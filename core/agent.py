@@ -1,3 +1,6 @@
+import time
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from typing import AsyncIterator, Optional, Type
 
 from core.cache import cache
@@ -16,29 +19,63 @@ __all__ = ["agent"]
 class Agent:
 
     def __init__(self):
-        engines, proxies = engine_loader.pull_anime_engines()
-        self._anime_engines = engines
-        self._video_proxies = proxies
-        self._danmaku_engines = engine_loader.pull_danmaku_engines()
-        config.sync_engine_status(e.module for e in [*self._anime_engines, *self._danmaku_engines])
+        self._lock = Lock()
+        self._executor = ThreadPoolExecutor(max_workers=1)
+        self._anime_engines = []
+        self._video_proxies = []
+        self._danmaku_engines = []
+
+        # load engines on startup
+        self._load_engines()
+
+    def _load_engines(self):
+        """
+        Load engines from remote server, this method will BLOCK our eventloop
+        because of the `importlib` using `urllib` to request resources
+        """
+        logger.info("Start load remote engines...")
+        start = time.perf_counter()
+        anime_engines, proxies = engine_loader.pull_anime_engines()
+        danmaku_engines = engine_loader.pull_danmaku_engines()
+        with self._lock:
+            self._anime_engines = anime_engines
+            self._video_proxies = proxies
+            self._danmaku_engines = danmaku_engines
+            config.sync_engine_status(e.module for e in [*self._anime_engines, *self._danmaku_engines])
+        end = time.perf_counter()
+        logger.info(f"Load engines use: {end - start:.2f}s")
+
+    def load_engine_in_thread(self):
+        self._executor.submit(self._load_engines)
+
+    def get_loaded_anime_engine(self):
+        with self._lock:
+            return self._anime_engines
+
+    def get_loaded_danmaku_engine(self):
+        with self._lock:
+            return self._danmaku_engines
 
     def _get_anime_engine(self, module: str) -> Optional[AnimeEngine]:
-        for engine in self._anime_engines:
-            if engine.module == module:
-                return engine
-        return None
+        with self._lock:
+            for engine in self._anime_engines:
+                if engine.module == module:
+                    return engine
+            return None
 
-    def _get_video_proxy(self, module: str) -> Optional[Type[VideoProxy]]:
-        for proxy in self._video_proxies:
-            if proxy.module == module:
-                return proxy
-        return VideoProxy  # default proxy
+    def _get_video_proxy(self, module: str) -> Type[VideoProxy]:
+        with self._lock:
+            for proxy in self._video_proxies:
+                if proxy.module == module:
+                    return proxy
+            return VideoProxy  # default proxy
 
     def _get_danmaku_engine(self, module: str) -> Optional[DanmakuEngine]:
-        for engine in self._danmaku_engines:
-            if engine.module == module:
-                return engine
-        return None
+        with self._lock:
+            for engine in self._danmaku_engines:
+                if engine.module == module:
+                    return engine
+            return None
 
     @staticmethod
     def _complete_anime_meta(meta: AnimeMeta):

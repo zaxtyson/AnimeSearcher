@@ -14,10 +14,10 @@
 
 在 `config.json` 中 `remote_repo` 为引擎模块服务器的地址
 
-默认为: `https://anime-engine.zaxtyson.workers.dev`
+默认为: `https://gitee.com/zaxtyson/AnimeSearcher/raw/refactor/static/engines`
 
 该地址与本项目 [master](https://github.com/zaxtyson/AnimeSearcher/tree/master) 分支保持同步,
-通过 [CloudFlare](https://developers.cloudflare.com/workers/) 提供的 serverless 环境为国内用户加速
+使用 Gitee 的镜像为国内用户加速(原打算用 Cloudflare Worker 加速, 后面被墙了)
 
 ### 部署
 

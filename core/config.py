@@ -1,5 +1,6 @@
 import json
 from os.path import dirname, abspath
+from threading import Lock
 from typing import Any, List
 
 from utils.log import logger
@@ -12,17 +13,20 @@ class Config:
     def __init__(self):
         self._file = abspath(f"{dirname(__file__)}/../config.json")
         self._dict = {}
+        self._lock = Lock()
         self._load()
 
     def _load(self):
         logger.info(f"Loading config: {self._file}")
-        with open(self._file, "r", encoding="utf-8") as f:
-            self._dict = json.load(f)
+        with self._lock:
+            with open(self._file, "r", encoding="utf-8") as f:
+                self._dict = json.load(f)
 
     def _save(self):
         logger.info(f"Saving config: {self._file}")
-        with open(self._file, "w", encoding="utf-8") as f:
-            json.dump(self._dict, f, indent=2, ensure_ascii=False)
+        with self._lock:
+            with open(self._file, "w", encoding="utf-8") as f:
+                json.dump(self._dict, f, indent=2, ensure_ascii=False)
 
     def get(self, key: str) -> Any:
         return self._dict.get(key)
@@ -41,6 +45,15 @@ class Config:
 
     def get_engine_status(self) -> List[dict]:
         return self.get("engine_status")
+
+    def set_engine_status(self, module: str, enable: bool) -> bool:
+        for info in self.get_engine_status():
+            if info["module"] == module:
+                info["enable"] = enable
+                logger.info(f"Update engine status, {module=}, {enable=}")
+                self._save()
+                return True
+        return False
 
     def sync_engine_status(self, modules: List[str]):
         old_status = self.get_engine_status()

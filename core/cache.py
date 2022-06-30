@@ -1,5 +1,10 @@
 from datetime import datetime, timedelta
+from threading import Lock
 from typing import Any
+
+from pympler.asizeof import asizeof
+
+from utils.log import logger
 
 __all__ = ["cache"]
 
@@ -8,19 +13,31 @@ class MemCache:
 
     def __init__(self):
         self._db = {}
+        self._lock = Lock()
 
     def get(self, key: str) -> Any:
-        data = self._db.get(key)
+        with self._lock:
+            data = self._db.get(key)
         if not data or datetime.now() > data[0]:
             return None
-        return data[1]
+        value = data[1]
+        logger.debug(f"MemCache GET {key=}, {value=}")
+        return value
 
     def set(self, key: str, value: Any, expire: int):
         expire_tm = datetime.now() + timedelta(seconds=expire)
-        self._db[key] = (expire_tm, value)
+        value_ = (expire_tm, value)
+        with self._lock:
+            self._db[key] = value_
+        logger.debug(f"MemCache SET {key=}, {value=}, {expire_tm=}")
+
+    def mem(self) -> int:
+        return asizeof(self._db)  # bytes
 
     def clear(self):
-        self._db.clear()
+        logger.warning("MemCache clear!")
+        with self._lock:
+            self._db.clear()
 
 
 # global mem cache
