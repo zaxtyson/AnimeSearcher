@@ -6,12 +6,18 @@ from sanic.server.websockets.impl import WebsocketImplProtocol
 from core.agent import agent
 from core.config import config
 from models.resp import GenericResp
+from utils.bangumi import get_bangumi
 from utils.views import check_token
 from utils.views import template
 
 __all__ = ["bp_anime"]
 
 bp_anime = Blueprint("anime", url_prefix="/anime", version=1)
+
+
+@bp_anime.get("/bangumi")
+async def bangumi(request: Request):
+    return json(get_bangumi())
 
 
 @bp_anime.websocket("/search")

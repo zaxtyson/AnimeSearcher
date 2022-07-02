@@ -12,12 +12,12 @@
 
 ### 配置
 
-在 `config.json` 中 `remote_repo` 为引擎模块服务器的地址
+`config.json` 中 `remote_repo` 为引擎仓库地址, 默认为 `https://engines.zaxtyson.cn`
 
-默认为: `https://gitee.com/zaxtyson/AnimeSearcher/raw/refactor/static/engines`
+该地址与本项目 [master](https://github.com/zaxtyson/AnimeSearcher/tree/master) 分支保持同步
+(原打算用 Cloudflare Worker 加速, 结果被墙了. 国内 Gitee 仓库又遇到审核而且 API 速度也不是很稳定)
 
-该地址与本项目 [master](https://github.com/zaxtyson/AnimeSearcher/tree/master) 分支保持同步,
-使用 Gitee 的镜像为国内用户加速(原打算用 Cloudflare Worker 加速, 后面被墙了)
+**为了安全起见, 请不要随意使用第三方引擎仓库**
 
 ### 部署
 

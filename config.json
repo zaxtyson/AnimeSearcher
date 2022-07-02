@@ -7,7 +7,7 @@
     "debug": false,
     "access_log": true
   },
-  "remote_repo": "https://gitee.com/zaxtyson/AnimeSearcher/raw/refactor/static/engines",
+  "remote_repo": "https://engines.zaxtyson.cn",
   "engine_status": [
     {
       "module": "anime.agefans",
