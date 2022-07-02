@@ -15,7 +15,7 @@ async def get_bangumi() -> dict:
     if not data:
         bangumi_api = "https://api.bgm.tv/calendar"
         async with client.get(bangumi_api) as r:
-            data = await r.json()
+            data = await r.json(content_type=None)
         if data:
             cache.set("bangumi", data, config.get_cache_policy_of("anime_bangumi"))
     return data

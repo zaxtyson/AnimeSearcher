@@ -17,14 +17,17 @@ bp_anime = Blueprint("anime", url_prefix="/anime", version=1)
 
 @bp_anime.get("/bangumi")
 async def bangumi(request: Request):
-    return json(get_bangumi())
+    data = await get_bangumi()
+    return json(GenericResp(data=data).to_dict())
 
 
 @bp_anime.websocket("/search")
 async def ws_search(request: Request, ws: WebsocketImplProtocol):
-    keyword = await ws.recv()
-    async for meta in agent.get_anime_metas(keyword):
-        await ws.send(meta.to_json())
+    while True:
+        keyword = (await ws.recv()).strip()
+        if keyword:
+            async for meta in agent.get_anime_metas(keyword):
+                await ws.send(meta.to_json())
 
 
 @bp_anime.get("/search/<keyword:str>", unquote=True)

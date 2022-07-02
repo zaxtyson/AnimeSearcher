@@ -1,3 +1,5 @@
+import asyncio
+
 from sanic import json
 from sanic.blueprints import Blueprint
 from sanic.request import Request
@@ -7,6 +9,7 @@ from core.cache import cache
 from core.config import config
 from models.resp import GenericResp
 from utils.update import get_system_version
+from utils.ws_handler import ws_log_handler
 
 __all__ = ["bp_system"]
 
@@ -15,7 +18,14 @@ bp_system = Blueprint("system", url_prefix="/system", version=1)
 
 @bp_system.websocket("/log")
 async def get_log(request: Request, ws):
-    pass
+    try:
+        await ws_log_handler.register(ws)
+        await ws.wait_for_connection_lost()
+    except asyncio.CancelledError:
+        # client disconnect
+        pass
+    finally:
+        await ws_log_handler.unregister(ws)
 
 
 @bp_system.get("/version")

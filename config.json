@@ -32,7 +32,6 @@
   "cache_policy": {
     "anime_detail": 1800,
     "anime_bangumi": 3600,
-    "danmaku_meta": 7200,
     "danmaku_detail": 7200,
     "danmaku_data": 7200
   }

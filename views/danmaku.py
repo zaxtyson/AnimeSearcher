@@ -1,6 +1,7 @@
 from sanic.blueprints import Blueprint
 from sanic.request import Request
 from sanic.response import redirect, json
+from sanic.server.websockets.impl import WebsocketImplProtocol
 
 from core.agent import agent
 from models.resp import GenericResp, DplayerResp
@@ -12,10 +13,12 @@ bp_danmaku = Blueprint("danmaku", url_prefix="/danmaku", version=1)
 
 
 @bp_danmaku.websocket("/search")
-async def ws_search(request: Request, ws):
-    keyword = await ws.recv()
-    async for meta in agent.get_danmaku_metas(keyword):
-        await ws.send(meta.to_json())
+async def ws_search(request: Request, ws: WebsocketImplProtocol):
+    while True:
+        keyword = (await ws.recv()).strip()
+        if keyword:
+            async for meta in agent.get_danmaku_metas(keyword):
+                await ws.send(meta.to_json())
 
 
 @bp_danmaku.get("/search/<keyword:str>", unquote=True)
